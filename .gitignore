@@ -1,0 +1,8 @@
+# Ignorar dependencias pesadas
+node_modules/
+
+# Ignorar archivos con contraseñas de Base de Datos
+.env
+
+# Ignorar archivos basura del sistema
+.DS_Store
