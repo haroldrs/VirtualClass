@@ -5,8 +5,12 @@ require('dotenv').config();
 // Al importar nuestro archivo db.js, Node.js intentará conectarse a la base de datos automáticamente
 const db = require('./config/db');
 
-// --- CAMBIO AQUÍ: Importa las rutas de usuario ---
+// --- Rutas ---
 const usuarioRoutes = require('./modules/usuarios/usuario.routes');
+const cursoRoutes = require('./modules/cursos/curso.routes');
+const claseRoutes = require('./modules/clase/clase.routes');
+const recursosRoutes = require('./modules/recursos/recursos.routes');
+const calificacionesRoutes = require('./modules/calificaciones/calificaciones.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,10 +24,12 @@ app.get('/', (req, res) => {
     res.send('¡Servidor Backend de VirtuClass funcionando correctamente!');
 });
 
-// --- CAMBIO AQUÍ: Usa las rutas importadas ---
-// Esto significa que todas las rutas que definas en 'usuario.routes.js'
-// empezarán con '/api/usuarios' (ej: /api/usuarios/registro)
+// Rutas base
 app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/cursos', cursoRoutes);
+app.use('/api/clase', claseRoutes);
+app.use('/api/recursos', recursosRoutes);
+app.use('/api/calificaciones', calificacionesRoutes);
 
 // Arrancamos el motor
 app.listen(PORT, () => {
