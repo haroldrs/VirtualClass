@@ -177,6 +177,16 @@
                     <h3 class="fw-bold text-dark mb-1" id="cursoTitulo">Cargando Curso...</h3>
                     <p class="text-muted mb-0"><i class="bi bi-person me-1"></i> Docente: <span id="docenteNombre">...</span></p>
                 </div>
+                <div class="text-end">
+                    <div id="asistenciaAlumnoContenedor" class="d-none mb-2">
+                        <span class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-2">
+                            Asistencia: <span id="porcentajeAsistencia">...</span>%
+                        </span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" id="btnVerCompañeros" data-bs-toggle="modal" data-bs-target="#modalCompañeros">
+                        <i class="bi bi-people-fill"></i> Ver Compañeros
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -329,6 +339,53 @@
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary px-4" id="btnGuardarRecurso">Guardar Recurso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Tomar Asistencia (Solo Docentes) -->
+    <div class="modal fade" id="modalAsistencia" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold" id="tituloModalAsistencia">Tomar Asistencia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAsistenciaCuerpo">
+                                <!-- Lista de alumnos cargada dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Compañeros (Todos) -->
+    <div class="modal fade" id="modalCompañeros" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">Estudiantes Matriculados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush" id="listaCompañeros">
+                        <!-- Lista cargada dinámicamente -->
+                    </ul>
                 </div>
             </div>
         </div>

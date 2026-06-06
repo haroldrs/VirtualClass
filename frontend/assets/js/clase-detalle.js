@@ -30,6 +30,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalRecurso = new bootstrap.Modal(document.getElementById('modalRecurso'));
 
     await cargarDetallesClase();
+    await cargarCompañeros();
+    
+    if (!esDocente) {
+        await cargarPorcentajeAsistencia();
+    }
+
     await cargarSesiones();
     await cargarRecursos();
 
@@ -68,7 +74,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     let botonesEdicion = '';
                     if (esDocente) {
                         botonesEdicion = `
-                            <div class="mt-3 text-end">
+                            <div class="mt-3 text-end pt-3 border-top">
+                                <button class="btn btn-sm btn-success me-2 btn-tomar-asistencia" data-id="${sesion.id_sesion}" data-tema="${sesion.tema}"><i class="bi bi-clipboard-check"></i> Tomar Asistencia</button>
                                 <button class="btn btn-sm btn-outline-primary me-2 btn-editar-tema" data-id="${sesion.id_sesion}" data-tema="${sesion.tema}" data-desc="${sesion.descripcion}">Editar</button>
                                 <button class="btn btn-sm btn-outline-danger btn-eliminar-tema" data-id="${sesion.id_sesion}">Eliminar</button>
                             </div>
@@ -144,6 +151,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             console.error("Error al cargar recursos", e);
         }
+    }
+
+    async function cargarCompañeros() {
+        try {
+            const res = await fetch(`http://localhost:3000/api/asistencia/${idClase}/alumnos`);
+            const alumnos = await res.json();
+            const lista = document.getElementById('listaCompañeros');
+            lista.innerHTML = '';
+            
+            if (alumnos.length === 0) {
+                lista.innerHTML = '<li class="list-group-item text-muted">No hay alumnos matriculados.</li>';
+                return;
+            }
+
+            alumnos.forEach(al => {
+                lista.innerHTML += `
+                    <li class="list-group-item d-flex align-items-center">
+                        <div class="bg-light rounded-circle text-primary d-flex align-items-center justify-content-center me-3 fw-bold" style="width:35px;height:35px">
+                            ${al.nombres.charAt(0)}${al.apellidos.charAt(0)}
+                        </div>
+                        <div>
+                            <span class="d-block fw-semibold text-dark">${al.apellidos}, ${al.nombres}</span>
+                            <small class="text-muted">${al.correo}</small>
+                        </div>
+                    </li>`;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    async function cargarPorcentajeAsistencia() {
+        try {
+            const res = await fetch(`http://localhost:3000/api/asistencia/${idClase}/alumno/${currentUser.id_usuario}`);
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('asistenciaAlumnoContenedor').classList.remove('d-none');
+                document.getElementById('porcentajeAsistencia').innerText = data.porcentaje;
+            }
+        } catch (e) { console.error(e); }
     }
 
     // --- Manejo de Eventos (Docentes) ---
@@ -236,6 +281,78 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const error = await res.json();
                         alert(error.mensaje);
                     }
+                } catch (err) { console.error(err); }
+            });
+        });
+
+        // Asistencia
+        document.querySelectorAll('.btn-tomar-asistencia').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const idSesion = e.target.dataset.id || e.target.closest('button').dataset.id;
+                const tema = e.target.dataset.tema || e.target.closest('button').dataset.tema;
+                
+                document.getElementById('tituloModalAsistencia').innerText = `Asistencia: ${tema}`;
+                const tbody = document.getElementById('tablaAsistenciaCuerpo');
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center">Cargando...</td></tr>';
+                
+                const modalAsistencia = new bootstrap.Modal(document.getElementById('modalAsistencia'));
+                modalAsistencia.show();
+
+                try {
+                    const res = await fetch(`http://localhost:3000/api/asistencia/${idClase}/sesion/${idSesion}`);
+                    const alumnos = await res.json();
+                    
+                    tbody.innerHTML = '';
+                    if (alumnos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay alumnos.</td></tr>';
+                        return;
+                    }
+
+                    alumnos.forEach(al => {
+                        const isPresente = al.estado === 'presente' ? 'checked' : '';
+                        const isTardanza = al.estado === 'tardanza' ? 'checked' : '';
+                        const isAusente = al.estado === 'ausente' ? 'checked' : '';
+                        const isSinMarcar = al.estado === 'sin marcar' ? 'checked' : '';
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <span class="d-block fw-semibold text-dark">${al.apellidos}, ${al.nombres}</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="pres_${al.id_usuario}" value="presente" data-idsesion="${idSesion}" data-idusuario="${al.id_usuario}" ${isPresente}>
+                                        <label class="btn btn-outline-success" for="pres_${al.id_usuario}">P</label>
+                                        
+                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="tard_${al.id_usuario}" value="tardanza" data-idsesion="${idSesion}" data-idusuario="${al.id_usuario}" ${isTardanza}>
+                                        <label class="btn btn-outline-warning" for="tard_${al.id_usuario}">T</label>
+                                        
+                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="aus_${al.id_usuario}" value="ausente" data-idsesion="${idSesion}" data-idusuario="${al.id_usuario}" ${isAusente}>
+                                        <label class="btn btn-outline-danger" for="aus_${al.id_usuario}">A</label>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    // Añadir evento autoguardado
+                    document.querySelectorAll('.btn-asistencia').forEach(radio => {
+                        radio.addEventListener('change', async (ev) => {
+                            const rb = ev.target;
+                            try {
+                                await fetch('http://localhost:3000/api/asistencia/marcar', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        idSesion: rb.dataset.idsesion,
+                                        idUsuario: rb.dataset.idusuario,
+                                        estado: rb.value
+                                    })
+                                });
+                            } catch (error) { console.error("Error al guardar asistencia", error); }
+                        });
+                    });
+
                 } catch (err) { console.error(err); }
             });
         });

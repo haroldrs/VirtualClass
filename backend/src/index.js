@@ -30,6 +30,7 @@ app.use('/api/cursos', cursoRoutes);
 app.use('/api/clase', claseRoutes);
 app.use('/api/recursos', recursosRoutes);
 app.use('/api/calificaciones', calificacionesRoutes);
+app.use('/api/asistencia', asistenciaRoutes);
 
 // Arrancamos el motor
 app.listen(PORT, () => {
