@@ -17,17 +17,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // UI Elements
     const btnAddTema = document.getElementById('btnAñadirTema');
     const btnAddRecurso = document.getElementById('btnAñadirRecurso');
+    const btnAddActividad = document.getElementById('btnAñadirActividad');
     const semanasAcordeon = document.getElementById('semanasAcordeon');
     const recursosContainer = document.getElementById('recursosContainer');
+    const actividadesContainer = document.getElementById('actividadesContainer');
 
     if (esDocente) {
         btnAddTema.classList.remove('d-none');
         btnAddRecurso.classList.remove('d-none');
+        btnAddActividad.classList.remove('d-none');
     }
 
     // Modal elements
     const modalTema = new bootstrap.Modal(document.getElementById('modalTema'));
     const modalRecurso = new bootstrap.Modal(document.getElementById('modalRecurso'));
+    const modalCrearActividad = new bootstrap.Modal(document.getElementById('modalCrearActividad'));
+    const modalEntregarActividad = new bootstrap.Modal(document.getElementById('modalEntregarActividad'));
+    const offcanvasRevision = new bootstrap.Offcanvas(document.getElementById('offcanvasRevision'));
 
     await cargarDetallesClase();
     await cargarCompañeros();
@@ -38,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarSesiones();
     await cargarRecursos();
+    await cargarActividades();
 
     async function cargarDetallesClase() {
         try {
@@ -151,6 +158,72 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             console.error("Error al cargar recursos", e);
         }
+    }
+
+    async function cargarActividades() {
+        try {
+            const url = `http://localhost:3000/api/evaluaciones/${idClase}/${currentUser.id_usuario}?rol=${currentUser.rol}`;
+            const res = await fetch(url);
+            const actividades = await res.json();
+            
+            if (res.ok) {
+                actividadesContainer.innerHTML = '';
+                if (actividades.length === 0) {
+                    actividadesContainer.innerHTML = '<div class="col-12"><div class="text-center text-muted p-3">No hay actividades programadas.</div></div>';
+                    return;
+                }
+
+                actividades.forEach(act => {
+                    const dateObj = new Date(act.fecha_evaluacion);
+                    // Añadir zona horaria para que no se atrase un día
+                    dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+                    const date = dateObj.toLocaleDateString('es-ES');
+
+                    let actionHtml = '';
+                    let statusBadge = '';
+
+                    if (esDocente) {
+                        actionHtml = `<button class="btn btn-sm btn-outline-success mt-3 w-100 fw-bold btn-revisar-entregas" data-id="${act.id_evaluacion}" data-nombre="${act.nombre_eva}">Revisar Entregas</button>`;
+                    } else {
+                        if (act.calificacion !== null && act.calificacion !== undefined) {
+                            statusBadge = `<span class="badge bg-success position-absolute top-0 end-0 m-3">Calificado: ${act.calificacion}</span>`;
+                            actionHtml = `
+                                <div class="mt-3 p-2 bg-light rounded text-center small">
+                                    <span class="text-success fw-bold d-block">Nota: ${act.calificacion} / 20</span>
+                                    <span class="text-muted fst-italic">"${act.comentario}"</span>
+                                </div>`;
+                        } else if (act.id_entrega) {
+                            statusBadge = `<span class="badge bg-primary position-absolute top-0 end-0 m-3">Entregado</span>`;
+                            actionHtml = `<button class="btn btn-sm btn-light text-primary mt-3 w-100 fw-bold" disabled>Enviado - Esperando revisión</button>`;
+                        } else {
+                            statusBadge = `<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3">Pendiente</span>`;
+                            actionHtml = `<button class="btn btn-sm btn-primary mt-3 w-100 fw-bold btn-entregar-actividad" data-id="${act.id_evaluacion}">Entregar Tarea</button>`;
+                        }
+                    }
+
+                    const html = `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border border-light-subtle shadow-sm position-relative">
+                            ${statusBadge}
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-success-subtle text-success rounded p-2 me-2">
+                                        <i class="bi bi-journal-text fs-5"></i>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-0">${act.nombre_eva}</h6>
+                                </div>
+                                <div class="text-muted small mb-1"><i class="bi bi-clock me-1"></i> Límite: ${date}</div>
+                                <div class="text-muted small"><i class="bi bi-percent me-1"></i> Peso: ${act.porcentaje}%</div>
+                                ${actionHtml}
+                            </div>
+                        </div>
+                    </div>`;
+                    actividadesContainer.insertAdjacentHTML('beforeend', html);
+                });
+
+                asignarEventosActividades();
+            }
+        } catch (e) { console.error(e); }
     }
 
     async function cargarCompañeros() {
@@ -362,7 +435,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function asignarEventosRecursos() {
         document.querySelectorAll('.btn-eliminar-recurso').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                // Prevenir comportamiento default en caso de que capture el clic del link o icon
                 e.preventDefault(); 
                 const btnElem = e.target.closest('button');
                 if (!confirm("¿Seguro que deseas eliminar este recurso?")) return;
@@ -371,6 +443,150 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (res.ok) {
                         await cargarRecursos();
                     }
+                } catch (err) { console.error(err); }
+            });
+        });
+    }
+
+    // --- Lógica de Actividades (Docente y Alumno) ---
+    document.getElementById('btnGuardarActividad').addEventListener('click', async () => {
+        const nombre = document.getElementById('actividadNombre').value;
+        const peso = document.getElementById('actividadPeso').value;
+        const fecha = document.getElementById('actividadFecha').value;
+
+        if (!nombre || !peso || !fecha) return alert('Todos los campos son obligatorios');
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/evaluaciones/${idClase}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
+            });
+
+            if (res.ok) {
+                modalCrearActividad.hide();
+                await cargarActividades();
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    document.getElementById('btnGuardarEntrega').addEventListener('click', async () => {
+        const url = document.getElementById('entregaUrl').value;
+        const idEv = document.getElementById('entregaActividadId').value;
+
+        if (!url) return alert('Debes proporcionar un enlace');
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/evaluaciones/entrega`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idEvaluacion: idEv, idUsuario: currentUser.id_usuario, archivoUrl: url })
+            });
+
+            if (res.ok) {
+                modalEntregarActividad.hide();
+                await cargarActividades();
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    function asignarEventosActividades() {
+        // Alumnos: Abrir modal de entrega
+        document.querySelectorAll('.btn-entregar-actividad').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.getElementById('entregaActividadId').value = e.target.dataset.id;
+                document.getElementById('entregaUrl').value = '';
+                modalEntregarActividad.show();
+            });
+        });
+
+        // Docentes: Abrir offcanvas de revisión
+        document.querySelectorAll('.btn-revisar-entregas').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const idEv = e.target.dataset.id;
+                const nombre = e.target.dataset.nombre;
+                
+                document.getElementById('revisionActividadNombre').innerText = nombre;
+                document.getElementById('revisionCurso').innerText = document.getElementById('cursoTitulo').innerText;
+                const container = document.getElementById('revisionContainer');
+                container.innerHTML = '<div class="text-center text-muted">Cargando entregas...</div>';
+                
+                offcanvasRevision.show();
+
+                try {
+                    const res = await fetch(`http://localhost:3000/api/evaluaciones/entregas/${idEv}/${idClase}`);
+                    const alumnos = await res.json();
+                    
+                    container.innerHTML = '';
+                    if (alumnos.length === 0) {
+                        container.innerHTML = '<div class="text-center text-muted">No hay alumnos.</div>';
+                        return;
+                    }
+
+                    alumnos.forEach(al => {
+                        let entregaHtml = `<span class="badge bg-danger">Sin entrega</span>`;
+                        if (al.id_entrega) {
+                            entregaHtml = `<a href="${al.archivo_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-link-45deg"></i> Ver Trabajo</a>`;
+                        }
+
+                        const notaVal = al.calificacion !== null ? al.calificacion : '';
+                        const comVal = al.comentario || '';
+
+                        const html = `
+                        <div class="card mb-3 border-0 shadow-sm">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">${al.apellidos}, ${al.nombres}</span>
+                                    ${entregaHtml}
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <label class="form-label small text-muted mb-0">Nota</label>
+                                        <input type="number" class="form-control form-control-sm nota-calificacion" value="${notaVal}" data-idusuario="${al.id_usuario}" data-ideval="${idEv}" min="0" max="20" ${!al.id_entrega ? 'disabled' : ''}>
+                                    </div>
+                                    <div class="col-8">
+                                        <label class="form-label small text-muted mb-0">Comentario</label>
+                                        <input type="text" class="form-control form-control-sm nota-comentario" value="${comVal}" data-idusuario="${al.id_usuario}" data-ideval="${idEv}" placeholder="..." ${!al.id_entrega ? 'disabled' : ''}>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-2">
+                                    <button class="btn btn-sm btn-success btn-guardar-nota-ev" data-idusuario="${al.id_usuario}" data-ideval="${idEv}" ${!al.id_entrega ? 'disabled' : ''}>Guardar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                        container.insertAdjacentHTML('beforeend', html);
+                    });
+
+                    // Evento para guardar la nota
+                    document.querySelectorAll('.btn-guardar-nota-ev').forEach(btn => {
+                        btn.addEventListener('click', async (ev) => {
+                            const btnElem = ev.target;
+                            const idUsu = btnElem.dataset.idusuario;
+                            const idEval = btnElem.dataset.ideval;
+                            const card = btnElem.closest('.card-body');
+                            const notaInput = card.querySelector('.nota-calificacion').value;
+                            const comInput = card.querySelector('.nota-comentario').value;
+
+                            if (notaInput === '') return alert('Debe ingresar una nota');
+
+                            btnElem.innerText = '...';
+                            try {
+                                await fetch('http://localhost:3000/api/calificaciones/calificar', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        idEvaluacion: idEval,
+                                        idUsuario: idUsu,
+                                        calificacion: notaInput,
+                                        comentario: comInput || 'Revisado'
+                                    })
+                                });
+                                btnElem.innerText = 'OK';
+                                setTimeout(() => btnElem.innerText = 'Guardar', 2000);
+                            } catch (error) { console.error(error); }
+                        });
+                    });
+
                 } catch (err) { console.error(err); }
             });
         });
