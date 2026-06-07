@@ -12,6 +12,7 @@ const claseRoutes = require('./modules/clase/clase.routes');
 const recursosRoutes = require('./modules/recursos/recursos.routes');
 const calificacionesRoutes = require('./modules/calificaciones/calificaciones.routes');
 const asistenciaRoutes = require('./modules/asistencia/asistencia.routes');
+const evaluacionesRoutes = require('./modules/evaluaciones/evaluaciones.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use('/api/clase', claseRoutes);
 app.use('/api/recursos', recursosRoutes);
 app.use('/api/calificaciones', calificacionesRoutes);
 app.use('/api/asistencia', asistenciaRoutes);
+app.use('/api/evaluaciones', evaluacionesRoutes);
 
 // Arrancamos el motor
 app.listen(PORT, () => {
