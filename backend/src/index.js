@@ -11,6 +11,7 @@ const cursoRoutes = require('./modules/cursos/curso.routes');
 const claseRoutes = require('./modules/clase/clase.routes');
 const recursosRoutes = require('./modules/recursos/recursos.routes');
 const calificacionesRoutes = require('./modules/calificaciones/calificaciones.routes');
+const asistenciaRoutes = require('./modules/asistencia/asistencia.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
