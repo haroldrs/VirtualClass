@@ -6,30 +6,34 @@ const crearUsuario = async (nombres, apellidos, correo, contrasena) => {
         VALUES ($1, $2, $3, $4)
         RETURNING id_usuario, nombres, apellidos, correo;
     `;
-    
+
     const values = [nombres, apellidos, correo, contrasena];
 
     try {
         const respuesta = await pool.query(query, values);
-        return respuesta.rows[0]; 
+        return respuesta.rows[0];
     } catch (error) {
         console.error('Error en el modelo de usuario:', error);
         throw error;
     }
 };
 
-module.exports = { crearUsuario };
+const obtenerUsuarioConRolPorCorreo = async (correo) => {
+    const query = `
+        SELECT U.ID_USUARIO, U.NOMBRES, U.APELLIDOS, U.CORREO, U.CONTRASENA, U.ESTADO, R.NOMBRE_ROL as ROL
+        FROM USUARIO U
+        LEFT JOIN USUARIO_ROL UR ON U.ID_USUARIO = UR.ID_USUARIO
+        LEFT JOIN ROL R ON UR.ID_ROL = R.ID_ROL
+        WHERE U.CORREO = $1;
+    `;
+    
+    try {
+        const respuesta = await pool.query(query, [correo]);
+        return respuesta.rows[0];
+    } catch (error) {
+        console.error('Error al obtener usuario por correo:', error);
+        throw error;
+    }
+};
 
-// ================================================================
-// 🧪 ZONA DE PRUEBAS
-// ================================================================
-crearUsuario('Juan', 'Perez', 'juan.prueba2@correo.com', 'clave123')
-    .then(nuevoUsuario => {
-        console.log('✅ ¡ÉXITO! El modelo funciona a la perfección.');
-        console.log('Datos devueltos por la BD:', nuevoUsuario);
-        process.exit(0);
-    })
-    .catch(error => {
-        console.error('❌ ERROR en la prueba:', error.message);
-        process.exit(1);
-    });
+module.exports = { crearUsuario, obtenerUsuarioConRolPorCorreo };

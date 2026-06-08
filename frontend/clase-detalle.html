@@ -124,19 +124,19 @@
 
     <div class="sidebar" id="sidebar">
         <div class="brand-area text-center">
-            <img src="source/virtuclass_logo.png" alt="VirtuClass Logo" class="brand-logo">
+            <img src="assets/images/virtuclass_logo.png" alt="VirtuClass Logo" class="brand-logo">
         </div>
         <div class="mt-4">
-            <a href="dashboard.html" class="nav-link-custom active">
+            <a href="dashboard.html" class="nav-link-custom">
                 <i class="bi bi-grid-1x2"></i> Mis Cursos
             </a>
-            <a href="#" class="nav-link-custom">
+            <a href="calificaciones.html" class="nav-link-custom">
                 <i class="bi bi-journal-check"></i> Calificaciones
             </a>
-            <a href="#" class="nav-link-custom">
+            <a href="foros.html" class="nav-link-custom">
                 <i class="bi bi-chat-square-text"></i> Foros
             </a>
-            <a href="#" class="nav-link-custom">
+            <a href="agenda.html" class="nav-link-custom">
                 <i class="bi bi-calendar3"></i> Agenda
             </a>
         </div>
@@ -170,12 +170,22 @@
             </div>
         </div>
 
-        <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm">
+        <div class="card border-0 bg-white p-4 mb-4 rounded-3 shadow-sm" id="claseHeaderInfo">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <span class="text-primary small fw-bold text-uppercase tracking-wider">INF102 • Sección A</span>
-                    <h3 class="fw-bold text-dark mb-1">Diseño de Base de Datos</h3>
-                    <p class="text-muted mb-0"><i class="bi bi-person me-1"></i> Docente: Mg. Ana Gómez</p>
+                    <span class="text-primary small fw-bold text-uppercase tracking-wider" id="cursoBadge">Cargando...</span>
+                    <h3 class="fw-bold text-dark mb-1" id="cursoTitulo">Cargando Curso...</h3>
+                    <p class="text-muted mb-0"><i class="bi bi-person me-1"></i> Docente: <span id="docenteNombre">...</span></p>
+                </div>
+                <div class="text-end">
+                    <div id="asistenciaAlumnoContenedor" class="d-none mb-2">
+                        <span class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-2">
+                            Asistencia: <span id="porcentajeAsistencia">...</span>%
+                        </span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" id="btnVerCompañeros" data-bs-toggle="modal" data-bs-target="#modalCompañeros">
+                        <i class="bi bi-people-fill"></i> Ver Compañeros
+                    </button>
                 </div>
             </div>
         </div>
@@ -218,73 +228,34 @@
 
         <div class="row">
             <div class="col-lg-8">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-week me-2 text-primary"></i>Contenidos por Semanas</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar-week me-2 text-primary"></i>Contenidos por Semanas</h5>
+                    <button class="btn btn-sm btn-primary d-none" id="btnAñadirTema" data-bs-toggle="modal" data-bs-target="#modalTema"><i class="bi bi-plus"></i> Añadir Tema</button>
+                </div>
                 
                 <div class="accordion" id="semanasAcordeon">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sm1">
-                                Semana 1: Introducción y Modelo Entidad-Relación
-                            </button>
-                        </h2>
-                        <div id="sm1" class="accordion-collapse collapse show" data-bs-parent="#semanasAcordeon">
-                            <div class="accordion-body bg-white small">
-                                <p class="text-muted">Diseño conceptual, identificación de entidades, atributos y restricciones iniciales[cite: 314].</p>
-                                
-                                <div class="p-3 bg-light rounded-3 mb-2">
-                                    <span class="d-block fw-bold text-dark mb-2"><i class="bi bi-folder2-open me-2 text-primary"></i>Materiales de la sesión:</span>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 mb-2 resource-item">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-file-earmark-easel-fill text-danger fs-4 me-2"></i>
-                                            <div>
-                                                <span class="d-block fw-semibold text-dark">Diapositivas Sem 1 - Modelo ER</span>
-                                                <small class="text-muted">Archivo PPTX [cite: 306]</small>
-                                            </div>
-                                        </div>
-                                        <a href="#" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-download"></i></a>
-                                    </div>
+                    <!-- Contenido dinámico de sesiones -->
+                    <div class="text-center text-muted p-4">Cargando sesiones...</div>
+                </div>
 
-                                    <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 resource-item">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-google-drive text-warning fs-4 me-2"></i>
-                                            <div>
-                                                <span class="d-block fw-semibold text-dark">Lectura Compartida en Google Drive</span>
-                                                <small class="text-muted">Sincronizado con tu correo institucional</small>
-                                            </div>
-                                        </div>
-                                        <a href="https://drive.google.com" target="_blank" class="btn btn-sm btn-light rounded-pill fw-semibold text-primary">Ver archivo</a>
-                                    </div>
+                <div class="mt-5 d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-folder-fill me-2 text-warning"></i>Recursos del Curso</h5>
+                    <button class="btn btn-sm btn-primary d-none" id="btnAñadirRecurso" data-bs-toggle="modal" data-bs-target="#modalRecurso"><i class="bi bi-plus"></i> Añadir Recurso</button>
+                </div>
+                
+                <div id="recursosContainer" class="p-3 bg-light rounded-3 mb-4">
+                    <!-- Contenido dinámico de recursos -->
+                    <div class="text-center text-muted p-3">Cargando recursos...</div>
+                </div>
 
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mt-5 d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-journal-check me-2 text-success"></i>Actividades y Entregables</h5>
+                    <button class="btn btn-sm btn-success d-none" id="btnAñadirActividad" data-bs-toggle="modal" data-bs-target="#modalCrearActividad"><i class="bi bi-plus"></i> Crear Actividad</button>
+                </div>
 
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sm2">
-                                Semana 2: Normalización y Pasaje a Tablas
-                            </button>
-                        </h2>
-                        <div id="sm2" class="accordion-collapse collapse" data-bs-parent="#semanasAcordeon">
-                            <div class="accordion-body bg-white small">
-                                <p class="text-muted">Transformación de reglas de negocio en esquemas relacionales lógicos sin redundancia[cite: 254].</p>
-                                <div class="p-3 bg-light rounded-3">
-                                    <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded-2 resource-item">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-file-earmark-pdf-fill text-danger fs-4 me-2"></i>
-                                            <div>
-                                                <span class="d-block fw-semibold text-dark">Guía Práctica - 1FN, 2FN, 3FN</span>
-                                                <small class="text-muted">Documento PDF</small>
-                                            </div>
-                                        </div>
-                                        <a href="#" class="btn btn-sm btn-outline-primary border-0"><i class="bi bi-download"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="actividadesContainer" class="row g-3 mb-4">
+                    <!-- Contenido dinámico de actividades -->
+                    <div class="col-12"><div class="text-center text-muted p-3">Cargando actividades...</div></div>
                 </div>
             </div>
 
@@ -320,6 +291,190 @@
 
     </div>
 
+    <!-- Modales para Docentes -->
+    <div class="modal fade" id="modalTema" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold" id="modalTemaTitulo">Añadir Tema</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="temaId">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Título del Tema</label>
+                        <input type="text" class="form-control" id="temaTitulo" placeholder="Ej: Semana 1: Introducción">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Descripción</label>
+                        <textarea class="form-control" id="temaDescripcion" rows="3" placeholder="Descripción breve de lo que se verá..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" id="btnGuardarTema">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRecurso" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">Añadir Recurso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Título del Recurso</label>
+                        <input type="text" class="form-control" id="recursoTitulo" placeholder="Ej: Diapositivas Sem 1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Tipo de Recurso</label>
+                        <select class="form-select" id="recursoTipo">
+                            <option value="pdf">PDF</option>
+                            <option value="video">Video</option>
+                            <option value="documento">Documento Word/PPT</option>
+                            <option value="link">Enlace Web</option>
+                            <option value="imagen">Imagen</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Enlace / URL</label>
+                        <input type="text" class="form-control" id="recursoUrl" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" id="btnGuardarRecurso">Guardar Recurso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Tomar Asistencia (Solo Docentes) -->
+    <div class="modal fade" id="modalAsistencia" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold" id="tituloModalAsistencia">Tomar Asistencia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAsistenciaCuerpo">
+                                <!-- Lista de alumnos cargada dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Compañeros (Todos) -->
+    <div class="modal fade" id="modalCompañeros" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold">Estudiantes Matriculados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush" id="listaCompañeros">
+                        <!-- Lista cargada dinámicamente -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales para Actividades -->
+    <!-- Crear Actividad (Docente) -->
+    <div class="modal fade" id="modalCrearActividad" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold text-success"><i class="bi bi-journal-plus me-2"></i>Nueva Actividad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Nombre de la Actividad</label>
+                        <input type="text" class="form-control" id="actividadNombre" placeholder="Ej: Proyecto Final">
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">Peso (%)</label>
+                            <input type="number" class="form-control" id="actividadPeso" placeholder="Ej: 20">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-bold">Fecha Límite</label>
+                            <input type="date" class="form-control" id="actividadFecha">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success px-4" id="btnGuardarActividad">Crear Tarea</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entregar Actividad (Alumno) -->
+    <div class="modal fade" id="modalEntregarActividad" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-cloud-arrow-up me-2"></i>Entregar Tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="entregaActividadId">
+                    <p class="text-muted small mb-3">Sube el enlace de tu documento (Google Drive, OneDrive, Canva, etc.). Asegúrate de que los permisos estén configurados como "Público" para que tu profesor pueda revisarlo.</p>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Enlace de tu trabajo</label>
+                        <input type="url" class="form-control" id="entregaUrl" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" id="btnGuardarEntrega">Enviar Trabajo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revisar Entregas (Docente - Offcanvas) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRevision" style="width: 500px;">
+        <div class="offcanvas-header bg-light border-bottom">
+            <h5 class="offcanvas-title fw-bold text-success" id="offcanvasRevisionTitle">Revisar Tareas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="p-3 bg-white text-center border-bottom">
+                <span class="d-block small text-muted text-uppercase fw-bold" id="revisionCurso">CURSO</span>
+                <h6 class="mb-0 fw-bold" id="revisionActividadNombre">Nombre de la actividad</h6>
+            </div>
+            <div id="revisionContainer" class="p-3">
+                <!-- Dinámico: Lista de alumnos y sus inputs de nota -->
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const sidebarToggle = document.getElementById('sidebarToggle');
@@ -330,5 +485,7 @@
             });
         }
     </script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/clase-detalle.js"></script>
 </body>
 </html>
