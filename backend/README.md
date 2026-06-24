@@ -27,7 +27,7 @@ En la carpeta backend, creen un archivo llamado .env (con el punto al inicio) y 
 6. Encripten las contraseñas de prueba:
 Para que las contraseñas de los usuarios de prueba funcionen con el sistema de encriptación (bcrypt), ejecuten el siguiente script en la terminal (dentro de la carpeta backend):
 node update_passwords.js
-Esto encriptará las contraseñas y les permitirá iniciar sesión con: cmendoza@edu.com y la contraseña: hash123
+Esto encriptará las contraseñas y les permitirá iniciar sesión.
 
 ¡Enciendan el motor!
 En la terminal, dentro de la carpeta backend, corran:
