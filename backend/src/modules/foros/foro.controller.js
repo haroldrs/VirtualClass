@@ -1,0 +1,132 @@
+const foroModel = require('./foro.model');
+
+// =============================================
+// 1. Obtener los foros del usuario según su rol
+// =============================================
+const obtenerMisForos = async (req, res) => {
+    const { idUsuario, rol } = req.params;
+
+    try {
+        let foros = [];
+        if (rol.toLowerCase().includes('docente')) {
+            foros = await foroModel.obtenerForosDeDocente(idUsuario);
+        } else {
+            foros = await foroModel.obtenerForosDeAlumno(idUsuario);
+        }
+
+        res.status(200).json(foros);
+    } catch (error) {
+        console.error('Error al obtener foros:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    }
+};
+
+// =============================================
+// 2. Obtener los temas de un foro específico
+// =============================================
+const obtenerTemas = async (req, res) => {
+    const { idForo } = req.params;
+
+    try {
+        const temas = await foroModel.obtenerTemasDelForo(idForo);
+        res.status(200).json(temas);
+    } catch (error) {
+        console.error('Error al obtener temas:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    }
+};
+
+// =============================================
+// 3. Obtener un tema con todas sus respuestas
+// =============================================
+const obtenerDiscusion = async (req, res) => {
+    const { idTema } = req.params;
+
+    try {
+        const discusion = await foroModel.obtenerTemaConRespuestas(idTema);
+
+        if (!discusion) {
+            return res.status(404).json({ mensaje: 'Tema no encontrado' });
+        }
+
+        res.status(200).json(discusion);
+    } catch (error) {
+        console.error('Error al obtener discusión:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    }
+};
+
+// =============================================
+// 4. Crear un nuevo tema en un foro
+// =============================================
+const publicarTema = async (req, res) => {
+    const { idForo } = req.params;
+    const { id_usuario, titulo_tema, mensaje_inicial } = req.body;
+
+    if (!id_usuario || !titulo_tema || !mensaje_inicial) {
+        return res.status(400).json({ mensaje: 'Faltan campos obligatorios (id_usuario, titulo_tema, mensaje_inicial)' });
+    }
+
+    try {
+        const nuevoTema = await foroModel.crearTema(idForo, id_usuario, titulo_tema, mensaje_inicial);
+        res.status(201).json({
+            mensaje: 'Tema publicado exitosamente',
+            tema: nuevoTema
+        });
+    } catch (error) {
+        console.error('Error al crear tema:', error);
+        res.status(500).json({ mensaje: 'Error al publicar el tema', error: error.message });
+    }
+};
+
+// =============================================
+// 5. Responder a un tema
+// =============================================
+const responderTema = async (req, res) => {
+    const { idTema } = req.params;
+    const { id_usuario, contenido } = req.body;
+
+    if (!id_usuario || !contenido) {
+        return res.status(400).json({ mensaje: 'Faltan campos obligatorios (id_usuario, contenido)' });
+    }
+
+    try {
+        const nuevaRespuesta = await foroModel.crearRespuesta(idTema, id_usuario, contenido);
+        res.status(201).json({
+            mensaje: 'Respuesta publicada exitosamente',
+            respuesta: nuevaRespuesta
+        });
+    } catch (error) {
+        console.error('Error al responder:', error);
+        res.status(500).json({ mensaje: 'Error al publicar la respuesta', error: error.message });
+    }
+};
+
+// =============================================
+// 6. Buscar temas dentro de un foro
+// =============================================
+const buscarEnForo = async (req, res) => {
+    const { idForo } = req.params;
+    const { q } = req.query; // ?q=palabra
+
+    if (!q) {
+        return res.status(400).json({ mensaje: 'Falta el parámetro de búsqueda (?q=...)' });
+    }
+
+    try {
+        const resultados = await foroModel.buscarTemas(idForo, q);
+        res.status(200).json(resultados);
+    } catch (error) {
+        console.error('Error al buscar:', error);
+        res.status(500).json({ mensaje: 'Error al buscar en el foro', error: error.message });
+    }
+};
+
+module.exports = {
+    obtenerMisForos,
+    obtenerTemas,
+    obtenerDiscusion,
+    publicarTema,
+    responderTema,
+    buscarEnForo
+};
