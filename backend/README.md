@@ -14,7 +14,7 @@ Abran PostgreSQL. Creen una nueva base de datos que se llame EXACTAMENTE DB_Virt
 4. Creen las tablas:
 Entren a esa nueva base de datos en PostgreSQL, abran un editor SQL y peguen todo el código que les dejé en el archivo database.sql que acaba de descargarse. Denle a ejecutar para que se creen sus tablas.
 
-5. Creen su archivo secreto:
+ 5. Creen su archivo secreto:
 En la carpeta backend, creen un archivo llamado .env (con el punto al inicio) y peguen esto, cambiando la contraseña por la que ustedes le pusieron a su PostgreSQL:
 
  DB_USER=postgres
@@ -23,6 +23,11 @@ En la carpeta backend, creen un archivo llamado .env (con el punto al inicio) y 
  DB_PORT=5432
  DB_NAME=DB_VirtualClass
  PORT=3000
+
+6. Encripten las contraseñas de prueba:
+Para que las contraseñas de los usuarios de prueba funcionen con el sistema de encriptación (bcrypt), ejecuten el siguiente script en la terminal (dentro de la carpeta backend):
+node update_passwords.js
+Esto encriptará las contraseñas y les permitirá iniciar sesión con: cmendoza@edu.com y la contraseña: hash123
 
 ¡Enciendan el motor!
 En la terminal, dentro de la carpeta backend, corran:
