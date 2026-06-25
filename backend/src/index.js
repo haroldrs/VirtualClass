@@ -14,6 +14,7 @@ const calificacionesRoutes = require('./modules/calificaciones/calificaciones.ro
 const asistenciaRoutes = require('./modules/asistencia/asistencia.routes');
 const evaluacionesRoutes = require('./modules/evaluaciones/evaluaciones.routes');
 const forosRoutes = require('./modules/foros/foro.routes');
+const calendarioRoutes = require('./modules/calendario/calendario.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use('/api/calificaciones', calificacionesRoutes);
 app.use('/api/asistencia', asistenciaRoutes);
 app.use('/api/evaluaciones', evaluacionesRoutes);
 app.use('/api/foros', forosRoutes);
+app.use('/api/calendario', calendarioRoutes);
 
 // Arrancamos el motor
 app.listen(PORT, () => {
