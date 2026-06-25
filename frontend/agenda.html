@@ -77,42 +77,43 @@
             margin-bottom: 30px;
         }
 
-        /* DISEÑO COHESIVO DEL CALENDARIO */
+        /* Calendario */
         .calendar-container {
             background-color: #ffffff;
             border-radius: 16px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-            padding: 20px;
+            padding: 24px;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 6px;
         }
 
         .calendar-day-header {
             text-align: center;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #6c757d;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #94a3b8;
             text-transform: uppercase;
-            padding: 10px 0;
+            letter-spacing: 0.5px;
+            padding: 12px 0;
         }
 
         .calendar-day {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            min-height: 90px;
-            padding: 6px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            min-height: 95px;
+            padding: 8px;
             display: flex;
-            flex-column: column;
-            justify-content: space-between;
-            transition: background-color 0.2s;
+            flex-direction: column;
+            transition: all 0.2s;
         }
 
         .calendar-day:hover {
-            background-color: #edf2f9;
+            background-color: #eef2ff;
+            transform: scale(1.02);
         }
 
         .calendar-day.empty {
@@ -121,42 +122,70 @@
         }
 
         .calendar-day.today {
-            background-color: rgba(74, 108, 247, 0.1);
-            border: 1px solid var(--primary-color);
+            background-color: rgba(74, 108, 247, 0.08);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
         }
 
         .day-number {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #495057;
+            color: #475569;
+            margin-bottom: 4px;
         }
 
-        /* Eventos compactos dentro del día */
+        .today .day-number {
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+
+        /* Eventos dentro del día */
         .calendar-event {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             padding: 2px 6px;
             border-radius: 4px;
-            margin-top: 4px;
+            margin-top: 3px;
             font-weight: 600;
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
             display: block;
+            line-height: 1.4;
         }
 
-        .event-evaluacion { background-color: #ffeef0; color: #dc3545; }
-        .event-clase { background-color: #e8f0fe; color: #1a73e8; }
+        /* Botones de navegación */
+        .nav-btn {
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #475569;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #f1f5f9;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .nav-btn.active-today {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
 
         @media (max-width: 991.98px) {
             .sidebar { margin-left: calc(-1 * var(--sidebar-width)); }
             .sidebar.active { margin-left: 0; }
             .main-content { margin-left: 0; padding: 15px; }
             .calendar-day { min-height: 70px; }
+            .calendar-event { font-size: 0.6rem; }
         }
     </style>
 </head>
 <body>
 
+    <!-- ==================== SIDEBAR ==================== -->
     <div class="sidebar" id="sidebar">
         <div class="brand-area text-center">
             <img src="source/virtuclass_logo.png" alt="VirtuClass Logo" class="brand-logo">
@@ -183,8 +212,10 @@
         </div>
     </div>
 
+    <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
     <div class="main-content">
         
+        <!-- Top Navbar -->
         <div class="top-navbar d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <button class="btn btn-light d-lg-none me-2" id="sidebarToggle">
@@ -192,31 +223,48 @@
                 </button>
                 <div>
                     <h5 class="fw-bold mb-0 text-dark">Calendario Académico</h5>
-                    <p class="text-muted small mb-0">Visualiza tus entregas y horarios de clase</p>
+                    <p class="text-muted small mb-0">Visualiza tus entregas y eventos por curso</p>
                 </div>
             </div>
-            
-            <div class="d-flex align-items-center">
-                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">
-                    CM
+            <div class="dropdown">
+                <div class="d-flex align-items-center" style="cursor: pointer;">
+                    <div class="text-end me-2 d-none d-sm-block">
+                        <span class="d-block fw-semibold small">Nombre Usuario</span>
+                        <span class="text-muted extra-small" style="font-size: 0.75rem;">Rol</span>
+                    </div>
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">
+                        NA
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="row g-4">
+            <!-- ==================== CALENDARIO ==================== -->
             <div class="col-xl-8">
                 <div class="calendar-container">
-                    
+                    <!-- Header del calendario -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="fw-bold text-dark mb-0">Mayo 2026</h4>
-                        <div class="btn-group shadow-sm">
-                            <button class="btn btn-white bg-white border btn-sm"><i class="bi bi-chevron-left"></i></button>
-                            <button class="btn btn-white bg-white border btn-sm fw-semibold">Hoy</button>
-                            <button class="btn btn-white bg-white border btn-sm"><i class="bi bi-chevron-right"></i></button>
+                        <h4 class="fw-bold text-dark mb-0" id="tituloMes">Cargando...</h4>
+                        <div class="d-flex gap-2">
+                            <!-- Botón Crear Evento (solo docentes) -->
+                            <button class="btn btn-primary rounded-pill fw-bold px-3 shadow-sm d-none" id="btnCrearEvento" data-bs-toggle="modal" data-bs-target="#modalCrearEvento">
+                                <i class="bi bi-plus-lg me-1"></i> Nuevo Evento
+                            </button>
+                            <div class="btn-group">
+                                <button class="btn nav-btn btn-sm px-3" id="btnMesAnterior">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <button class="btn nav-btn btn-sm fw-semibold px-3 active-today" id="btnHoy">Hoy</button>
+                                <button class="btn nav-btn btn-sm px-3" id="btnMesSiguiente">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="calendar-grid">
+                    <!-- Encabezados de días -->
+                    <div class="calendar-grid mb-1">
                         <div class="calendar-day-header">Lun</div>
                         <div class="calendar-day-header">Mar</div>
                         <div class="calendar-day-header">Mié</div>
@@ -224,94 +272,133 @@
                         <div class="calendar-day-header">Vie</div>
                         <div class="calendar-day-header">Sáb</div>
                         <div class="calendar-day-header">Dom</div>
-
-                        <div class="calendar-day empty"></div>
-                        <div class="calendar-day empty"></div>
-                        <div class="calendar-day empty"></div>
-                        <div class="calendar-day empty"></div>
-
-                        <div class="calendar-day"><span class="day-number">1</span></div>
-                        <div class="calendar-day"><span class="day-number">2</span></div>
-                        <div class="calendar-day"><span class="day-number">3</span></div>
-                        
-                        <div class="calendar-day"><span class="day-number">4</span></div>
-                        <div class="calendar-day"><span class="day-number">5</span></div>
-                        <div class="calendar-day">
-                            <span class="day-number">6</span>
-                            <span class="calendar-event event-clase" title="Clase Base de Datos">9:00am BD-SeccA</span>
-                        </div>
-                        <div class="calendar-day"><span class="day-number">7</span></div>
-                        <div class="calendar-day"><span class="day-number">8</span></div>
-                        <div class="calendar-day"><span class="day-number">9</span></div>
-                        <div class="calendar-day"><span class="day-number">10</span></div>
-
-                        <div class="calendar-day"><span class="day-number">11</span></div>
-                        <div class="calendar-day">
-                            <span class="day-number">12</span>
-                            <span class="calendar-event event-evaluacion" title="Práctica Calificada 1">Entrega PC1</span>
-                        </div>
-                        <div class="calendar-day">
-                            <span class="day-number">13</span>
-                            <span class="calendar-event event-clase">9:00am BD-SeccA</span>
-                        </div>
-                        <div class="calendar-day"><span class="day-number">14</span></div>
-                        <div class="calendar-day today">
-                            <span class="day-number">15</span>
-                            <span class="calendar-event event-evaluacion">Examen Parcial</span>
-                        </div>
-                        <div class="calendar-day"><span class="day-number">16</span></div>
-                        <div class="calendar-day"><span class="day-number">17</span></div>
-
-                        <div class="calendar-day"><span class="day-number">18</span></div>
-                        <div class="calendar-day"><span class="day-number">19</span></div>
-                        <div class="calendar-day">
-                            <span class="day-number">20</span>
-                            <span class="calendar-event event-clase">9:00am BD-SeccA</span>
-                        </div>
-                        <div class="calendar-day"><span class="day-number">21</span></div>
-                        <div class="calendar-day"><span class="day-number">22</span></div>
-                        <div class="calendar-day"><span class="day-number">23</span></div>
-                        <div class="calendar-day"><span class="day-number">24</span></div>
-
-                        <div class="calendar-day"><span class="day-number">25</span></div>
-                        <div class="calendar-day"><span class="day-number">26</span></div>
-                        <div class="calendar-day"><span class="day-number">27</span></div>
-                        <div class="calendar-day"><span class="day-number">28</span></div>
-                        <div class="calendar-day"><span class="day-number">29</span></div>
-                        <div class="calendar-day"><span class="day-number">30</span></div>
-                        <div class="calendar-day"><span class="day-number">31</span></div>
                     </div>
 
+                    <!-- Grilla de días (dinámica) -->
+                    <div class="calendar-grid" id="calendarGrid">
+                        <div class="text-center py-5 text-muted" style="grid-column: span 7;">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 small">Cargando calendario...</p>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda -->
+                    <div class="d-flex flex-wrap gap-3 mt-4 pt-3 border-top">
+                        <span class="d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <span style="width:12px; height:12px; border-radius:3px; background:#dc3545; display:inline-block;"></span>
+                            <span class="text-muted">Examen</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <span style="width:12px; height:12px; border-radius:3px; background:#e65100; display:inline-block;"></span>
+                            <span class="text-muted">Entrega</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <span style="width:12px; height:12px; border-radius:3px; background:#2e7d32; display:inline-block;"></span>
+                            <span class="text-muted">Feriado</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <span style="width:12px; height:12px; border-radius:3px; background:#1a73e8; display:inline-block;"></span>
+                            <span class="text-muted">Reunión</span>
+                        </span>
+                        <span class="d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                            <span style="width:12px; height:12px; border-radius:3px; background:#6b7280; display:inline-block;"></span>
+                            <span class="text-muted">Otro</span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
+            <!-- ==================== PANEL LATERAL: PRÓXIMOS EVENTOS ==================== -->
             <div class="col-xl-4">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Cronograma de Cierres</h5>
-                
-                <div class="card border-0 bg-white p-3 rounded-3 shadow-sm mb-3">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="p-2 bg-danger-subtle text-danger rounded-3"><i class="bi bi-journal-x fs-5"></i></div>
-                        <div>
-                            <span class="d-block fw-bold text-dark small">Examen Parcial de Base de Datos</span>
-                            <span class="text-muted extra-small d-block mb-2"><i class="bi bi-calendar-event me-1"></i> Hoy, 11:59 PM</span>
-                            <span class="badge bg-danger rounded-pill extra-small" style="font-size: 0.7rem;">Cierra pronto</span>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Próximos Eventos
+                </h5>
 
-                <div class="card border-0 bg-white p-3 rounded-3 shadow-sm">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="p-2 bg-warning-subtle text-warning rounded-3"><i class="bi bi-file-earmark-arrow-up fs-5"></i></div>
-                        <div>
-                            <span class="d-block fw-bold text-dark small">Avance del Proyecto (Frontend)</span>
-                            <span class="text-muted extra-small d-block mb-2"><i class="bi bi-calendar-event me-1"></i> Martes 19 Mayo, 6:00 PM</span>
-                            <span class="badge bg-warning text-dark rounded-pill extra-small" style="font-size: 0.7rem;">4 días restantes</span>
-                        </div>
+                <div id="proximosEventos">
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <p class="text-muted small mt-2">Cargando...</p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- ==================== MODAL: DETALLE DE EVENTOS DEL DÍA ==================== -->
+    <div class="modal fade" id="modalDetalleEvento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark">
+                            <i class="bi bi-calendar-date me-2 text-primary"></i>Eventos del Día
+                        </h5>
+                        <p class="text-muted small mb-0" id="detalleDiaTitulo"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="detalleEventosContenido">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CREAR EVENTO (DOCENTE) ==================== -->
+    <div class="modal fade" id="modalCrearEvento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-plus-circle me-2 text-primary"></i>Nuevo Evento Académico
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formCrearEvento">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-semibold small">Curso / Clase</label>
+                            <select id="selectClaseEvento" class="form-select" style="border-radius: 8px;" required>
+                                <option>Cargando clases...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-semibold small">Título del Evento</label>
+                            <input type="text" id="inputTituloEvento" class="form-control" placeholder="Ej. Examen Parcial" style="border-radius: 8px;" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-semibold small">Descripción (opcional)</label>
+                            <textarea id="inputDescEvento" class="form-control" rows="2" placeholder="Detalles del evento..." style="border-radius: 8px;"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-secondary fw-semibold small">Fecha/Hora Inicio</label>
+                                <input type="datetime-local" id="inputFechaInicio" class="form-control" style="border-radius: 8px;" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-secondary fw-semibold small">Fecha/Hora Fin</label>
+                                <input type="datetime-local" id="inputFechaFin" class="form-control" style="border-radius: 8px;" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-semibold small">Tipo de Evento</label>
+                            <select id="selectTipoEvento" class="form-select" style="border-radius: 8px;" required>
+                                <option value="examen">🔴 Examen</option>
+                                <option value="entrega">📦 Entrega</option>
+                                <option value="feriado">🟢 Feriado</option>
+                                <option value="reunion">🔵 Reunión</option>
+                                <option value="otro">⚪ Otro</option>
+                            </select>
+                        </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" id="btnGuardarEvento" class="btn btn-primary fw-bold" style="border-radius: 8px;">
+                                <i class="bi bi-check-lg me-2"></i>Guardar Evento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -324,5 +411,7 @@
             });
         }
     </script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/agenda.js"></script>
 </body>
 </html>
