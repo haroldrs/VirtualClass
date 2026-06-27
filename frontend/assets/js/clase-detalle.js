@@ -18,14 +18,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnAddTema = document.getElementById('btnAñadirTema');
     const btnAddRecurso = document.getElementById('btnAñadirRecurso');
     const btnAddActividad = document.getElementById('btnAñadirActividad');
+    const btnAñadirGrupo = document.getElementById('btnAñadirGrupo');
     const semanasAcordeon = document.getElementById('semanasAcordeon');
     const recursosContainer = document.getElementById('recursosContainer');
     const actividadesContainer = document.getElementById('actividadesContainer');
+    const gruposContainer = document.getElementById('gruposContainer');
 
     if (esDocente) {
         btnAddTema.classList.remove('d-none');
         btnAddRecurso.classList.remove('d-none');
         btnAddActividad.classList.remove('d-none');
+        if(btnAñadirGrupo) btnAñadirGrupo.classList.remove('d-none');
     }
 
     // Modal elements
@@ -33,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalRecurso = new bootstrap.Modal(document.getElementById('modalRecurso'));
     const modalCrearActividad = new bootstrap.Modal(document.getElementById('modalCrearActividad'));
     const modalEntregarActividad = new bootstrap.Modal(document.getElementById('modalEntregarActividad'));
+    const modalCrearGrupo = new bootstrap.Modal(document.getElementById('modalCrearGrupo'));
+    const modalGestionarIntegrantes = new bootstrap.Modal(document.getElementById('modalGestionarIntegrantes'));
     const offcanvasRevision = new bootstrap.Offcanvas(document.getElementById('offcanvasRevision'));
 
     await cargarDetallesClase();
@@ -45,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarSesiones();
     await cargarRecursos();
     await cargarActividades();
+    await cargarGrupos();
 
     async function cargarDetallesClase() {
         try {
@@ -589,6 +595,197 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 } catch (err) { console.error(err); }
             });
+        });
+    }
+
+    // ==========================================
+    // LOGICA DE GRUPOS DE TRABAJO
+    // ==========================================
+
+    async function cargarGrupos() {
+        if (!gruposContainer) return;
+        try {
+            const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}`);
+            const grupos = await res.json();
+            
+            gruposContainer.innerHTML = '';
+            if (grupos.length === 0) {
+                gruposContainer.innerHTML = '<div class="text-center text-muted p-3">No hay grupos creados.</div>';
+                return;
+            }
+
+            grupos.forEach(g => {
+                let btnGestion = '';
+                if (esDocente) {
+                    btnGestion = `
+                    <div class="mt-2 text-end">
+                        <button class="btn btn-sm btn-outline-info me-2 btn-gestionar-grupo" data-id="${g.id_grupo}" data-nombre="${g.nombre_grupo}">Gestionar</button>
+                        <button class="btn btn-sm btn-outline-danger btn-eliminar-grupo" data-id="${g.id_grupo}">Eliminar</button>
+                    </div>`;
+                }
+
+                // Generar lista de estudiantes
+                let estHtml = '<ul class="list-unstyled mb-0 ms-2 small text-muted border-start border-2 ps-2 mt-2 border-info">';
+                if (!g.estudiantes || g.estudiantes.length === 0) {
+                    estHtml += '<li><i>Sin integrantes</i></li>';
+                } else {
+                    g.estudiantes.forEach(est => {
+                        estHtml += `<li><i class="bi bi-person me-1"></i>${est.nombres} ${est.apellidos}</li>`;
+                    });
+                }
+                estHtml += '</ul>';
+
+                const html = `
+                <div class="card border-0 bg-white shadow-sm rounded-3">
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold mb-1"><i class="bi bi-people text-info me-2"></i>${g.nombre_grupo}</h6>
+                        <span class="text-muted extra-small">Creado: ${new Date(g.fecha_creacion).toLocaleDateString()}</span>
+                        ${estHtml}
+                        ${btnGestion}
+                    </div>
+                </div>`;
+                gruposContainer.insertAdjacentHTML('beforeend', html);
+            });
+
+            asignarEventosGrupos();
+        } catch (e) { console.error('Error cargando grupos', e); }
+    }
+
+    // Eventos para botones de grupos
+    function asignarEventosGrupos() {
+        // Eliminar grupo
+        document.querySelectorAll('.btn-eliminar-grupo').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm("¿Seguro que deseas eliminar este grupo? Se perderán las asignaciones.")) return;
+                try {
+                    const res = await fetch(`http://localhost:3000/api/grupos/${e.target.dataset.id}`, { method: 'DELETE' });
+                    if (res.ok) await cargarGrupos();
+                } catch (err) { console.error(err); }
+            });
+        });
+
+        // Abrir modal de gestionar integrantes
+        document.querySelectorAll('.btn-gestionar-grupo').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const idGrupo = e.target.dataset.id;
+                document.getElementById('tituloModalIntegrantes').innerText = `Gestionar: ${e.target.dataset.nombre}`;
+                document.getElementById('grupoSeleccionadoId').value = idGrupo;
+                
+                await cargarOpcionesSinGrupo();
+                await cargarIntegrantesActuales(idGrupo);
+                
+                modalGestionarIntegrantes.show();
+            });
+        });
+    }
+
+    // Crear nuevo grupo
+    const btnGuardarGrupo = document.getElementById('btnGuardarGrupo');
+    if(btnGuardarGrupo) {
+        btnGuardarGrupo.addEventListener('click', async () => {
+            const nombre = document.getElementById('grupoNombre').value;
+            if (!nombre) return alert('El nombre es obligatorio');
+            try {
+                const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre_grupo: nombre })
+                });
+                if (res.ok) {
+                    modalCrearGrupo.hide();
+                    document.getElementById('grupoNombre').value = '';
+                    await cargarGrupos();
+                }
+            } catch (err) { console.error(err); }
+        });
+    }
+
+    // Cargar alumnos que no tienen grupo en el select
+    async function cargarOpcionesSinGrupo() {
+        const select = document.getElementById('selectAlumnoSinGrupo');
+        select.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}/sin-grupo`);
+            const alumnos = await res.json();
+            
+            select.innerHTML = '<option value="">Seleccione un alumno...</option>';
+            alumnos.forEach(al => {
+                select.innerHTML += `<option value="${al.id_usuario}">${al.apellidos}, ${al.nombres}</option>`;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    // Cargar la lista visual de integrantes dentro del modal
+    async function cargarIntegrantesActuales(idGrupo) {
+        const lista = document.getElementById('listaIntegrantesGrupo');
+        lista.innerHTML = '<li class="list-group-item text-muted">Cargando...</li>';
+        
+        try {
+            // Obtenemos los grupos actualizados para extraer los estudiantes del grupo actual
+            const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}`);
+            const grupos = await res.json();
+            const grupoActual = grupos.find(g => g.id_grupo == idGrupo);
+            
+            lista.innerHTML = '';
+            if (!grupoActual || !grupoActual.estudiantes || grupoActual.estudiantes.length === 0) {
+                lista.innerHTML = '<li class="list-group-item text-muted">Aún no hay integrantes.</li>';
+                return;
+            }
+
+            grupoActual.estudiantes.forEach(est => {
+                lista.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="d-block fw-semibold text-dark">${est.apellidos}, ${est.nombres}</span>
+                        <small class="text-muted">${est.correo}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger btn-remover-estudiante" data-idusu="${est.id_usuario}">Remover</button>
+                </li>`;
+            });
+
+            // Asignar eventos de remover
+            document.querySelectorAll('.btn-remover-estudiante').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const idUsu = e.target.dataset.idusu;
+                    try {
+                        const res = await fetch(`http://localhost:3000/api/grupos/${idGrupo}/estudiantes/${idUsu}`, { method: 'DELETE' });
+                        if (res.ok) {
+                            await cargarOpcionesSinGrupo();
+                            await cargarIntegrantesActuales(idGrupo);
+                            await cargarGrupos();
+                        }
+                    } catch (err) { console.error(err); }
+                });
+            });
+
+        } catch (e) { console.error(e); }
+    }
+
+    // Asignar alumno desde el select
+    const btnAsignarAlumno = document.getElementById('btnAsignarAlumno');
+    if(btnAsignarAlumno) {
+        btnAsignarAlumno.addEventListener('click', async () => {
+            const idGrupo = document.getElementById('grupoSeleccionadoId').value;
+            const idUsuario = document.getElementById('selectAlumnoSinGrupo').value;
+            
+            if (!idUsuario) return alert('Seleccione un alumno');
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/grupos/${idGrupo}/estudiantes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_usuario: idUsuario })
+                });
+
+                if (res.ok) {
+                    await cargarOpcionesSinGrupo();
+                    await cargarIntegrantesActuales(idGrupo);
+                    await cargarGrupos(); // Actualizar lista principal
+                } else {
+                    const err = await res.json();
+                    alert(err.mensaje || 'Error al asignar');
+                }
+            } catch (e) { console.error(e); }
         });
     }
 
