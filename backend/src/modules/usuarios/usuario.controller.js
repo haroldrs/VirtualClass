@@ -1,5 +1,6 @@
 const usuarioModel = require('./usuario.model');
 const bcrypt = require('bcryptjs');
+const pool = require('../../config/db');
 
 const registrarUsuario = async (req, res) => {
     // Recibimos los datos del frontend
@@ -61,4 +62,47 @@ const loginUsuario = async (req, res) => {
     }
 };
 
-module.exports = { registrarUsuario, loginUsuario };
+const obtenerPerfil = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const usuario = await usuarioModel.obtenerUsuarioPorId(id);
+        if (!usuario) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        res.status(200).json(usuario);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener el perfil', error: error.message });
+    }
+};
+
+const actualizarPerfil = async (req, res) => {
+    const { id } = req.params;
+    const { nombres, apellidos, correo, telefono } = req.body;
+    try {
+        const usuario = await usuarioModel.actualizarPerfil(id, nombres, apellidos, correo, telefono);
+        res.status(200).json({ mensaje: 'Perfil actualizado', usuario });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar el perfil', error: error.message });
+    }
+};
+
+const cambiarContrasena = async (req, res) => {
+    const { id } = req.params;
+    const { contrasenaActual, nuevaContrasena } = req.body;
+    try {
+        // First get the user to check the current password
+        const dbRes = await pool.query('SELECT CONTRASENA FROM USUARIO WHERE ID_USUARIO = $1', [id]);
+        if (dbRes.rows.length === 0) return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        
+        const contrasenaValida = await bcrypt.compare(contrasenaActual, dbRes.rows[0].contrasena);
+        if (!contrasenaValida) return res.status(401).json({ mensaje: 'La contraseña actual es incorrecta' });
+
+        const salt = await bcrypt.genSalt(10);
+        const contrasenaEncriptada = await bcrypt.hash(nuevaContrasena, salt);
+
+        await usuarioModel.cambiarContrasena(id, contrasenaEncriptada);
+        res.status(200).json({ mensaje: 'Contraseña cambiada exitosamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al cambiar la contraseña', error: error.message });
+    }
+};
+
+module.exports = { registrarUsuario, loginUsuario, obtenerPerfil, actualizarPerfil, cambiarContrasena };
