@@ -2,8 +2,8 @@
 
 // 1. Proteger las rutas (si no hay usuario, redirigir a login)
 const usuarioGuardado = localStorage.getItem('usuario');
-if (!usuarioGuardado && !window.location.href.includes('login.html')) {
-    window.location.href = 'login.html';
+if (!usuarioGuardado && !window.location.href.includes('index.html')) {
+    window.location.href = 'index.html';
 }
 
 const currentUser = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderizarPerfilUsuario();
 
     // Configurar botón de cerrar sesión
-    const btnCerrarSesionList = document.querySelectorAll('a[href="login.html"].text-danger, .dropdown-item.text-danger');
+    const btnCerrarSesionList = document.querySelectorAll('a[href="index.html"].text-danger, .dropdown-item.text-danger');
     btnCerrarSesionList.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -63,7 +63,7 @@ function renderizarPerfilUsuario() {
 
 function cerrarSesion() {
     localStorage.removeItem('usuario');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 
 function resaltarMenuActivo() {
