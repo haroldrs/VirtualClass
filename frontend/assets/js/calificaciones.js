@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Cargar cursos en el select
     try {
-        const responseCursos = await fetch(`http://localhost:3000/api/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const responseCursos = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
         const cursos = await responseCursos.json();
 
         if (responseCursos.ok) {
@@ -56,11 +56,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } else {
                 if (isDocente) {
-                    const res = await fetch(`http://localhost:3000/api/calificaciones/docente/${idClase}`);
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/docente/${idClase}`);
                     const alumnos = await res.json();
                     renderizarTablaDocente(alumnos);
                 } else {
-                    const res = await fetch(`http://localhost:3000/api/evaluaciones/${idClase}/${currentUser.id_usuario}`);
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}/${currentUser.id_usuario}`);
                     const notas = await res.json();
                     renderizarTablaAlumno(notas);
                 }
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (input.value !== '') {
                         const idEv = input.getAttribute('data-idev');
                         const notaVal = input.value;
-                        await fetch('http://localhost:3000/api/calificaciones/calificar', {
+                        await fetch('https://virtualclass-sm1i.onrender.com/api/calificaciones/calificar', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ idEvaluacion: idEv, idUsuario: idUs, calificacion: notaVal, comentario: 'Calificado por docente' })
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         
         try {
-            const res = await fetch(`http://localhost:3000/api/calificaciones/global/alumno/${currentUser.id_usuario}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/alumno/${currentUser.id_usuario}`);
             const datos = await res.json();
             
             tableContainer.innerHTML = '';
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         
         try {
-            const res = await fetch(`http://localhost:3000/api/calificaciones/global/docente/${currentUser.id_usuario}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/docente/${currentUser.id_usuario}`);
             const datos = await res.json();
             
             tableContainer.innerHTML = '';

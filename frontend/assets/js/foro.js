@@ -1,6 +1,6 @@
 // assets/js/foro.js
 
-const API_BASE = 'http://localhost:3000/api/foros';
+const API_BASE = 'https://virtualclass-sm1i.onrender.com/api/foros';
 
 // Variables globales
 let forosDelUsuario = [];

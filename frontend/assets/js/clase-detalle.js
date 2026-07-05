@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarDetallesClase() {
         try {
-            const res = await fetch(`http://localhost:3000/api/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/${idClase}`);
             const data = await res.json();
             
             if (res.ok) {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarSesiones() {
         try {
-            const res = await fetch(`http://localhost:3000/api/clase/${idClase}/sesiones`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/${idClase}/sesiones`);
             const sesiones = await res.json();
             
             if (res.ok) {
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarRecursos() {
         try {
-            const res = await fetch(`http://localhost:3000/api/recursos/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/recursos/${idClase}`);
             const recursos = await res.json();
             
             if (res.ok) {
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarActividades() {
         try {
-            const url = `http://localhost:3000/api/evaluaciones/${idClase}/${currentUser.id_usuario}?rol=${currentUser.rol}`;
+            const url = `https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}/${currentUser.id_usuario}?rol=${currentUser.rol}`;
             const res = await fetch(url);
             const actividades = await res.json();
             
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarCompañeros() {
         try {
-            const res = await fetch(`http://localhost:3000/api/asistencia/${idClase}/alumnos`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/asistencia/${idClase}/alumnos`);
             const alumnos = await res.json();
             const lista = document.getElementById('listaCompañeros');
             lista.innerHTML = '';
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarPorcentajeAsistencia() {
         try {
-            const res = await fetch(`http://localhost:3000/api/asistencia/${idClase}/alumno/${currentUser.id_usuario}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/asistencia/${idClase}/alumno/${currentUser.id_usuario}`);
             const data = await res.json();
             if (res.ok) {
                 document.getElementById('asistenciaAlumnoContenedor').classList.remove('d-none');
@@ -282,8 +282,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const method = idTema ? 'PUT' : 'POST';
         const url = idTema 
-            ? `http://localhost:3000/api/clase/sesiones/${idTema}` 
-            : `http://localhost:3000/api/clase/${idClase}/sesiones`;
+            ? `https://virtualclass-sm1i.onrender.com/api/clase/sesiones/${idTema}` 
+            : `https://virtualclass-sm1i.onrender.com/api/clase/${idClase}/sesiones`;
 
         try {
             const res = await fetch(url, {
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!titulo || !url_archivo) return alert('Título y URL son requeridos');
 
         try {
-            const res = await fetch(`http://localhost:3000/api/recursos/${idClase}`, {
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/recursos/${idClase}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ titulo, descripcion: '', tipo_recurso: tipo, url_archivo })
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async (e) => {
                 if (!confirm("¿Seguro que deseas eliminar este tema?")) return;
                 try {
-                    const res = await fetch(`http://localhost:3000/api/clase/sesiones/${e.target.dataset.id}`, { method: 'DELETE' });
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/sesiones/${e.target.dataset.id}`, { method: 'DELETE' });
                     if (res.ok) {
                         await cargarSesiones();
                     } else {
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 modalAsistencia.show();
 
                 try {
-                    const res = await fetch(`http://localhost:3000/api/asistencia/${idClase}/sesion/${idSesion}`);
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/asistencia/${idClase}/sesion/${idSesion}`);
                     const alumnos = await res.json();
                     
                     tbody.innerHTML = '';
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         radio.addEventListener('change', async (ev) => {
                             const rb = ev.target;
                             try {
-                                await fetch('http://localhost:3000/api/asistencia/marcar', {
+                                await fetch('https://virtualclass-sm1i.onrender.com/api/asistencia/marcar', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const btnElem = e.target.closest('button');
                 if (!confirm("¿Seguro que deseas eliminar este recurso?")) return;
                 try {
-                    const res = await fetch(`http://localhost:3000/api/recursos/${btnElem.dataset.id}`, { method: 'DELETE' });
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/recursos/${btnElem.dataset.id}`, { method: 'DELETE' });
                     if (res.ok) {
                         await cargarRecursos();
                     }
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!nombre || !peso || !fecha) return alert('Todos los campos son obligatorios');
 
         try {
-            const res = await fetch(`http://localhost:3000/api/evaluaciones/${idClase}`, {
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!url) return alert('Debes proporcionar un enlace');
 
         try {
-            const res = await fetch(`http://localhost:3000/api/evaluaciones/entrega`, {
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idEvaluacion: idEv, idUsuario: currentUser.id_usuario, archivoUrl: url })
@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 offcanvasRevision.show();
 
                 try {
-                    const res = await fetch(`http://localhost:3000/api/evaluaciones/entregas/${idEv}/${idClase}`);
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entregas/${idEv}/${idClase}`);
                     const alumnos = await res.json();
                     
                     container.innerHTML = '';
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                             btnElem.innerText = '...';
                             try {
-                                await fetch('http://localhost:3000/api/calificaciones/calificar', {
+                                await fetch('https://virtualclass-sm1i.onrender.com/api/calificaciones/calificar', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function cargarGrupos() {
         if (!gruposContainer) return;
         try {
-            const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`);
             const grupos = await res.json();
             
             gruposContainer.innerHTML = '';
@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async (e) => {
                 if (!confirm("¿Seguro que deseas eliminar este grupo? Se perderán las asignaciones.")) return;
                 try {
-                    const res = await fetch(`http://localhost:3000/api/grupos/${e.target.dataset.id}`, { method: 'DELETE' });
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${e.target.dataset.id}`, { method: 'DELETE' });
                     if (res.ok) await cargarGrupos();
                 } catch (err) { console.error(err); }
             });
@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const nombre = document.getElementById('grupoNombre').value;
             if (!nombre) return alert('El nombre es obligatorio');
             try {
-                const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}`, {
+                const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre_grupo: nombre })
@@ -705,7 +705,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const select = document.getElementById('selectAlumnoSinGrupo');
         select.innerHTML = '<option value="">Cargando...</option>';
         try {
-            const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}/sin-grupo`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}/sin-grupo`);
             const alumnos = await res.json();
             
             select.innerHTML = '<option value="">Seleccione un alumno...</option>';
@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         try {
             // Obtenemos los grupos actualizados para extraer los estudiantes del grupo actual
-            const res = await fetch(`http://localhost:3000/api/grupos/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`);
             const grupos = await res.json();
             const grupoActual = grupos.find(g => g.id_grupo == idGrupo);
             
@@ -748,7 +748,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.addEventListener('click', async (e) => {
                     const idUsu = e.target.dataset.idusu;
                     try {
-                        const res = await fetch(`http://localhost:3000/api/grupos/${idGrupo}/estudiantes/${idUsu}`, { method: 'DELETE' });
+                        const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${idGrupo}/estudiantes/${idUsu}`, { method: 'DELETE' });
                         if (res.ok) {
                             await cargarOpcionesSinGrupo();
                             await cargarIntegrantesActuales(idGrupo);
@@ -771,7 +771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!idUsuario) return alert('Seleccione un alumno');
 
             try {
-                const res = await fetch(`http://localhost:3000/api/grupos/${idGrupo}/estudiantes`, {
+                const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${idGrupo}/estudiantes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id_usuario: idUsuario })

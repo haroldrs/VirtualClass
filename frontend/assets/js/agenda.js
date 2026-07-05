@@ -1,6 +1,6 @@
 // assets/js/agenda.js
 
-const API_CAL = 'http://localhost:3000/api/calendario';
+const API_CAL = 'https://virtualclass-sm1i.onrender.com/api/calendario';
 
 let mesActual, anioActual;
 let eventosDelMes = [];

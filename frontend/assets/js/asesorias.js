@@ -1,6 +1,6 @@
 // assets/js/asesorias.js
 
-const API_ASESORIAS = 'http://localhost:3000/api/asesorias';
+const API_ASESORIAS = 'https://virtualclass-sm1i.onrender.com/api/asesorias';
 
 let esDocente = false;
 let docentesDisponibles = [];
