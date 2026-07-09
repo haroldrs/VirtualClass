@@ -1,0 +1,149 @@
+const modularModel = require('./modular.model');
+
+// ===================== UNIDADES =====================
+
+const getUnidades = async (req, res) => {
+    try {
+        const unidades = await modularModel.obtenerUnidadesPorClase(req.params.idClase);
+        res.status(200).json(unidades);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener unidades', error: error.message });
+    }
+};
+
+const createUnidad = async (req, res) => {
+    const { titulo, numero } = req.body;
+    try {
+        const unidad = await modularModel.crearUnidad(req.params.idClase, titulo, numero);
+        res.status(201).json({ mensaje: 'Unidad creada', unidad });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear unidad', error: error.message });
+    }
+};
+
+const deleteUnidad = async (req, res) => {
+    try {
+        const result = await modularModel.eliminarUnidad(req.params.idUnidad);
+        if (!result) return res.status(404).json({ mensaje: 'Unidad no encontrada' });
+        res.status(200).json({ mensaje: 'Unidad eliminada' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar unidad', error: error.message });
+    }
+};
+
+// ===================== SEMANAS =====================
+
+const getSemanas = async (req, res) => {
+    try {
+        const semanas = await modularModel.obtenerSemanasPorUnidad(req.params.idUnidad);
+        res.status(200).json(semanas);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener semanas', error: error.message });
+    }
+};
+
+const createSemana = async (req, res) => {
+    const { idUnidad, titulo, descripcion, orden } = req.body;
+    try {
+        const semana = await modularModel.crearSemana(req.params.idClase, idUnidad, titulo, descripcion, orden);
+        res.status(201).json({ mensaje: 'Semana creada', semana });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear semana', error: error.message });
+    }
+};
+
+const deleteSemana = async (req, res) => {
+    try {
+        const result = await modularModel.eliminarSemana(req.params.idModulo);
+        if (!result) return res.status(404).json({ mensaje: 'Semana no encontrada' });
+        res.status(200).json({ mensaje: 'Semana eliminada' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar semana', error: error.message });
+    }
+};
+
+// ===================== RECURSOS EN SEMANA =====================
+
+const getRecursosSemana = async (req, res) => {
+    try {
+        const recursos = await modularModel.obtenerRecursosPorSemana(req.params.idModulo);
+        res.status(200).json(recursos);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener recursos', error: error.message });
+    }
+};
+
+const createRecursoSemana = async (req, res) => {
+    const { titulo, descripcion, tipo_recurso, url_archivo } = req.body;
+    try {
+        const recurso = await modularModel.crearRecursoEnSemana(
+            req.params.idClase, req.params.idModulo,
+            titulo, descripcion, tipo_recurso, url_archivo
+        );
+        res.status(201).json({ mensaje: 'Recurso creado', recurso });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear recurso', error: error.message });
+    }
+};
+
+// ===================== EVALUACIONES EN SEMANA =====================
+
+const getEvaluacionesSemana = async (req, res) => {
+    try {
+        const evaluaciones = await modularModel.obtenerEvaluacionesPorSemana(req.params.idModulo);
+        res.status(200).json(evaluaciones);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener evaluaciones', error: error.message });
+    }
+};
+
+const createEvaluacionSemana = async (req, res) => {
+    const { nombre_eva, porcentaje, fecha_evaluacion } = req.body;
+    try {
+        const evaluacion = await modularModel.crearEvaluacionEnSemana(
+            req.params.idClase, req.params.idModulo,
+            nombre_eva, porcentaje, fecha_evaluacion
+        );
+        res.status(201).json({ mensaje: 'Evaluación creada', evaluacion });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear evaluación', error: error.message });
+    }
+};
+
+// ===================== ESTRUCTURA COMPLETA Y NOTAS =====================
+
+const getEstructuraCompleta = async (req, res) => {
+    const { idClase } = req.params;
+    const idUsuario = req.query.idUsuario || null;
+    try {
+        const data = await modularModel.obtenerEstructuraCompleta(idClase, idUsuario);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener estructura', error: error.message });
+    }
+};
+
+const getPromedios = async (req, res) => {
+    const { idClase, idUsuario } = req.params;
+    try {
+        const data = await modularModel.obtenerPromediosPorUnidad(idClase, idUsuario);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al calcular promedios', error: error.message });
+    }
+};
+
+module.exports = {
+    getUnidades,
+    createUnidad,
+    deleteUnidad,
+    getSemanas,
+    createSemana,
+    deleteSemana,
+    getRecursosSemana,
+    createRecursoSemana,
+    getEvaluacionesSemana,
+    createEvaluacionSemana,
+    getEstructuraCompleta,
+    getPromedios
+};

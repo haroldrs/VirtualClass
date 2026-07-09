@@ -51,6 +51,333 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarRecursos();
     await cargarActividades();
     await cargarGrupos();
+    await cargarEstructuraModular();
+
+    // URL base del API modular
+    const API_MODULAR = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api/modular'
+        : 'https://virtualclass-sm1i.onrender.com/api/modular';
+
+    // ===================== ESTRUCTURA MODULAR =====================
+
+    async function cargarEstructuraModular() {
+        const contenedor = document.getElementById('contenedorUnidades');
+        if (!contenedor) return;
+
+        try {
+            const idUsuarioParam = !esDocente ? `?idUsuario=${currentUser.id_usuario}` : '';
+            const res = await fetch(`${API_MODULAR}/${idClase}/estructura${idUsuarioParam}`);
+            const data = await res.json();
+
+            if (!res.ok || !data.estructura || data.estructura.length === 0) {
+                contenedor.innerHTML = '<div class="text-center text-muted p-4">No hay unidades creadas. El docente puede crear la estructura del curso.</div>';
+                
+                // Mostrar nota final si hay
+                if (data.notaFinal !== null && data.notaFinal !== undefined) {
+                    document.getElementById('cardNotaFinal').style.display = 'block';
+                    document.getElementById('notaFinalValor').textContent = `${data.notaFinal} / 20`;
+                }
+                return;
+            }
+
+            contenedor.innerHTML = '';
+
+            data.estructura.forEach((unidad, uIdx) => {
+                let semanasHtml = '';
+
+                unidad.semanas.forEach((semana, sIdx) => {
+                    // Recursos de la semana
+                    let recursosHtml = '';
+                    if (semana.recursos.length > 0) {
+                        semana.recursos.forEach(rec => {
+                            let iconClass = 'bi-file-earmark-fill text-secondary';
+                            if (rec.tipo_recurso === 'pdf') iconClass = 'bi-file-earmark-pdf-fill text-danger';
+                            if (rec.tipo_recurso === 'video') iconClass = 'bi-play-btn-fill text-danger';
+                            if (rec.tipo_recurso === 'link') iconClass = 'bi-link-45deg text-primary';
+                            if (rec.tipo_recurso === 'documento') iconClass = 'bi-file-earmark-word-fill text-info';
+
+                            recursosHtml += `
+                                <div class="d-flex align-items-center bg-white p-2 rounded-2 mb-1 border">
+                                    <i class="bi ${iconClass} me-2"></i>
+                                    <a href="${rec.url_archivo}" target="_blank" class="text-decoration-none small fw-semibold">${rec.titulo}</a>
+                                    <span class="badge bg-light text-muted ms-auto">${rec.tipo_recurso}</span>
+                                </div>`;
+                        });
+                    }
+
+                    // Actividades/Evaluaciones de la semana
+                    let actividadesHtml = '';
+                    if (semana.evaluaciones.length > 0) {
+                        semana.evaluaciones.forEach(ev => {
+                            const dateObj = new Date(ev.fecha_evaluacion);
+                            dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+                            const fecha = dateObj.toLocaleDateString('es-ES');
+
+                            let notaInfo = '';
+                            if (!esDocente) {
+                                if (ev.calificacion !== null && ev.calificacion !== undefined) {
+                                    notaInfo = `<span class="badge bg-success ms-auto">Nota: ${ev.calificacion}/20</span>`;
+                                } else if (ev.id_entrega) {
+                                    notaInfo = `<span class="badge bg-primary ms-auto">Entregado</span>`;
+                                } else {
+                                    notaInfo = `<span class="badge bg-warning text-dark ms-auto">Pendiente</span>`;
+                                }
+                            }
+
+                            actividadesHtml += `
+                                <div class="d-flex align-items-center bg-success-subtle p-2 rounded-2 mb-1 border border-success-subtle">
+                                    <i class="bi bi-journal-text text-success me-2"></i>
+                                    <div class="small">
+                                        <span class="fw-semibold d-block">${ev.nombre_eva}</span>
+                                        <span class="text-muted">Límite: ${fecha} | Peso: ${ev.porcentaje}%</span>
+                                    </div>
+                                    ${notaInfo}
+                                </div>`;
+                        });
+                    }
+
+                    // Botones para docentes
+                    let botonesDocente = '';
+                    if (esDocente) {
+                        botonesDocente = `
+                            <div class="mt-2 pt-2 border-top d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-warning btn-add-recurso-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-folder-plus"></i> Recurso</button>
+                                <button class="btn btn-sm btn-outline-success btn-add-actividad-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-journal-plus"></i> Actividad</button>
+                                <button class="btn btn-sm btn-outline-danger ms-auto btn-eliminar-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-trash"></i></button>
+                            </div>`;
+                    }
+
+                    semanasHtml += `
+                        <div class="ms-3 mb-2">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center cursor-pointer" 
+                                     data-bs-toggle="collapse" data-bs-target="#semana_${semana.id_modulo}" role="button">
+                                    <i class="bi bi-calendar-week text-info me-2"></i>
+                                    <span class="fw-semibold small">${semana.titulo}</span>
+                                    <i class="bi bi-chevron-down ms-auto small text-muted"></i>
+                                </div>
+                                <div class="collapse ${sIdx === 0 && uIdx === 0 ? 'show' : ''}" id="semana_${semana.id_modulo}">
+                                    <div class="card-body p-3">
+                                        ${semana.descripcion ? `<p class="text-muted small mb-2">${semana.descripcion}</p>` : ''}
+                                        ${recursosHtml || '<div class="text-muted small mb-1">Sin recursos</div>'}
+                                        ${actividadesHtml ? `<div class="mt-2">${actividadesHtml}</div>` : ''}
+                                        ${botonesDocente}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+
+                // Botón añadir semana (docente)
+                let btnAddSemana = '';
+                if (esDocente) {
+                    btnAddSemana = `<button class="btn btn-sm btn-outline-info ms-auto btn-add-semana" data-idunidad="${unidad.id_unidad}"><i class="bi bi-plus"></i> Semana</button>`;
+                }
+
+                // Promedio de la unidad
+                let promedioHtml = '';
+                if (unidad.promedio !== null && unidad.promedio !== undefined) {
+                    const color = unidad.promedio >= 11 ? 'text-success' : 'text-danger';
+                    promedioHtml = `<div class="text-end mt-2 me-3"><span class="badge bg-light ${color} border px-3 py-2">Promedio: ${unidad.promedio} / 20</span></div>`;
+                }
+
+                let btnDeleteUnidad = '';
+                if (esDocente) {
+                    btnDeleteUnidad = `<button class="btn btn-sm btn-outline-danger ms-2 btn-eliminar-unidad" data-idunidad="${unidad.id_unidad}"><i class="bi bi-trash"></i></button>`;
+                }
+
+                const unidadHtml = `
+                    <div class="card border-start border-4 border-primary mb-4 shadow-sm">
+                        <div class="card-header bg-white d-flex align-items-center py-3" 
+                             data-bs-toggle="collapse" data-bs-target="#unidad_${unidad.id_unidad}" role="button">
+                            <i class="bi bi-book-half text-primary me-2 fs-5"></i>
+                            <h6 class="fw-bold mb-0">${unidad.titulo}</h6>
+                            ${btnAddSemana}
+                            ${btnDeleteUnidad}
+                            <i class="bi bi-chevron-down ms-2 text-muted"></i>
+                        </div>
+                        <div class="collapse ${uIdx === 0 ? 'show' : ''}" id="unidad_${unidad.id_unidad}">
+                            <div class="card-body p-2">
+                                ${semanasHtml || '<div class="text-center text-muted p-3 small">No hay semanas. Haga clic en "+ Semana" para añadir.</div>'}
+                                ${promedioHtml}
+                            </div>
+                        </div>
+                    </div>`;
+                contenedor.insertAdjacentHTML('beforeend', unidadHtml);
+            });
+
+            // Nota final
+            if (data.notaFinal !== null && data.notaFinal !== undefined) {
+                document.getElementById('cardNotaFinal').style.display = 'block';
+                document.getElementById('notaFinalValor').textContent = `${data.notaFinal} / 20`;
+            }
+
+            // Asignar eventos del docente
+            if (esDocente) asignarEventosModulares();
+
+        } catch (e) {
+            console.error('Error al cargar estructura modular:', e);
+            contenedor.innerHTML = '<div class="text-center text-muted p-4">Error al cargar la estructura. El servidor podría estar iniciando.</div>';
+        }
+    }
+
+    function asignarEventosModulares() {
+        // Añadir semana
+        document.querySelectorAll('.btn-add-semana').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // No colapsar el acordeón
+                document.getElementById('semanaIdUnidad').value = btn.dataset.idunidad;
+                document.getElementById('semanaTitulo').value = '';
+                document.getElementById('semanaDescripcion').value = '';
+                document.getElementById('semanaOrden').value = '';
+                new bootstrap.Modal(document.getElementById('modalCrearSemana')).show();
+            });
+        });
+
+        // Añadir recurso a semana
+        document.querySelectorAll('.btn-add-recurso-semana').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('recursoSemanaIdModulo').value = btn.dataset.idmodulo;
+                document.getElementById('recursoSemanaTitulo').value = '';
+                document.getElementById('recursoSemanaUrl').value = '';
+                new bootstrap.Modal(document.getElementById('modalRecursoSemana')).show();
+            });
+        });
+
+        // Añadir actividad a semana
+        document.querySelectorAll('.btn-add-actividad-semana').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
+                document.getElementById('actSemanaNombre').value = '';
+                document.getElementById('actSemanaPeso').value = '';
+                document.getElementById('actSemanaFecha').value = '';
+                new bootstrap.Modal(document.getElementById('modalActividadSemana')).show();
+            });
+        });
+
+        // Eliminar semana
+        document.querySelectorAll('.btn-eliminar-semana').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('¿Seguro que deseas eliminar esta semana?')) return;
+                try {
+                    await fetch(`${API_MODULAR}/semanas/${btn.dataset.idmodulo}`, { method: 'DELETE' });
+                    await cargarEstructuraModular();
+                } catch (e) { console.error(e); }
+            });
+        });
+
+        // Eliminar unidad
+        document.querySelectorAll('.btn-eliminar-unidad').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!confirm('¿Seguro que deseas eliminar esta unidad y todas sus semanas?')) return;
+                try {
+                    await fetch(`${API_MODULAR}/unidades/${btn.dataset.idunidad}`, { method: 'DELETE' });
+                    await cargarEstructuraModular();
+                } catch (e) { console.error(e); }
+            });
+        });
+    }
+
+    // ===== BOTONES DE GUARDAR DE LOS MODALES MODULARES =====
+
+    // Crear Unidad
+    const btnCrearUnidad = document.getElementById('btnCrearUnidad');
+    if (btnCrearUnidad) {
+        btnCrearUnidad.addEventListener('click', () => {
+            document.getElementById('unidadTitulo').value = '';
+            document.getElementById('unidadNumero').value = '';
+            new bootstrap.Modal(document.getElementById('modalCrearUnidad')).show();
+        });
+    }
+
+    document.getElementById('btnGuardarUnidad')?.addEventListener('click', async () => {
+        const titulo = document.getElementById('unidadTitulo').value;
+        const numero = document.getElementById('unidadNumero').value;
+        if (!titulo || !numero) return alert('Completa todos los campos');
+
+        try {
+            const res = await fetch(`${API_MODULAR}/${idClase}/unidades`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, numero: parseInt(numero) })
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalCrearUnidad')).hide();
+                await cargarEstructuraModular();
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    // Crear Semana
+    document.getElementById('btnGuardarSemana')?.addEventListener('click', async () => {
+        const idUnidad = document.getElementById('semanaIdUnidad').value;
+        const titulo = document.getElementById('semanaTitulo').value;
+        const descripcion = document.getElementById('semanaDescripcion').value;
+        const orden = document.getElementById('semanaOrden').value;
+        if (!titulo || !orden) return alert('Título y orden son obligatorios');
+
+        try {
+            const res = await fetch(`${API_MODULAR}/${idClase}/semanas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idUnidad, titulo, descripcion, orden: parseInt(orden) })
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalCrearSemana')).hide();
+                await cargarEstructuraModular();
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    // Crear Recurso en Semana
+    document.getElementById('btnGuardarRecursoSemana')?.addEventListener('click', async () => {
+        const idModulo = document.getElementById('recursoSemanaIdModulo').value;
+        const titulo = document.getElementById('recursoSemanaTitulo').value;
+        const tipo = document.getElementById('recursoSemanaTipo').value;
+        const url_archivo = document.getElementById('recursoSemanaUrl').value;
+        if (!titulo || !url_archivo) return alert('Título y URL son obligatorios');
+
+        try {
+            const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/recursos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, descripcion: '', tipo_recurso: tipo, url_archivo })
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalRecursoSemana')).hide();
+                await cargarEstructuraModular();
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    // Crear Actividad en Semana
+    document.getElementById('btnGuardarActividadSemana')?.addEventListener('click', async () => {
+        const idModulo = document.getElementById('actSemanaIdModulo').value;
+        const nombre = document.getElementById('actSemanaNombre').value;
+        const peso = document.getElementById('actSemanaPeso').value;
+        const fecha = document.getElementById('actSemanaFecha').value;
+        if (!nombre || !peso || !fecha) return alert('Todos los campos son obligatorios');
+
+        try {
+            const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalActividadSemana')).hide();
+                await cargarEstructuraModular();
+                await cargarActividades(); // También actualizar la lista plana de actividades
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    // Mostrar botón de crear unidad si es docente
+    if (esDocente) {
+        const btnUnidad = document.getElementById('btnCrearUnidad');
+        if (btnUnidad) btnUnidad.classList.remove('d-none');
+    }
 
     async function cargarDetallesClase() {
         try {
