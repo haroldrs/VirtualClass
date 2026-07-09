@@ -122,6 +122,10 @@ const enrollStudent = async (idUsuario, idClase) => {
     
     // Si es docente
     if (roleResult.rows.length > 0 && roleResult.rows[0].nombre_rol.includes('Docente')) {
+        // Verificar duplicados
+        const check = await pool.query('SELECT * FROM CLASE_DOCENTE WHERE ID_CLASE = $1 AND ID_USUARIO = $2', [idClase, idUsuario]);
+        if (check.rows.length > 0) throw new Error('El docente ya está asignado a esta clase.');
+
         const query = `
             INSERT INTO CLASE_DOCENTE (ID_CLASE, ID_USUARIO) 
             VALUES ($1, $2) RETURNING *
@@ -129,7 +133,10 @@ const enrollStudent = async (idUsuario, idClase) => {
         const result = await pool.query(query, [idClase, idUsuario]);
         return result.rows[0];
     } else {
-        // Asume alumno por defecto
+        // Verificar duplicados
+        const check = await pool.query('SELECT * FROM MATRICULA WHERE ID_CLASE = $1 AND ID_USUARIO = $2', [idClase, idUsuario]);
+        if (check.rows.length > 0) throw new Error('El alumno ya está matriculado en esta clase.');
+
         const query = `
             INSERT INTO MATRICULA (ID_CLASE, ID_USUARIO, ESTADO_MATRICULA) 
             VALUES ($1, $2, 'ACTIVO') RETURNING *
@@ -137,6 +144,31 @@ const enrollStudent = async (idUsuario, idClase) => {
         const result = await pool.query(query, [idClase, idUsuario]);
         return result.rows[0];
     }
+};
+
+const getClassParticipants = async (idClase) => {
+    // Traer docentes
+    const docentesQuery = `
+        SELECT U.ID_USUARIO, U.NOMBRES, U.APELLIDOS, U.CORREO 
+        FROM CLASE_DOCENTE CD
+        JOIN USUARIO U ON CD.ID_USUARIO = U.ID_USUARIO
+        WHERE CD.ID_CLASE = $1
+    `;
+    const docentes = await pool.query(docentesQuery, [idClase]);
+
+    // Traer alumnos
+    const alumnosQuery = `
+        SELECT U.ID_USUARIO, U.NOMBRES, U.APELLIDOS, U.CORREO 
+        FROM MATRICULA M
+        JOIN USUARIO U ON M.ID_USUARIO = U.ID_USUARIO
+        WHERE M.ID_CLASE = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'
+    `;
+    const alumnos = await pool.query(alumnosQuery, [idClase]);
+
+    return {
+        docentes: docentes.rows,
+        alumnos: alumnos.rows
+    };
 };
 
 module.exports = {
@@ -149,5 +181,6 @@ module.exports = {
     getAllCourses,
     createCourse,
     getAvailableClasses,
-    enrollStudent
+    enrollStudent,
+    getClassParticipants
 };

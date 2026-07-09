@@ -337,6 +337,38 @@ async function cargarDatosMatricula() {
             };
         }
         
+        const selectClase = document.getElementById('selectClaseMatricula');
+        selectClase.onchange = async () => {
+            const idC = selectClase.value;
+            const container = document.getElementById('containerParticipantesClase');
+            const listD = document.getElementById('listaDocentesClase');
+            const listA = document.getElementById('listaAlumnosClase');
+            
+            if(!idC) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            listD.innerHTML = '<li class="list-group-item text-muted">Cargando...</li>';
+            listA.innerHTML = '<li class="list-group-item text-muted">Cargando...</li>';
+            
+            try {
+                const res = await fetch(`${getApiUrl()}/clases-disponibles/${idC}/participantes`);
+                const data = await res.json();
+                
+                listD.innerHTML = data.docentes.length > 0 
+                    ? data.docentes.map(d => `<li class="list-group-item">${d.nombres} ${d.apellidos} <span class="badge bg-primary float-end">Docente</span></li>`).join('')
+                    : '<li class="list-group-item text-muted">No hay docentes asignados.</li>';
+                    
+                listA.innerHTML = data.alumnos.length > 0 
+                    ? data.alumnos.map(a => `<li class="list-group-item">${a.nombres} ${a.apellidos}</li>`).join('')
+                    : '<li class="list-group-item text-muted">No hay alumnos matriculados.</li>';
+            } catch(e) {
+                console.error('Error al cargar participantes:', e);
+            }
+        };
+        
         const btnMatricular = document.getElementById('btnConfirmarMatricula');
         btnMatricular.onclick = async () => {
             const idU = document.getElementById('selectUsuarioMatricula').value;
@@ -349,13 +381,19 @@ async function cargarDatosMatricula() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idUsuario: idU, idClase: idC })
                 });
+                
+                const data = await res.json();
+                
                 if(res.ok) {
                     alert(`${currentMatriculaMode === 'Alumno' ? 'Matrícula' : 'Asignación'} registrada exitosamente`);
                     cargarEstadisticas();
                     agregarLog('Admin', `${currentMatriculaMode === 'Alumno' ? 'Alumno matriculado' : 'Docente asignado'} a clase ${idC}`, 'Completado', 'bg-success');
                     document.getElementById('selectUsuarioMatricula').value = ''; 
-                    document.getElementById('selectClaseMatricula').value = '';
-                } else alert('Error en la asignación');
+                    // Refrescar la lista de participantes de esta clase
+                    selectClase.dispatchEvent(new Event('change'));
+                } else {
+                    alert(data.error || data.mensaje || 'Error en la asignación');
+                }
             } catch(e) { console.error(e); }
         };
     } catch (e) { console.error(e); }

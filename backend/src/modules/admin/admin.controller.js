@@ -92,7 +92,17 @@ const enrollStudent = async (req, res) => {
         const matricula = await adminModel.enrollStudent(idUsuario, idClase);
         res.status(201).json({ mensaje: 'Matrícula exitosa', matricula });
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error al matricular', error: error.message });
+        res.status(500).json({ mensaje: 'Error en la matrícula/asignación', error: error.message });
+    }
+};
+
+const getClassParticipants = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const participants = await adminModel.getClassParticipants(id);
+        res.status(200).json(participants);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener participantes', error: error.message });
     }
 };
 
@@ -106,5 +116,6 @@ module.exports = {
     getAllCourses,
     createCourse,
     getAvailableClasses,
-    enrollStudent
+    enrollStudent,
+    getClassParticipants
 };

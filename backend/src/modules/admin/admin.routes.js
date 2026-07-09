@@ -18,6 +18,7 @@ router.post('/cursos', adminController.createCourse);
 
 // Clases (Para matrículas)
 router.get('/clases-disponibles', adminController.getAvailableClasses);
+router.get('/clases-disponibles/:id/participantes', adminController.getClassParticipants);
 
 // Matriculación
 router.post('/matricular', adminController.enrollStudent);
