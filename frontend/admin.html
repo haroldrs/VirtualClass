@@ -374,7 +374,7 @@
             <div class="table-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold text-dark mb-0">Gestión de Matrículas y Asignaciones</h4>
-                    <button class="btn btn-primary" id="btnAccionMatricula"><i class="bi bi-person-lines-fill me-1"></i> Matricular Alumno</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMatriculaMasiva"><i class="bi bi-people-fill me-1"></i> Matrícula Masiva</button>
                 </div>
                 <p class="text-muted">Asigna alumnos a clases (secciones) específicas o asigna docentes a dictar una clase.</p>
                 
@@ -666,6 +666,39 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Matrícula Masiva -->
+    <div class="modal fade" id="modalMatriculaMasiva" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-people-fill me-2"></i>Matrícula Masiva de Alumnos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formMatriculaMasiva">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Seleccionar Clase de Destino</label>
+                            <select class="form-select" id="claseMatriculaMasiva" required>
+                                <option value="">Cargando clases...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Seleccionar Alumnos (Puedes seleccionar varios manteniendo Ctrl / Cmd)</label>
+                            <select multiple class="form-select" id="alumnosMatriculaMasiva" style="height: 200px;" required>
+                                <option value="">Cargando alumnos...</option>
+                            </select>
+                            <div class="form-text">Solo se muestran usuarios con rol de Alumno.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="procesarMatriculaMasiva()">Matricular Seleccionados</button>
                 </div>
             </div>
         </div>

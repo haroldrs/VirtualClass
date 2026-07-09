@@ -458,19 +458,32 @@ async function cargarDatosMatricula() {
 function renderizarSelectsMatricula() {
     const selectUsuario = document.getElementById('selectUsuarioMatricula');
     const selectClase = document.getElementById('selectClaseMatricula');
+    const selectClaseMasiva = document.getElementById('claseMatriculaMasiva');
+    const selectAlumnosMasiva = document.getElementById('alumnosMatriculaMasiva');
     
     if(!selectUsuario || !selectClase) return;
     
     selectUsuario.innerHTML = `<option value="">Seleccione un ${currentMatriculaMode.toLowerCase()}...</option>`;
     selectClase.innerHTML = '<option value="">Seleccione una clase...</option>';
     
+    if(selectClaseMasiva) selectClaseMasiva.innerHTML = '<option value="">Seleccione una clase destino...</option>';
+    if(selectAlumnosMasiva) selectAlumnosMasiva.innerHTML = '';
+    
     matriculaUsuariosCache.forEach(u => {
         if(u.nombre_rol?.includes(currentMatriculaMode)) {
             selectUsuario.innerHTML += `<option value="${u.id_usuario}">${u.nombres} ${u.apellidos} (${u.correo})</option>`;
         }
+        // Para masiva, siempre listar alumnos
+        if(u.nombre_rol?.includes('Alumno') && selectAlumnosMasiva) {
+            selectAlumnosMasiva.innerHTML += `<option value="${u.id_usuario}">${u.nombres} ${u.apellidos} (${u.correo})</option>`;
+        }
     });
+    
     matriculaClasesCache.forEach(c => {
         selectClase.innerHTML += `<option value="${c.id_clase}">${c.nombre} - Sec ${c.seccion} (${c.periodo})</option>`;
+        if(selectClaseMasiva) {
+            selectClaseMasiva.innerHTML += `<option value="${c.id_clase}">${c.nombre} - Sec ${c.seccion} (${c.periodo})</option>`;
+        }
     });
 }
 
@@ -508,4 +521,48 @@ function enviarAvisoGlobal() {
     document.getElementById('formAvisoGlobal').reset();
     
     agregarLog('Admin', `Aviso Global: ${asunto}`, 'Completado', 'bg-warning text-dark');
+}
+
+// --- MATRICULA MASIVA ---
+async function procesarMatriculaMasiva() {
+    const idClase = document.getElementById('claseMatriculaMasiva').value;
+    const optionsSeleccionadas = document.getElementById('alumnosMatriculaMasiva').selectedOptions;
+    
+    if(!idClase || optionsSeleccionadas.length === 0) {
+        return alert('Por favor, selecciona una clase destino y al menos un alumno.');
+    }
+    
+    const alumnosArray = Array.from(optionsSeleccionadas).map(opt => opt.value);
+    
+    let exitosos = 0;
+    let fallidos = 0;
+    
+    // Procesar en paralelo para mayor rapidez
+    await Promise.all(alumnosArray.map(async (idUsuario) => {
+        try {
+            const res = await fetch(`${getApiUrl()}/matricular`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idUsuario, idClase })
+            });
+            if(res.ok) exitosos++;
+            else fallidos++;
+        } catch(e) {
+            fallidos++;
+        }
+    }));
+    
+    alert(`Proceso masivo completado.\n✅ Exitosos: ${exitosos}\n❌ Fallidos o ya matriculados: ${fallidos}`);
+    
+    if(exitosos > 0) {
+        cargarEstadisticas();
+        agregarLog('Admin', `Matrícula Masiva en clase ${idClase}`, 'Completado', 'bg-primary');
+        // Refrescar el DOM si esa clase estaba seleccionada
+        const selectClasePrincipal = document.getElementById('selectClaseMatricula');
+        if(selectClasePrincipal.value === idClase) {
+            selectClasePrincipal.dispatchEvent(new Event('change'));
+        }
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('modalMatriculaMasiva')).hide();
 }
