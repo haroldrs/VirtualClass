@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalGestionarIntegrantes = new bootstrap.Modal(document.getElementById('modalGestionarIntegrantes'));
     const offcanvasRevision = new bootstrap.Offcanvas(document.getElementById('offcanvasRevision'));
 
+    // URL base del API modular
+    const API_MODULAR = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api/modular'
+        : 'https://virtualclass-sm1i.onrender.com/api/modular';
+
     await cargarDetallesClase();
     await cargarCompañeros();
     
@@ -40,11 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarGrupos();
     await cargarEstructuraModular();
-
-    // URL base del API modular
-    const API_MODULAR = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? 'http://localhost:3000/api/modular'
-        : 'https://virtualclass-sm1i.onrender.com/api/modular';
 
     // ===================== ESTRUCTURA MODULAR =====================
 
