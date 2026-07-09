@@ -128,7 +128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     let botonesDocente = '';
                     if (esDocente) {
                         botonesDocente = `
-                            <div class="mt-2 pt-2 border-top d-flex gap-2">
+                            <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
+                                <button class="btn btn-sm btn-outline-info btn-tomar-asistencia" data-idmodulo="${semana.id_modulo}" data-tema="${semana.titulo}"><i class="bi bi-clipboard-check"></i> Asistencia</button>
                                 <button class="btn btn-sm btn-outline-warning btn-add-recurso-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-folder-plus"></i> Recurso</button>
                                 <button class="btn btn-sm btn-outline-success btn-add-actividad-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-journal-plus"></i> Actividad</button>
                                 <button class="btn btn-sm btn-outline-danger ms-auto btn-eliminar-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-trash"></i></button>
@@ -240,6 +241,79 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('actSemanaPeso').value = '';
                 document.getElementById('actSemanaFecha').value = '';
                 new bootstrap.Modal(document.getElementById('modalActividadSemana')).show();
+            });
+        });
+
+        // Asistencia
+        document.querySelectorAll('.btn-tomar-asistencia').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const btnElem = e.target.closest('button');
+                const idModulo = btnElem.dataset.idmodulo;
+                const tema = btnElem.dataset.tema;
+                
+                document.getElementById('tituloModalAsistencia').innerText = `Asistencia: ${tema}`;
+                const tbody = document.getElementById('tablaAsistenciaCuerpo');
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center">Cargando...</td></tr>';
+                
+                const modalAsistencia = new bootstrap.Modal(document.getElementById('modalAsistencia'));
+                modalAsistencia.show();
+
+                try {
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/asistencia/${idClase}/modulo/${idModulo}`);
+                    const alumnos = await res.json();
+                    
+                    tbody.innerHTML = '';
+                    if (alumnos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay alumnos.</td></tr>';
+                        return;
+                    }
+
+                    alumnos.forEach(al => {
+                        const isPresente = al.estado === 'presente' ? 'checked' : '';
+                        const isTardanza = al.estado === 'tardanza' ? 'checked' : '';
+                        const isAusente = al.estado === 'ausente' ? 'checked' : '';
+                        const isSinMarcar = al.estado === 'sin marcar' ? 'checked' : '';
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <span class="d-block fw-semibold text-dark">${al.apellidos}, ${al.nombres}</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="pres_${al.id_usuario}" value="presente" data-idmodulo="${idModulo}" data-idusuario="${al.id_usuario}" ${isPresente}>
+                                        <label class="btn btn-outline-success" for="pres_${al.id_usuario}">P</label>
+                                        
+                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="tard_${al.id_usuario}" value="tardanza" data-idmodulo="${idModulo}" data-idusuario="${al.id_usuario}" ${isTardanza}>
+                                        <label class="btn btn-outline-warning" for="tard_${al.id_usuario}">T</label>
+                                        
+                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="aus_${al.id_usuario}" value="ausente" data-idmodulo="${idModulo}" data-idusuario="${al.id_usuario}" ${isAusente}>
+                                        <label class="btn btn-outline-danger" for="aus_${al.id_usuario}">A</label>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    // Añadir evento autoguardado para las semanas
+                    document.querySelectorAll('.btn-asistencia').forEach(radio => {
+                        radio.addEventListener('change', async (ev) => {
+                            const rb = ev.target;
+                            try {
+                                await fetch('https://virtualclass-sm1i.onrender.com/api/asistencia/marcar', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        idModulo: rb.dataset.idmodulo,
+                                        idUsuario: rb.dataset.idusuario,
+                                        estado: rb.value
+                                    })
+                                });
+                            } catch (error) { console.error("Error al guardar asistencia", error); }
+                        });
+                    });
+
+                } catch (err) { console.error(err); }
             });
         });
 
@@ -678,77 +752,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
-        // Asistencia
-        document.querySelectorAll('.btn-tomar-asistencia').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const idSesion = e.target.dataset.id || e.target.closest('button').dataset.id;
-                const tema = e.target.dataset.tema || e.target.closest('button').dataset.tema;
-                
-                document.getElementById('tituloModalAsistencia').innerText = `Asistencia: ${tema}`;
-                const tbody = document.getElementById('tablaAsistenciaCuerpo');
-                tbody.innerHTML = '<tr><td colspan="2" class="text-center">Cargando...</td></tr>';
-                
-                const modalAsistencia = new bootstrap.Modal(document.getElementById('modalAsistencia'));
-                modalAsistencia.show();
 
-                try {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/asistencia/${idClase}/sesion/${idSesion}`);
-                    const alumnos = await res.json();
-                    
-                    tbody.innerHTML = '';
-                    if (alumnos.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay alumnos.</td></tr>';
-                        return;
-                    }
-
-                    alumnos.forEach(al => {
-                        const isPresente = al.estado === 'presente' ? 'checked' : '';
-                        const isTardanza = al.estado === 'tardanza' ? 'checked' : '';
-                        const isAusente = al.estado === 'ausente' ? 'checked' : '';
-                        const isSinMarcar = al.estado === 'sin marcar' ? 'checked' : '';
-
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>
-                                    <span class="d-block fw-semibold text-dark">${al.apellidos}, ${al.nombres}</span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="pres_${al.id_usuario}" value="presente" data-idsesion="${idSesion}" data-idusuario="${al.id_usuario}" ${isPresente}>
-                                        <label class="btn btn-outline-success" for="pres_${al.id_usuario}">P</label>
-                                        
-                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="tard_${al.id_usuario}" value="tardanza" data-idsesion="${idSesion}" data-idusuario="${al.id_usuario}" ${isTardanza}>
-                                        <label class="btn btn-outline-warning" for="tard_${al.id_usuario}">T</label>
-                                        
-                                        <input type="radio" class="btn-check btn-asistencia" name="asis_${al.id_usuario}" id="aus_${al.id_usuario}" value="ausente" data-idsesion="${idSesion}" data-idusuario="${al.id_usuario}" ${isAusente}>
-                                        <label class="btn btn-outline-danger" for="aus_${al.id_usuario}">A</label>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    });
-
-                    // Añadir evento autoguardado
-                    document.querySelectorAll('.btn-asistencia').forEach(radio => {
-                        radio.addEventListener('change', async (ev) => {
-                            const rb = ev.target;
-                            try {
-                                await fetch('https://virtualclass-sm1i.onrender.com/api/asistencia/marcar', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        idSesion: rb.dataset.idsesion,
-                                        idUsuario: rb.dataset.idusuario,
-                                        estado: rb.value
-                                    })
-                                });
-                            } catch (error) { console.error("Error al guardar asistencia", error); }
-                        });
-                    });
-
-                } catch (err) { console.error(err); }
-            });
-        });
     }
 
     // Eventos dinámicos en recursos
