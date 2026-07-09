@@ -15,19 +15,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const esDocente = currentUser.rol.toLowerCase().includes('docente');
 
     // UI Elements
-    const btnAddTema = document.getElementById('btnAñadirTema');
-    const btnAddRecurso = document.getElementById('btnAñadirRecurso');
-    const btnAddActividad = document.getElementById('btnAñadirActividad');
     const btnAñadirGrupo = document.getElementById('btnAñadirGrupo');
-    const semanasAcordeon = document.getElementById('semanasAcordeon');
-    const recursosContainer = document.getElementById('recursosContainer');
-    const actividadesContainer = document.getElementById('actividadesContainer');
     const gruposContainer = document.getElementById('gruposContainer');
 
     if (esDocente) {
-        btnAddTema.classList.remove('d-none');
-        btnAddRecurso.classList.remove('d-none');
-        btnAddActividad.classList.remove('d-none');
         if(btnAñadirGrupo) btnAñadirGrupo.classList.remove('d-none');
     }
 
@@ -47,9 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await cargarPorcentajeAsistencia();
     }
 
-    await cargarSesiones();
-    await cargarRecursos();
-    await cargarActividades();
     await cargarGrupos();
     await cargarEstructuraModular();
 
@@ -368,7 +356,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalActividadSemana')).hide();
                 await cargarEstructuraModular();
-                await cargarActividades(); // También actualizar la lista plana de actividades
             }
         } catch (e) { console.error(e); }
     });
