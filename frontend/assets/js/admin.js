@@ -221,26 +221,43 @@ async function guardarUsuario() {
 }
 
 // --- CURSOS ---
+let globalCursos = [];
+
 async function cargarCursos() {
     try {
         const response = await fetch(`${getApiUrl()}/cursos`);
-        const cursos = await response.json();
-        const tbody = document.querySelector('#cursos tbody');
-        tbody.innerHTML = '';
-        cursos.forEach(curso => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${curso.codigo}</td>
-                <td>${curso.nombre}</td>
-                <td>${curso.creditos}</td>
-                <td>${curso.total_clases}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="verClases(${curso.id_curso}, '${curso.nombre}')">Ver Clases</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+        globalCursos = await response.json();
+        renderizarCursos(globalCursos);
     } catch (error) { console.error(error); }
+}
+
+function renderizarCursos(cursos) {
+    const tbody = document.querySelector('#cursos tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    cursos.forEach(curso => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${curso.codigo}</td>
+            <td>${curso.nombre}</td>
+            <td>${curso.creditos}</td>
+            <td>${curso.total_clases || 0}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-success" onclick="abrirModalCrearClase(${curso.id_curso}, '${curso.nombre}')">Añadir Clase</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="verClases(${curso.id_curso}, '${curso.nombre}')">Ver Clases</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filtrarCursos() {
+    const term = document.getElementById('buscadorCursos').value.toLowerCase();
+    const filtrados = globalCursos.filter(c => 
+        c.nombre.toLowerCase().includes(term) || 
+        c.codigo.toLowerCase().includes(term)
+    );
+    renderizarCursos(filtrados);
 }
 
 async function guardarCurso() {
@@ -269,28 +286,67 @@ async function guardarCurso() {
 }
 
 async function verClases(idCurso, nombreCurso) {
-    document.getElementById('vcCursoNombre').textContent = nombreCurso;
+    const tbody = document.querySelector('#tablaClasesDetalle tbody');
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center">Cargando...</td></tr>';
+    
+    document.getElementById('nombreCursoModal').textContent = nombreCurso;
+    const modal = new bootstrap.Modal(document.getElementById('modalVerClases'));
+    modal.show();
+
     try {
-        // Asumiendo que el endpoint de clases trae las clases por curso. Como no lo hicimos exclusivo de curso, traeremos las disponibles y filtraremos en Frontend
-        const res = await fetch(`${getApiUrl()}/clases-disponibles`);
-        const clases = await res.json();
-        const clasesCurso = clases.filter(c => c.nombre === nombreCurso); // Coincidencia por nombre por simplicidad
+        const response = await fetch(`${getApiUrl()}/clases-disponibles`);
+        const todasClases = await response.json();
+        // Filtrar solo las de este curso (como id_curso no viene siempre en getAvailableClasses, lo filtramos por nombre por ahora)
+        const clases = todasClases.filter(c => c.nombre === nombreCurso);
         
-        const tbody = document.getElementById('tbodyClasesCurso');
         tbody.innerHTML = '';
-        if(clasesCurso.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay clases activas para este curso</td></tr>';
-        } else {
-            clasesCurso.forEach(c => {
-                tbody.innerHTML += `<tr>
-                    <td>${c.nombre}</td>
-                    <td>Sec ${c.seccion}</td>
-                    <td>${c.periodo}</td>
-                    <td>A Definir</td>
-                </tr>`;
-            });
+        if(clases.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center">No hay clases activas para este curso</td></tr>';
+            return;
         }
-        new bootstrap.Modal(document.getElementById('modalVerClases')).show();
+        clases.forEach(c => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>Sec. ${c.seccion}</td>
+                    <td>${c.periodo}</td>
+                    <td>A definir</td>
+                </tr>
+            `;
+        });
+    } catch(e) { console.error(e); }
+}
+
+function abrirModalCrearClase(idCurso, nombreCurso) {
+    document.getElementById('claseIdCurso').value = idCurso;
+    document.getElementById('claseNombreCurso').value = nombreCurso;
+    new bootstrap.Modal(document.getElementById('modalCrearClase')).show();
+}
+
+async function guardarClase() {
+    const idCurso = document.getElementById('claseIdCurso').value;
+    const seccion = document.getElementById('claseSeccion').value;
+    const periodo = document.getElementById('clasePeriodo').value;
+    const ciclo = document.getElementById('claseCiclo').value;
+    const aula = document.getElementById('claseAula').value;
+    const nombreClase = document.getElementById('claseNombreClase').value;
+
+    if(!seccion || !periodo || !ciclo || !aula) return alert('Campos incompletos');
+
+    try {
+        const res = await fetch(`${getApiUrl()}/clases`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idCurso, nombreClase, periodo, ciclo, seccion, aula })
+        });
+        if(res.ok) {
+            alert('Clase creada exitosamente');
+            bootstrap.Modal.getInstance(document.getElementById('modalCrearClase')).hide();
+            document.getElementById('formCrearClase').reset();
+            cargarCursos(); // Refrescar la tabla
+            agregarLog('Admin', `Nueva clase creada en curso`, 'Completado', 'bg-success');
+        } else {
+            alert('Error al crear la clase');
+        }
     } catch(e) { console.error(e); }
 }
 

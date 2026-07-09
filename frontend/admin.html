@@ -340,6 +340,15 @@
                     <h4 class="fw-bold text-dark mb-0">Gestión de Cursos Académicos</h4>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoCurso"><i class="bi bi-plus-lg me-1"></i> Crear Curso</button>
                 </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="buscadorCursos" placeholder="Buscar por código o nombre del curso..." oninput="filtrarCursos()">
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle" id="tablaCursos">
@@ -636,23 +645,76 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Clases del Curso <span id="vcCursoNombre" class="text-primary"></span></h5>
+                    <h5 class="modal-title"><i class="bi bi-journal-text me-2"></i>Clases del Curso: <span id="nombreCursoModal" class="fw-bold"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Clase</th>
-                                <th>Sección</th>
-                                <th>Periodo</th>
-                                <th>Aula</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbodyClasesCurso">
-                            <!-- Llenado por JS -->
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="tablaClasesDetalle">
+                            <thead>
+                                <tr>
+                                    <th>Sección</th>
+                                    <th>Periodo</th>
+                                    <th>Aula</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Cargado dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear Clase -->
+    <div class="modal fade" id="modalCrearClase" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Añadir Clase / Sección</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCrearClase">
+                        <input type="hidden" id="claseIdCurso">
+                        <div class="mb-3">
+                            <label class="form-label">Curso</label>
+                            <input type="text" class="form-control" id="claseNombreCurso" disabled>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sección</label>
+                                <input type="text" class="form-control" id="claseSeccion" required placeholder="Ej: A">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Periodo</label>
+                                <input type="text" class="form-control" id="clasePeriodo" required placeholder="Ej: 2026-I">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ciclo</label>
+                                <input type="text" class="form-control" id="claseCiclo" required placeholder="Ej: I, II, III">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Aula</label>
+                                <input type="text" class="form-control" id="claseAula" required placeholder="Ej: A-101">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Clase (Opcional)</label>
+                            <input type="text" class="form-control" id="claseNombreClase" placeholder="Ej: Fundamentos de Redes - Turno Mañana">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarClase()">Crear Clase</button>
                 </div>
             </div>
         </div>

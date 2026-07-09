@@ -15,6 +15,7 @@ router.get('/roles', adminController.getRoles);
 // Cursos
 router.get('/cursos', adminController.getAllCourses);
 router.post('/cursos', adminController.createCourse);
+router.post('/clases', adminController.createClass);
 
 // Clases (Para matrículas)
 router.get('/clases-disponibles', adminController.getAvailableClasses);

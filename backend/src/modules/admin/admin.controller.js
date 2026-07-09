@@ -77,6 +77,16 @@ const createCourse = async (req, res) => {
     }
 };
 
+const createClass = async (req, res) => {
+    const { idCurso, nombreClase, periodo, ciclo, seccion, aula } = req.body;
+    try {
+        const newClass = await adminModel.createClass(idCurso, nombreClase, periodo, ciclo, seccion, aula);
+        res.status(201).json({ mensaje: 'Clase creada exitosamente', clase: newClass });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear clase', error: error.message });
+    }
+};
+
 const getAvailableClasses = async (req, res) => {
     try {
         const classes = await adminModel.getAvailableClasses();
@@ -115,6 +125,7 @@ module.exports = {
     deleteUser,
     getAllCourses,
     createCourse,
+    createClass,
     getAvailableClasses,
     enrollStudent,
     getClassParticipants

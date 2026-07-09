@@ -98,6 +98,15 @@ const createCourse = async (codigo, nombre, descripcion, creditos) => {
     return result.rows[0];
 };
 
+const createClass = async (idCurso, nombreClase, periodo, ciclo, seccion, aula) => {
+    const query = `
+        INSERT INTO CLASE (ID_CURSO, NOMBRE_CLASE, PERIODO, CICLO, SECCION, AULA) 
+        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+    `;
+    const result = await pool.query(query, [idCurso, nombreClase, periodo, ciclo, seccion, aula]);
+    return result.rows[0];
+};
+
 // Matriculas (Para los selects)
 const getAvailableClasses = async () => {
     const query = `
@@ -180,6 +189,7 @@ module.exports = {
     deleteUser,
     getAllCourses,
     createCourse,
+    createClass,
     getAvailableClasses,
     enrollStudent,
     getClassParticipants
