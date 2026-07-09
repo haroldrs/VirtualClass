@@ -17,6 +17,7 @@ const forosRoutes = require('./modules/foros/foro.routes');
 const calendarioRoutes = require('./modules/calendario/calendario.routes');
 const gruposRoutes = require('./modules/grupos/grupo.routes');
 const asesoriasRoutes = require('./modules/asesorias/asesoria.routes');
+const adminRoutes = require('./modules/admin/admin.routes'); // Nueva ruta admin
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +43,7 @@ app.use('/api/foros', forosRoutes);
 app.use('/api/calendario', calendarioRoutes);
 app.use('/api/grupos', gruposRoutes);
 app.use('/api/asesorias', asesoriasRoutes);
+app.use('/api/admin', adminRoutes); // Ruta para el panel de administración
 
 // Arrancamos el motor
 app.listen(PORT, () => {

@@ -1,0 +1,364 @@
+// --- INICIALIZACION Y LOGS ---
+let globalUsuarios = []; // Para el filtro
+let logsActividad = [
+    { usr: 'Admin', act: 'Inicio de sesión exitoso', fecha: new Date(), estado: 'Completado', badge: 'bg-success' }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarEstadisticas();
+    cargarRoles();
+    renderLogs();
+
+    document.querySelector('a[href="#usuarios"]').addEventListener('click', cargarUsuarios);
+    document.querySelector('a[href="#cursos"]').addEventListener('click', cargarCursos);
+    document.querySelector('a[href="#matriculas"]').addEventListener('click', cargarDatosMatricula);
+    
+    // Quick Actions Mocks
+    const btnAviso = document.querySelector('button.btn-outline-warning');
+    if(btnAviso) btnAviso.onclick = () => {
+        alert('Aviso global enviado a todos los usuarios registrados.');
+        agregarLog('Admin', 'Envío de aviso global', 'Completado', 'bg-success');
+    };
+    
+    const btnRespaldo = document.querySelector('button.btn-outline-danger');
+    if(btnRespaldo) btnRespaldo.onclick = () => {
+        alert('Respaldo de BD iniciado. Se guardará un dump en S3.');
+        agregarLog('Sistema', 'Backup BD Iniciado', 'En Proceso', 'bg-warning text-dark');
+    };
+    
+    // Botones de Reportes
+    const btnReporteUsuarios = document.querySelector('#reportes .col-md-4:nth-child(1) button');
+    if(btnReporteUsuarios) btnReporteUsuarios.onclick = generarReporteUsuariosCSV;
+    
+    // Configuracion
+    const btnConfig = document.querySelector('#configuracion button.btn-primary');
+    if(btnConfig) btnConfig.onclick = () => {
+        alert('Configuraciones globales guardadas correctamente.');
+        agregarLog('Admin', 'Actualización de Configuración', 'Completado', 'bg-success');
+    };
+});
+
+function agregarLog(usr, act, estado, badge) {
+    logsActividad.unshift({ usr, act, fecha: new Date(), estado, badge });
+    if(logsActividad.length > 6) logsActividad.pop();
+    renderLogs();
+}
+
+function renderLogs() {
+    const tbody = document.getElementById('tbodyActividad');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    logsActividad.forEach(log => {
+        const timeStr = log.fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        tbody.innerHTML += `<tr>
+            <td>${log.usr}</td>
+            <td>${log.act}</td>
+            <td>Hoy, ${timeStr}</td>
+            <td><span class="badge ${log.badge}">${log.estado}</span></td>
+        </tr>`;
+    });
+}
+
+const API_URL = '/api/admin'; // Ruta relativa para producción en render, en dev agregar http://localhost:3000 si se corre frontend separado. 
+// PERO el usuario lo sirve todo junto, mejor usar '/api/admin' o mantener localhost para prueba local. Para render, ideal es ruta relativa si ambos corren en el mismo servidor de Express, pero el frontend son archivos HTML estáticos.
+// Voy a dejar la URL base en función del host para que funcione en local y render.
+const getApiUrl = () => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:3000/api/admin';
+    }
+    return '/api/admin';
+};
+const getUsuariosApiUrl = () => {
+     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:3000/api/usuarios';
+    }
+    return '/api/usuarios';
+};
+
+// --- DASHBOARD ---
+async function cargarEstadisticas() {
+    try {
+        const response = await fetch(`${getApiUrl()}/stats`);
+        const stats = await response.json();
+        const h3Elements = document.querySelectorAll('#dashboard .stat-card h3');
+        if(h3Elements.length >= 4) {
+            h3Elements[0].textContent = stats.totalUsuarios;
+            h3Elements[1].textContent = stats.cursosActivos;
+            h3Elements[2].textContent = stats.matriculasTotales;
+            h3Elements[3].textContent = stats.incidencias;
+        }
+    } catch (error) { console.error(error); }
+}
+
+// --- USUARIOS ---
+async function cargarUsuarios() {
+    try {
+        const response = await fetch(`${getApiUrl()}/usuarios`);
+        globalUsuarios = await response.json();
+        renderTablaUsuarios(globalUsuarios);
+    } catch (error) { console.error(error); }
+}
+
+function renderTablaUsuarios(usuarios) {
+    const tbody = document.querySelector('#usuarios tbody');
+    tbody.innerHTML = '';
+    usuarios.forEach(user => {
+        const estadoBadge = user.estado === 'Activo' ? 'bg-success' : 'bg-danger';
+        let rolBadge = 'bg-secondary';
+        if (user.nombre_rol?.includes('Admin')) rolBadge = 'bg-danger';
+        else if (user.nombre_rol?.includes('Docente')) rolBadge = 'bg-primary';
+        else if (user.nombre_rol?.includes('Alumno')) rolBadge = 'bg-info text-dark';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>#${user.id_usuario}</td>
+            <td>${user.nombres} ${user.apellidos}</td>
+            <td>${user.correo}</td>
+            <td><span class="badge ${rolBadge}">${user.nombre_rol || 'Sin Rol'}</span></td>
+            <td><span class="badge ${estadoBadge}">${user.estado}</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-secondary" onclick="abrirModalEditarUsuario(${user.id_usuario})"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-${user.estado === 'Activo' ? 'danger' : 'success'}" onclick="cambiarEstadoUsuario(${user.id_usuario}, '${user.estado === 'Activo' ? 'Inactivo' : 'Activo'}')">
+                    <i class="bi bi-${user.estado === 'Activo' ? 'trash' : 'check-circle'}"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filtrarUsuarios() {
+    const texto = document.getElementById('buscarUsuarioInput').value.toLowerCase();
+    const rolFiltro = document.getElementById('filtroRolSelect').value;
+    
+    const filtrados = globalUsuarios.filter(u => {
+        const coincideTexto = u.nombres.toLowerCase().includes(texto) || 
+                              u.apellidos.toLowerCase().includes(texto) || 
+                              u.correo.toLowerCase().includes(texto) || 
+                              u.id_usuario.toString().includes(texto);
+        
+        const coincideRol = rolFiltro === '' || (u.nombre_rol && u.nombre_rol.includes(rolFiltro));
+        return coincideTexto && coincideRol;
+    });
+    renderTablaUsuarios(filtrados);
+}
+
+function abrirModalEditarUsuario(id) {
+    const user = globalUsuarios.find(u => u.id_usuario === id);
+    if(user) {
+        document.getElementById('eIdUsuario').value = user.id_usuario;
+        document.getElementById('eNombres').value = user.nombres;
+        document.getElementById('eApellidos').value = user.apellidos;
+        document.getElementById('eCorreo').value = user.correo;
+        const modal = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
+        modal.show();
+    }
+}
+
+async function actualizarUsuario() {
+    const id = document.getElementById('eIdUsuario').value;
+    const nombres = document.getElementById('eNombres').value;
+    const apellidos = document.getElementById('eApellidos').value;
+    const correo = document.getElementById('eCorreo').value;
+    
+    try {
+        const res = await fetch(`${getUsuariosApiUrl()}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombres, apellidos, correo, telefono: '' })
+        });
+        if(res.ok) {
+            alert('Usuario actualizado');
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
+            cargarUsuarios();
+        } else alert('Error al actualizar');
+    } catch(e) { console.error(e); }
+}
+
+async function cambiarEstadoUsuario(id, nuevoEstado) {
+    if(!confirm(`¿Estás seguro de cambiar el estado a ${nuevoEstado}?`)) return;
+    try {
+        const response = await fetch(`${getApiUrl()}/usuarios/${id}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        if(response.ok) { cargarUsuarios(); cargarEstadisticas(); }
+    } catch (error) { console.error(error); }
+}
+
+async function cargarRoles() {
+    try {
+        const res = await fetch(`${getApiUrl()}/roles`);
+        const roles = await res.json();
+        const select = document.getElementById('uRol');
+        if(!select) return;
+        select.innerHTML = '<option value="">Seleccione un rol...</option>';
+        roles.forEach(r => select.innerHTML += `<option value="${r.id_rol}">${r.nombre_rol}</option>`);
+    } catch (error) { console.error(error); }
+}
+
+async function guardarUsuario() {
+    const nombres = document.getElementById('uNombres').value;
+    const apellidos = document.getElementById('uApellidos').value;
+    const correo = document.getElementById('uCorreo').value;
+    const contrasena = document.getElementById('uContrasena').value;
+    const idRol = document.getElementById('uRol').value;
+
+    if(!nombres || !apellidos || !correo || !contrasena || !idRol) return alert('Campos incompletos');
+
+    try {
+        const res = await fetch(`${getApiUrl()}/usuarios`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombres, apellidos, correo, contrasena, idRol })
+        });
+        if(res.ok) {
+            alert('Usuario creado correctamente');
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevoUsuario')).hide();
+            document.getElementById('formNuevoUsuario').reset();
+            cargarUsuarios();
+            cargarEstadisticas();
+            agregarLog('Admin', `Usuario creado: ${correo}`, 'Completado', 'bg-success');
+        } else alert('Error al crear usuario');
+    } catch(e) { console.error(e); }
+}
+
+// --- CURSOS ---
+async function cargarCursos() {
+    try {
+        const response = await fetch(`${getApiUrl()}/cursos`);
+        const cursos = await response.json();
+        const tbody = document.querySelector('#cursos tbody');
+        tbody.innerHTML = '';
+        cursos.forEach(curso => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${curso.codigo}</td>
+                <td>${curso.nombre}</td>
+                <td>${curso.creditos}</td>
+                <td>${curso.total_clases}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="verClases(${curso.id_curso}, '${curso.nombre}')">Ver Clases</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) { console.error(error); }
+}
+
+async function guardarCurso() {
+    const codigo = document.getElementById('cCodigo').value;
+    const nombre = document.getElementById('cNombre').value;
+    const creditos = document.getElementById('cCreditos').value;
+    const descripcion = document.getElementById('cDescripcion').value;
+
+    if(!codigo || !nombre || !creditos) return alert('Campos incompletos');
+
+    try {
+        const res = await fetch(`${getApiUrl()}/cursos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigo, nombre, creditos, descripcion })
+        });
+        if(res.ok) {
+            alert('Curso creado correctamente');
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevoCurso')).hide();
+            document.getElementById('formNuevoCurso').reset();
+            cargarCursos();
+            cargarEstadisticas();
+            agregarLog('Admin', `Curso creado: ${codigo}`, 'Completado', 'bg-success');
+        } else alert('Error al crear curso');
+    } catch(e) { console.error(e); }
+}
+
+async function verClases(idCurso, nombreCurso) {
+    document.getElementById('vcCursoNombre').textContent = nombreCurso;
+    try {
+        // Asumiendo que el endpoint de clases trae las clases por curso. Como no lo hicimos exclusivo de curso, traeremos las disponibles y filtraremos en Frontend
+        const res = await fetch(`${getApiUrl()}/clases-disponibles`);
+        const clases = await res.json();
+        const clasesCurso = clases.filter(c => c.nombre === nombreCurso); // Coincidencia por nombre por simplicidad
+        
+        const tbody = document.getElementById('tbodyClasesCurso');
+        tbody.innerHTML = '';
+        if(clasesCurso.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay clases activas para este curso</td></tr>';
+        } else {
+            clasesCurso.forEach(c => {
+                tbody.innerHTML += `<tr>
+                    <td>${c.nombre}</td>
+                    <td>Sec ${c.seccion}</td>
+                    <td>${c.periodo}</td>
+                    <td>A Definir</td>
+                </tr>`;
+            });
+        }
+        new bootstrap.Modal(document.getElementById('modalVerClases')).show();
+    } catch(e) { console.error(e); }
+}
+
+// --- MATRICULAS ---
+async function cargarDatosMatricula() {
+    try {
+        const resU = await fetch(`${getApiUrl()}/usuarios`);
+        const usuarios = await resU.json();
+        const resC = await fetch(`${getApiUrl()}/clases-disponibles`);
+        const clases = await resC.json();
+        
+        const selectUsuario = document.getElementById('selectUsuarioMatricula');
+        const selectClase = document.getElementById('selectClaseMatricula');
+        
+        if(selectUsuario && selectClase) {
+            selectUsuario.innerHTML = '<option value="">Seleccione un alumno o docente...</option>';
+            selectClase.innerHTML = '<option value="">Seleccione una clase...</option>';
+            
+            // Para admin, mostramos alumnos para matrícula
+            usuarios.forEach(u => {
+                if(u.nombre_rol?.includes('Alumno') || u.nombre_rol?.includes('Docente')) {
+                    selectUsuario.innerHTML += `<option value="${u.id_usuario}">${u.nombres} ${u.apellidos} (${u.nombre_rol})</option>`;
+                }
+            });
+            clases.forEach(c => {
+                selectClase.innerHTML += `<option value="${c.id_clase}">${c.nombre} - Sec ${c.seccion} (${c.periodo})</option>`;
+            });
+            
+            const btnMatricular = document.querySelector('#matriculas .btn-success');
+            btnMatricular.onclick = async () => {
+                const idU = selectUsuario.value;
+                const idC = selectClase.value;
+                if(!idU || !idC) return alert('Seleccione ambos campos');
+                
+                try {
+                    const res = await fetch(`${getApiUrl()}/matricular`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idUsuario: idU, idClase: idC })
+                    });
+                    if(res.ok) {
+                        alert('Asignación registrada exitosamente');
+                        cargarEstadisticas();
+                        agregarLog('Admin', `Usuario asignado a clase ${idC}`, 'Completado', 'bg-success');
+                        selectUsuario.value = ''; selectClase.value = '';
+                    } else alert('Error al asignar');
+                } catch(e) { console.error(e); }
+            };
+        }
+    } catch (e) { console.error(e); }
+}
+
+// --- EXPORTAR A CSV ---
+function generarReporteUsuariosCSV() {
+    if(globalUsuarios.length === 0) return alert('No hay datos para exportar');
+    let csvContent = "data:text/csv;charset=utf-8,ID,Nombres,Apellidos,Correo,Rol,Estado\n";
+    globalUsuarios.forEach(u => {
+        csvContent += `${u.id_usuario},"${u.nombres}","${u.apellidos}","${u.correo}","${u.nombre_rol}","${u.estado}"\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "reporte_usuarios.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+}

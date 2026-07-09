@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VirtuClass - Panel de Administración</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #4a6cf7;
+            --admin-color: #f5365c;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            background-color: #f3f6fd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar - Menú Lateral */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sidebar .brand-area {
+            padding: 20px;
+            border-bottom: 1px solid #edf2f9;
+        }
+
+        .sidebar .brand-logo {
+            max-width: 140px;
+            height: auto;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #6c757d;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 8px;
+            margin: 4px 15px;
+            transition: all 0.2s;
+        }
+
+        .nav-link-custom i {
+            font-size: 1.2rem;
+            margin-right: 12px;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: rgba(245, 54, 92, 0.1);
+            color: var(--admin-color);
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        /* Navbar Superior */
+        .top-navbar {
+            background-color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            margin-bottom: 30px;
+        }
+
+        /* Tarjetas de Estadísticas */
+        .stat-card {
+            border: none;
+            border-radius: 16px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .admin-badge {
+            background-color: var(--admin-color);
+            color: white;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* Tablas */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        /* Ajustes Responsivos */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <div class="brand-area text-center">
+            <!-- Asumiendo que logo existe, o un texto si no -->
+            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-shield-lock-fill text-danger"></i> AdminPanel</h4>
+        </div>
+        <div class="mt-4">
+            <a href="#dashboard" class="nav-link-custom active" onclick="showSection('dashboard', this)">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="#usuarios" class="nav-link-custom" onclick="showSection('usuarios', this)">
+                <i class="bi bi-people"></i> Gestión de Usuarios
+            </a>
+            <a href="#cursos" class="nav-link-custom" onclick="showSection('cursos', this)">
+                <i class="bi bi-journal-bookmark"></i> Cursos y Clases
+            </a>
+            <a href="#matriculas" class="nav-link-custom" onclick="showSection('matriculas', this)">
+                <i class="bi bi-card-checklist"></i> Matriculación
+            </a>
+            <a href="#reportes" class="nav-link-custom" onclick="showSection('reportes', this)">
+                <i class="bi bi-bar-chart"></i> Reportes del Sistema
+            </a>
+            <a href="#configuracion" class="nav-link-custom" onclick="showSection('configuracion', this)">
+                <i class="bi bi-gear"></i> Configuración
+            </a>
+        </div>
+        
+        <div class="position-absolute bottom-0 w-100 mb-3">
+            <hr class="mx-3 text-muted">
+            <a href="index.html" class="nav-link-custom text-danger">
+                <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="top-navbar d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-light d-lg-none me-2" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Panel de Control <span class="admin-badge ms-2">Administrador</span></h5>
+                </div>
+            </div>
+            
+            <div class="dropdown">
+                <div class="d-flex align-items-center role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                    <div class="text-end me-2 d-none d-sm-block">
+                        <span class="d-block fw-semibold small">Super Admin</span>
+                        <span class="text-muted extra-small" style="font-size: 0.75rem;">admin@edu.com</span>
+                    </div>
+                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">
+                        AD
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DASHBOARD -->
+        <div id="dashboard" class="content-section">
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small fw-semibold mb-1">Total Usuarios</p>
+                                <h3 class="fw-bold mb-0 text-dark">1,245</h3>
+                            </div>
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small fw-semibold mb-1">Cursos Activos</p>
+                                <h3 class="fw-bold mb-0 text-dark">84</h3>
+                            </div>
+                            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-journal-bookmark-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small fw-semibold mb-1">Matrículas Totales</p>
+                                <h3 class="fw-bold mb-0 text-dark">3,892</h3>
+                            </div>
+                            <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small fw-semibold mb-1">Incidencias / Tickets</p>
+                                <h3 class="fw-bold mb-0 text-dark">12</h3>
+                            </div>
+                            <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="table-container h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">Actividad Reciente</h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Acción</th>
+                                        <th>Fecha/Hora</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyActividad">
+                                    <!-- Generado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="table-container h-100">
+                        <h5 class="fw-bold text-dark mb-3">Accesos Rápidos</h5>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary text-start" onclick="document.querySelector('[href=\'#usuarios\']').click()"><i class="bi bi-person-plus me-2"></i> Añadir Nuevo Usuario</button>
+                            <button class="btn btn-outline-success text-start"><i class="bi bi-file-earmark-plus me-2"></i> Crear Nuevo Curso</button>
+                            <button class="btn btn-outline-warning text-start"><i class="bi bi-envelope me-2"></i> Enviar Aviso Global</button>
+                            <button class="btn btn-outline-danger text-start"><i class="bi bi-database-down me-2"></i> Respaldar Base de Datos</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN USUARIOS -->
+        <div id="usuarios" class="content-section" style="display:none;">
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-dark mb-0">Gestión de Usuarios</h4>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoUsuario"><i class="bi bi-plus-lg me-1"></i> Nuevo Usuario</button>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="buscarUsuarioInput" placeholder="Buscar por nombre, correo o ID..." onkeyup="filtrarUsuarios()">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filtroRolSelect" onchange="filtrarUsuarios()">
+                            <option value="">Todos los Roles</option>
+                            <option value="Admin">Administrador</option>
+                            <option value="Docente">Docente</option>
+                            <option value="Alumno">Alumno</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="tablaUsuarios">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Correo</th>
+                                <th>Rol Principal</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Generado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN CURSOS -->
+        <div id="cursos" class="content-section" style="display:none;">
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-dark mb-0">Gestión de Cursos Académicos</h4>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoCurso"><i class="bi bi-plus-lg me-1"></i> Crear Curso</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="tablaCursos">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre del Curso</th>
+                                <th>Créditos</th>
+                                <th>Clases/Secciones Activas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Generado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN MATRICULAS -->
+        <div id="matriculas" class="content-section" style="display:none;">
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold text-dark mb-0">Gestión de Matrículas</h4>
+                    <button class="btn btn-primary"><i class="bi bi-person-lines-fill me-1"></i> Matricular Alumno</button>
+                </div>
+                <p class="text-muted">Asigna alumnos a clases (secciones) específicas o asigna docentes a dictar una clase.</p>
+                
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Matrícula de Alumnos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Asignación de Docentes</a>
+                    </li>
+                </ul>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Seleccionar Alumno</label>
+                        <select class="form-select" id="selectUsuarioMatricula">
+                            <option>Ana Gomez (agomez@edu.com)</option>
+                            <option>Luis Perez (lperez@edu.com)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Seleccionar Clase (Periodo Actual)</label>
+                        <select class="form-select" id="selectClaseMatricula">
+                            <option>Prog. Básica - Sec A (INF101)</option>
+                            <option>Base de Datos - Sec A (INF102)</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button class="btn btn-success">Confirmar Matrícula</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN REPORTES -->
+        <div id="reportes" class="content-section" style="display:none;">
+            <div class="table-container">
+                <h4 class="fw-bold text-dark mb-4">Reportes de Administración</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Uso y Matrículas por Periodo</h6>
+                                <p class="small text-muted">Crecimiento de usuarios y matrículas consolidadas por ciclo.</p>
+                                <button class="btn btn-sm btn-outline-primary w-100">Generar PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Carga de Cursos Activos</h6>
+                                <p class="small text-muted">Distribución de cursos por docente para auditoría de recursos.</p>
+                                <button class="btn btn-sm btn-outline-primary w-100">Generar Excel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Actividad y Accesos al Sistema</h6>
+                                <p class="small text-muted">Logs técnicos, uso de almacenamiento y registros de sesión.</p>
+                                <button class="btn btn-sm btn-outline-primary w-100">Ver Detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECCIÓN CONFIGURACIÓN -->
+        <div id="configuracion" class="content-section" style="display:none;">
+            <div class="table-container">
+                <h4 class="fw-bold text-dark mb-4">Configuración del Sistema</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Ajustes Generales</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Institución</label>
+                            <input type="text" class="form-control" value="VirtuClass Academy">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Periodo Académico Activo</label>
+                            <input type="text" class="form-control" value="2026-I">
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="mantenimiento">
+                            <label class="form-check-label" for="mantenimiento">Modo Mantenimiento (Bloquear accesos)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Políticas y Permisos</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="autoMatricula" checked>
+                            <label class="form-check-label" for="autoMatricula">Permitir auto-matrícula de alumnos</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="notificaciones" checked>
+                            <label class="form-check-label" for="notificaciones">Activar correos de notificación del sistema</label>
+                        </div>
+                        <button class="btn btn-primary mt-4">Guardar Cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Nuevo Usuario -->
+    <div class="modal fade" id="modalNuevoUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoUsuario">
+                        <div class="mb-3">
+                            <label class="form-label">Nombres</label>
+                            <input type="text" class="form-control" id="uNombres" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" id="uApellidos" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="uCorreo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña Temporal</label>
+                            <input type="password" class="form-control" id="uContrasena" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rol del Sistema</label>
+                            <select class="form-select" id="uRol" required>
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarUsuario()">Guardar Usuario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Curso -->
+    <div class="modal fade" id="modalNuevoCurso" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Nuevo Curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoCurso">
+                        <div class="mb-3">
+                            <label class="form-label">Código (Ej. MAT101)</label>
+                            <input type="text" class="form-control" id="cCodigo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del Curso</label>
+                            <input type="text" class="form-control" id="cNombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Créditos</label>
+                            <input type="number" class="form-control" id="cCreditos" min="1" max="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción (Opcional)</label>
+                            <textarea class="form-control" id="cDescripcion" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarCurso()">Crear Curso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Usuario -->
+    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarUsuario">
+                        <input type="hidden" id="eIdUsuario">
+                        <div class="mb-3">
+                            <label class="form-label">Nombres</label>
+                            <input type="text" class="form-control" id="eNombres" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Apellidos</label>
+                            <input type="text" class="form-control" id="eApellidos" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="eCorreo" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="actualizarUsuario()">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Clases -->
+    <div class="modal fade" id="modalVerClases" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clases del Curso <span id="vcCursoNombre" class="text-primary"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Clase</th>
+                                <th>Sección</th>
+                                <th>Periodo</th>
+                                <th>Aula</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyClasesCurso">
+                            <!-- Llenado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Toggle Sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        if(sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+
+        // Navegación de secciones SPA simulada
+        function showSection(sectionId, element) {
+            // Ocultar todas las secciones
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(sec => sec.style.display = 'none');
+            
+            // Mostrar la seleccionada
+            document.getElementById(sectionId).style.display = 'block';
+            
+            // Actualizar clase activa en el menú
+            const navLinks = document.querySelectorAll('.nav-link-custom');
+            navLinks.forEach(link => link.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Cerrar sidebar en móviles
+            if (window.innerWidth < 992) {
+                sidebar.classList.remove('active');
+            }
+        }
+    </script>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>

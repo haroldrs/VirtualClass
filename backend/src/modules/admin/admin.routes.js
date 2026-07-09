@@ -1,0 +1,25 @@
+const express = require('express');
+const router = express.Router();
+const adminController = require('./admin.controller');
+
+// Dashboard
+router.get('/stats', adminController.getDashboardStats);
+
+// Usuarios
+router.get('/usuarios', adminController.getAllUsers);
+router.post('/usuarios', adminController.createUser);
+router.put('/usuarios/:id/estado', adminController.toggleUserStatus);
+router.delete('/usuarios/:id', adminController.deleteUser);
+router.get('/roles', adminController.getRoles);
+
+// Cursos
+router.get('/cursos', adminController.getAllCourses);
+router.post('/cursos', adminController.createCourse);
+
+// Clases (Para matrículas)
+router.get('/clases-disponibles', adminController.getAvailableClasses);
+
+// Matriculación
+router.post('/matricular', adminController.enrollStudent);
+
+module.exports = router;
