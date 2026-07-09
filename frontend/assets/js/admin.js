@@ -14,11 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('a[href="#matriculas"]').addEventListener('click', cargarDatosMatricula);
     
     // Quick Actions Mocks
-    const btnAviso = document.querySelector('button.btn-outline-warning');
-    if(btnAviso) btnAviso.onclick = () => {
-        alert('Aviso global enviado a todos los usuarios registrados.');
-        agregarLog('Admin', 'Envío de aviso global', 'Completado', 'bg-success');
-    };
+    // El botón de Aviso Global ahora usa Bootstrap data-bs-toggle="modal"
     
     const btnRespaldo = document.querySelector('button.btn-outline-danger');
     if(btnRespaldo) btnRespaldo.onclick = () => {
@@ -361,4 +357,24 @@ function generarReporteUsuariosCSV() {
     document.body.appendChild(link);
     link.click();
     link.remove();
+}
+
+// --- AVISO GLOBAL ---
+function enviarAvisoGlobal() {
+    const asunto = document.getElementById('avisoAsunto').value;
+    const mensaje = document.getElementById('avisoMensaje').value;
+
+    if(!asunto || !mensaje) {
+        alert('Por favor completa el asunto y el mensaje del aviso.');
+        return;
+    }
+
+    // Aquí iría el fetch POST a un endpoint como /api/admin/avisos si tuvieras la tabla en DB
+    // Simulamos la respuesta exitosa
+    alert(`El aviso "${asunto}" ha sido enviado exitosamente a todos los usuarios.`);
+    
+    bootstrap.Modal.getInstance(document.getElementById('modalAvisoGlobal')).hide();
+    document.getElementById('formAvisoGlobal').reset();
+    
+    agregarLog('Admin', `Aviso Global: ${asunto}`, 'Completado', 'bg-warning text-dark');
 }

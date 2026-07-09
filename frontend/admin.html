@@ -283,7 +283,7 @@
                         <div class="d-grid gap-2">
                             <button class="btn btn-outline-primary text-start" onclick="document.querySelector('[href=\'#usuarios\']').click()"><i class="bi bi-person-plus me-2"></i> Añadir Nuevo Usuario</button>
                             <button class="btn btn-outline-success text-start"><i class="bi bi-file-earmark-plus me-2"></i> Crear Nuevo Curso</button>
-                            <button class="btn btn-outline-warning text-start"><i class="bi bi-envelope me-2"></i> Enviar Aviso Global</button>
+                            <button class="btn btn-outline-warning text-start" data-bs-toggle="modal" data-bs-target="#modalAvisoGlobal"><i class="bi bi-envelope me-2"></i> Enviar Aviso Global</button>
                             <button class="btn btn-outline-danger text-start"><i class="bi bi-database-down me-2"></i> Respaldar Base de Datos</button>
                         </div>
                     </div>
@@ -580,6 +580,34 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="actualizarUsuario()">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Aviso Global -->
+    <div class="modal fade" id="modalAvisoGlobal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-megaphone me-2"></i>Enviar Aviso Global</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAvisoGlobal">
+                        <div class="mb-3">
+                            <label class="form-label">Asunto del Aviso</label>
+                            <input type="text" class="form-control" id="avisoAsunto" required placeholder="Ej: Mantenimiento programado">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mensaje</label>
+                            <textarea class="form-control" id="avisoMensaje" rows="4" required placeholder="Escribe el aviso que todos verán..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="enviarAvisoGlobal()">Enviar a todos</button>
                 </div>
             </div>
         </div>
