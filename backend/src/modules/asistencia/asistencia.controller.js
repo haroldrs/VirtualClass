@@ -12,7 +12,7 @@ const listarAlumnos = async (req, res) => {
 
 const listarAsistenciaSesion = async (req, res) => {
     try {
-        const asistencia = await asistenciaModel.obtenerAsistenciaPorSesion(req.params.idClase, req.params.idSesion);
+        const asistencia = await asistenciaModel.obtenerAsistenciaPorSesion(req.params.idClase, req.params.idModulo);
         res.json(asistencia);
     } catch (error) {
         console.error(error);
@@ -21,9 +21,9 @@ const listarAsistenciaSesion = async (req, res) => {
 };
 
 const registrarAsistencia = async (req, res) => {
-    const { idSesion, idUsuario, estado } = req.body;
+    const { idModulo, idUsuario, estado } = req.body;
     try {
-        const asistencia = await asistenciaModel.marcarAsistencia(idSesion, idUsuario, estado);
+        const asistencia = await asistenciaModel.marcarAsistencia(idModulo, idUsuario, estado);
         res.json(asistencia);
     } catch (error) {
         console.error(error);

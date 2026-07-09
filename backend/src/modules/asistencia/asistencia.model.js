@@ -12,50 +12,49 @@ const obtenerAlumnosPorClase = async (idClase) => {
     return rows;
 };
 
-const obtenerAsistenciaPorSesion = async (idClase, idSesion) => {
+const obtenerAsistenciaPorSesion = async (idClase, idModulo) => {
     const query = `
         SELECT U.ID_USUARIO, U.NOMBRES, U.APELLIDOS, COALESCE(A.ESTADO, 'sin marcar') AS ESTADO, A.ID_ASISTENCIA
         FROM MATRICULA M
         JOIN USUARIO U ON M.ID_USUARIO = U.ID_USUARIO
-        LEFT JOIN ASISTENCIA A ON A.ID_USUARIO = U.ID_USUARIO AND A.ID_SESION = $2
+        LEFT JOIN ASISTENCIA A ON A.ID_USUARIO = U.ID_USUARIO AND A.ID_MODULO = $2
         WHERE M.ID_CLASE = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'
         ORDER BY U.APELLIDOS, U.NOMBRES;
     `;
-    const { rows } = await pool.query(query, [idClase, idSesion]);
+    const { rows } = await pool.query(query, [idClase, idModulo]);
     return rows;
 };
 
-const marcarAsistencia = async (idSesion, idUsuario, estado) => {
+const marcarAsistencia = async (idModulo, idUsuario, estado) => {
     // Verificar si ya existe
-    const checkQuery = `SELECT ID_ASISTENCIA FROM ASISTENCIA WHERE ID_SESION = $1 AND ID_USUARIO = $2`;
-    const checkRes = await pool.query(checkQuery, [idSesion, idUsuario]);
+    const checkQuery = `SELECT ID_ASISTENCIA FROM ASISTENCIA WHERE ID_MODULO = $1 AND ID_USUARIO = $2`;
+    const checkRes = await pool.query(checkQuery, [idModulo, idUsuario]);
 
     if (checkRes.rows.length > 0) {
         // Actualizar
-        const updateQuery = `UPDATE ASISTENCIA SET ESTADO = $1, FECHA = CURRENT_DATE WHERE ID_SESION = $2 AND ID_USUARIO = $3 RETURNING *`;
-        const { rows } = await pool.query(updateQuery, [estado, idSesion, idUsuario]);
+        const updateQuery = `UPDATE ASISTENCIA SET ESTADO = $1, FECHA = CURRENT_DATE WHERE ID_MODULO = $2 AND ID_USUARIO = $3 RETURNING *`;
+        const { rows } = await pool.query(updateQuery, [estado, idModulo, idUsuario]);
         return rows[0];
     } else {
         // Insertar
-        const insertQuery = `INSERT INTO ASISTENCIA (ID_SESION, ID_USUARIO, ESTADO, FECHA) VALUES ($1, $2, $3, CURRENT_DATE) RETURNING *`;
-        const { rows } = await pool.query(insertQuery, [idSesion, idUsuario, estado]);
+        const insertQuery = `INSERT INTO ASISTENCIA (ID_MODULO, ID_USUARIO, ESTADO, FECHA) VALUES ($1, $2, $3, CURRENT_DATE) RETURNING *`;
+        const { rows } = await pool.query(insertQuery, [idModulo, idUsuario, estado]);
         return rows[0];
     }
 };
 
 const obtenerPorcentajeAlumno = async (idClase, idUsuario) => {
-    // Obtener total de sesiones de la clase que tienen asistencia tomada (al menos un alumno marcado)
-    // Para simplificar: total de sesiones
-    const totalSesionesQuery = `SELECT COUNT(*) FROM SESION_CLASE WHERE ID_CLASE = $1`;
+    // Obtener total de semanas de la clase
+    const totalSesionesQuery = `SELECT COUNT(*) FROM MODULO_CLASE WHERE ID_CLASE = $1`;
     const totalRes = await pool.query(totalSesionesQuery, [idClase]);
     const totalSesiones = parseInt(totalRes.rows[0].count) || 0;
 
-    if (totalSesiones === 0) return { porcentaje: 0, mensaje: 'No hay sesiones registradas' };
+    if (totalSesiones === 0) return { porcentaje: 0, mensaje: 'No hay semanas registradas' };
 
     const asistidasQuery = `
         SELECT COUNT(*) 
         FROM ASISTENCIA A 
-        JOIN SESION_CLASE S ON A.ID_SESION = S.ID_SESION
+        JOIN MODULO_CLASE S ON A.ID_MODULO = S.ID_MODULO
         WHERE S.ID_CLASE = $1 AND A.ID_USUARIO = $2 AND A.ESTADO IN ('presente', 'tardanza')
     `;
     const asisRes = await pool.query(asistidasQuery, [idClase, idUsuario]);
