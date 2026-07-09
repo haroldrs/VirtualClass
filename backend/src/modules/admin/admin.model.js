@@ -111,12 +111,32 @@ const getAvailableClasses = async () => {
 };
 
 const enrollStudent = async (idUsuario, idClase) => {
-    const query = `
-        INSERT INTO MATRICULA (ID_CLASE, ID_USUARIO, ESTADO_MATRICULA) 
-        VALUES ($1, $2, 'ACTIVO') RETURNING *
+    // 1. Verificar el rol del usuario
+    const roleQuery = `
+        SELECT R.NOMBRE_ROL 
+        FROM USUARIO_ROL UR
+        JOIN ROL R ON UR.ID_ROL = R.ID_ROL
+        WHERE UR.ID_USUARIO = $1
     `;
-    const result = await pool.query(query, [idClase, idUsuario]);
-    return result.rows[0];
+    const roleResult = await pool.query(roleQuery, [idUsuario]);
+    
+    // Si es docente
+    if (roleResult.rows.length > 0 && roleResult.rows[0].nombre_rol.includes('Docente')) {
+        const query = `
+            INSERT INTO CLASE_DOCENTE (ID_CLASE, ID_USUARIO) 
+            VALUES ($1, $2) RETURNING *
+        `;
+        const result = await pool.query(query, [idClase, idUsuario]);
+        return result.rows[0];
+    } else {
+        // Asume alumno por defecto
+        const query = `
+            INSERT INTO MATRICULA (ID_CLASE, ID_USUARIO, ESTADO_MATRICULA) 
+            VALUES ($1, $2, 'ACTIVO') RETURNING *
+        `;
+        const result = await pool.query(query, [idClase, idUsuario]);
+        return result.rows[0];
+    }
 };
 
 module.exports = {
