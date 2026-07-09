@@ -294,53 +294,90 @@ async function verClases(idCurso, nombreCurso) {
     } catch(e) { console.error(e); }
 }
 
-// --- MATRICULAS ---
+let currentMatriculaMode = 'Alumno';
+let matriculaUsuariosCache = [];
+let matriculaClasesCache = [];
+
 async function cargarDatosMatricula() {
     try {
-        const resU = await fetch(`${getApiUrl()}/usuarios`);
-        const usuarios = await resU.json();
-        const resC = await fetch(`${getApiUrl()}/clases-disponibles`);
-        const clases = await resC.json();
+        if (matriculaUsuariosCache.length === 0) {
+            const resU = await fetch(`${getApiUrl()}/usuarios`);
+            matriculaUsuariosCache = await resU.json();
+            const resC = await fetch(`${getApiUrl()}/clases-disponibles`);
+            matriculaClasesCache = await resC.json();
+        }
         
-        const selectUsuario = document.getElementById('selectUsuarioMatricula');
-        const selectClase = document.getElementById('selectClaseMatricula');
+        renderizarSelectsMatricula();
+
+        // Configurar Event Listeners de las pestañas
+        const tabAlumno = document.getElementById('tabMatriculaAlumno');
+        const tabDocente = document.getElementById('tabAsignacionDocente');
         
-        if(selectUsuario && selectClase) {
-            selectUsuario.innerHTML = '<option value="">Seleccione un alumno o docente...</option>';
-            selectClase.innerHTML = '<option value="">Seleccione una clase...</option>';
+        if(tabAlumno && tabDocente) {
+            tabAlumno.onclick = (e) => {
+                e.preventDefault();
+                currentMatriculaMode = 'Alumno';
+                tabAlumno.classList.add('active');
+                tabDocente.classList.remove('active');
+                document.getElementById('lblSeleccionarUsuario').textContent = 'Seleccionar Alumno';
+                document.getElementById('btnConfirmarMatricula').textContent = 'Confirmar Matrícula';
+                document.getElementById('btnAccionMatricula').innerHTML = '<i class="bi bi-person-lines-fill me-1"></i> Matricular Alumno';
+                renderizarSelectsMatricula();
+            };
             
-            // Para admin, mostramos alumnos para matrícula
-            usuarios.forEach(u => {
-                if(u.nombre_rol?.includes('Alumno') || u.nombre_rol?.includes('Docente')) {
-                    selectUsuario.innerHTML += `<option value="${u.id_usuario}">${u.nombres} ${u.apellidos} (${u.nombre_rol})</option>`;
-                }
-            });
-            clases.forEach(c => {
-                selectClase.innerHTML += `<option value="${c.id_clase}">${c.nombre} - Sec ${c.seccion} (${c.periodo})</option>`;
-            });
-            
-            const btnMatricular = document.querySelector('#matriculas .btn-success');
-            btnMatricular.onclick = async () => {
-                const idU = selectUsuario.value;
-                const idC = selectClase.value;
-                if(!idU || !idC) return alert('Seleccione ambos campos');
-                
-                try {
-                    const res = await fetch(`${getApiUrl()}/matricular`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idUsuario: idU, idClase: idC })
-                    });
-                    if(res.ok) {
-                        alert('Asignación registrada exitosamente');
-                        cargarEstadisticas();
-                        agregarLog('Admin', `Usuario asignado a clase ${idC}`, 'Completado', 'bg-success');
-                        selectUsuario.value = ''; selectClase.value = '';
-                    } else alert('Error al asignar');
-                } catch(e) { console.error(e); }
+            tabDocente.onclick = (e) => {
+                e.preventDefault();
+                currentMatriculaMode = 'Docente';
+                tabDocente.classList.add('active');
+                tabAlumno.classList.remove('active');
+                document.getElementById('lblSeleccionarUsuario').textContent = 'Seleccionar Docente';
+                document.getElementById('btnConfirmarMatricula').textContent = 'Asignar Docente a Clase';
+                document.getElementById('btnAccionMatricula').innerHTML = '<i class="bi bi-person-badge me-1"></i> Asignar Docente';
+                renderizarSelectsMatricula();
             };
         }
+        
+        const btnMatricular = document.getElementById('btnConfirmarMatricula');
+        btnMatricular.onclick = async () => {
+            const idU = document.getElementById('selectUsuarioMatricula').value;
+            const idC = document.getElementById('selectClaseMatricula').value;
+            if(!idU || !idC) return alert('Seleccione ambos campos');
+            
+            try {
+                const res = await fetch(`${getApiUrl()}/matricular`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idUsuario: idU, idClase: idC })
+                });
+                if(res.ok) {
+                    alert(`${currentMatriculaMode === 'Alumno' ? 'Matrícula' : 'Asignación'} registrada exitosamente`);
+                    cargarEstadisticas();
+                    agregarLog('Admin', `${currentMatriculaMode === 'Alumno' ? 'Alumno matriculado' : 'Docente asignado'} a clase ${idC}`, 'Completado', 'bg-success');
+                    document.getElementById('selectUsuarioMatricula').value = ''; 
+                    document.getElementById('selectClaseMatricula').value = '';
+                } else alert('Error en la asignación');
+            } catch(e) { console.error(e); }
+        };
     } catch (e) { console.error(e); }
+}
+
+function renderizarSelectsMatricula() {
+    const selectUsuario = document.getElementById('selectUsuarioMatricula');
+    const selectClase = document.getElementById('selectClaseMatricula');
+    
+    if(!selectUsuario || !selectClase) return;
+    
+    selectUsuario.innerHTML = `<option value="">Seleccione un ${currentMatriculaMode.toLowerCase()}...</option>`;
+    selectClase.innerHTML = '<option value="">Seleccione una clase...</option>';
+    
+    matriculaUsuariosCache.forEach(u => {
+        if(u.nombre_rol?.includes(currentMatriculaMode)) {
+            selectUsuario.innerHTML += `<option value="${u.id_usuario}">${u.nombres} ${u.apellidos} (${u.correo})</option>`;
+        }
+    });
+    matriculaClasesCache.forEach(c => {
+        selectClase.innerHTML += `<option value="${c.id_clase}">${c.nombre} - Sec ${c.seccion} (${c.periodo})</option>`;
+    });
 }
 
 // --- EXPORTAR A CSV ---

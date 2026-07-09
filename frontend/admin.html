@@ -364,37 +364,35 @@
         <div id="matriculas" class="content-section" style="display:none;">
             <div class="table-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-bold text-dark mb-0">Gestión de Matrículas</h4>
-                    <button class="btn btn-primary"><i class="bi bi-person-lines-fill me-1"></i> Matricular Alumno</button>
+                    <h4 class="fw-bold text-dark mb-0">Gestión de Matrículas y Asignaciones</h4>
+                    <button class="btn btn-primary" id="btnAccionMatricula"><i class="bi bi-person-lines-fill me-1"></i> Matricular Alumno</button>
                 </div>
                 <p class="text-muted">Asigna alumnos a clases (secciones) específicas o asigna docentes a dictar una clase.</p>
                 
                 <ul class="nav nav-tabs mb-4">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Matrícula de Alumnos</a>
+                        <a class="nav-link active" href="#" id="tabMatriculaAlumno">Matrícula de Alumnos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Asignación de Docentes</a>
+                        <a class="nav-link" href="#" id="tabAsignacionDocente">Asignación de Docentes</a>
                     </li>
                 </ul>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Seleccionar Alumno</label>
+                        <label class="form-label fw-bold" id="lblSeleccionarUsuario">Seleccionar Alumno</label>
                         <select class="form-select" id="selectUsuarioMatricula">
-                            <option>Ana Gomez (agomez@edu.com)</option>
-                            <option>Luis Perez (lperez@edu.com)</option>
+                            <!-- Llenado dinámicamente -->
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">Seleccionar Clase (Periodo Actual)</label>
                         <select class="form-select" id="selectClaseMatricula">
-                            <option>Prog. Básica - Sec A (INF101)</option>
-                            <option>Base de Datos - Sec A (INF102)</option>
+                            <!-- Llenado dinámicamente -->
                         </select>
                     </div>
                     <div class="col-12 mt-2">
-                        <button class="btn btn-success">Confirmar Matrícula</button>
+                        <button class="btn btn-success" id="btnConfirmarMatricula">Confirmar Matrícula</button>
                     </div>
                 </div>
             </div>
