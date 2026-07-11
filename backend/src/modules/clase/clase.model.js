@@ -2,7 +2,7 @@ const pool = require('../../config/db');
 
 const obtenerDetalleClase = async (idClase) => {
     const query = `
-        SELECT CL.ID_CLASE, CL.NOMBRE_CLASE, CL.SECCION, C.CODIGO, C.NOMBRE as NOMBRE_CURSO,
+        SELECT CL.ID_CLASE, CL.NOMBRE_CLASE, CL.SECCION, CL.ENLACE_VIDEO, CL.ENLACE_WHATSAPP, C.CODIGO, C.NOMBRE as NOMBRE_CURSO,
                U.NOMBRES as DOCENTE_NOMBRES, U.APELLIDOS as DOCENTE_APELLIDOS
         FROM CLASE CL
         JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
@@ -11,6 +11,17 @@ const obtenerDetalleClase = async (idClase) => {
         WHERE CL.ID_CLASE = $1;
     `;
     const { rows } = await pool.query(query, [idClase]);
+    return rows[0];
+};
+
+const actualizarEnlacesClase = async (idClase, enlaceVideo, enlaceWhatsapp) => {
+    const query = `
+        UPDATE CLASE 
+        SET ENLACE_VIDEO = $1, ENLACE_WHATSAPP = $2
+        WHERE ID_CLASE = $3
+        RETURNING *;
+    `;
+    const { rows } = await pool.query(query, [enlaceVideo, enlaceWhatsapp, idClase]);
     return rows[0];
 };
 
@@ -56,6 +67,7 @@ const eliminarSesion = async (idSesion) => {
 
 module.exports = {
     obtenerDetalleClase,
+    actualizarEnlacesClase,
     obtenerSesiones,
     crearSesion,
     actualizarSesion,

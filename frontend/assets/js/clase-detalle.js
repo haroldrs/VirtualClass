@@ -452,6 +452,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Actualizar breadcrumb
                 document.querySelector('.breadcrumb-item.active').innerText = `${data.codigo} ${data.nombre_curso}`;
+
+                // Configurar enlaces
+                const btnVideo = document.getElementById('btnEnlaceVideo');
+                if (data.enlace_video) {
+                    btnVideo.href = data.enlace_video;
+                    btnVideo.innerText = "Unirse";
+                    btnVideo.classList.remove('disabled');
+                } else {
+                    btnVideo.href = "#";
+                    btnVideo.innerText = "No disponible";
+                    btnVideo.classList.add('disabled');
+                }
+
+                const btnWhatsapp = document.getElementById('btnEnlaceWhatsapp');
+                if (data.enlace_whatsapp) {
+                    btnWhatsapp.href = data.enlace_whatsapp;
+                    btnWhatsapp.innerText = "Entrar";
+                    btnWhatsapp.classList.remove('disabled');
+                } else {
+                    btnWhatsapp.href = "#";
+                    btnWhatsapp.innerText = "No disponible";
+                    btnWhatsapp.classList.add('disabled');
+                }
+
+                // Mostrar botones de edición si es docente
+                if (esDocente) {
+                    document.querySelectorAll('.btn-edit-enlace').forEach(btn => btn.classList.remove('d-none'));
+                }
             }
         } catch (e) {
             console.error("Error al cargar detalles de clase", e);
@@ -1106,5 +1134,63 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (e) { console.error(e); }
         });
     }
+
+    // ==========================================
+    // LÓGICA DE EDICIÓN DE ENLACES (ZOOM/WHATSAPP)
+    // ==========================================
+    const modalEditarEnlace = new bootstrap.Modal(document.getElementById('modalEditarEnlace'));
+    
+    document.querySelectorAll('.btn-edit-enlace').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tipo = btn.dataset.tipo;
+            document.getElementById('tipoEnlaceEditar').value = tipo;
+            
+            const btnLink = tipo === 'video' ? document.getElementById('btnEnlaceVideo') : document.getElementById('btnEnlaceWhatsapp');
+            const currentUrl = btnLink.href !== '#' && !btnLink.href.includes(window.location.host) ? btnLink.href : '';
+            
+            document.getElementById('inputUrlEnlace').value = currentUrl;
+            modalEditarEnlace.show();
+        });
+    });
+
+    document.getElementById('btnGuardarEnlace').addEventListener('click', async () => {
+        const tipo = document.getElementById('tipoEnlaceEditar').value;
+        const url = document.getElementById('inputUrlEnlace').value.trim();
+        const btnGuardar = document.getElementById('btnGuardarEnlace');
+        
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        
+        try {
+            // Obtenemos los valores actuales (del DOM)
+            let enlaceVideo = document.getElementById('btnEnlaceVideo').href;
+            if (enlaceVideo === '#' || enlaceVideo.includes(window.location.host)) enlaceVideo = null;
+            
+            let enlaceWhatsapp = document.getElementById('btnEnlaceWhatsapp').href;
+            if (enlaceWhatsapp === '#' || enlaceWhatsapp.includes(window.location.host)) enlaceWhatsapp = null;
+            
+            if (tipo === 'video') enlaceVideo = url;
+            if (tipo === 'whatsapp') enlaceWhatsapp = url;
+            
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/${idClase}/enlaces`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enlaceVideo, enlaceWhatsapp })
+            });
+            
+            if (res.ok) {
+                modalEditarEnlace.hide();
+                await cargarDetallesClase(); // Recargar UI con los nuevos enlaces
+            } else {
+                alert("Error al actualizar enlace");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error de conexión");
+        } finally {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = 'Guardar';
+        }
+    });
 
 });

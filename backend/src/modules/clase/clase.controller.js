@@ -56,8 +56,21 @@ const borrarSesion = async (req, res) => {
     }
 };
 
+const actualizarEnlaces = async (req, res) => {
+    const { enlaceVideo, enlaceWhatsapp } = req.body;
+    try {
+        const clase = await claseModel.actualizarEnlacesClase(req.params.idClase, enlaceVideo, enlaceWhatsapp);
+        if (!clase) return res.status(404).json({ mensaje: 'Clase no encontrada' });
+        res.json({ mensaje: 'Enlaces actualizados correctamente', clase });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al actualizar los enlaces de la clase' });
+    }
+};
+
 module.exports = {
     obtenerDetalle,
+    actualizarEnlaces,
     listarSesiones,
     nuevaSesion,
     modificarSesion,

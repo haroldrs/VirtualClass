@@ -197,36 +197,61 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-6">
-                <div class="card link-card bg-primary text-white p-3 h-100 shadow-sm">
-                    <div class="d-flex align-items-center justify-content-between">
+            <div class="col-md-4">
+                <div class="card link-card bg-primary text-white p-3 h-100 shadow-sm position-relative">
+                    <div class="d-flex align-items-center justify-content-between h-100">
                         <div class="d-flex align-items-center">
                             <div class="bg-white text-primary rounded-3 p-2 me-3">
                                 <i class="bi bi-camera-video-fill fs-4"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold mb-0">Enlace de Videoclase</h6>
-                                <small class="text-white-50">Acceso directo a Zoom / Teams</small>
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 150px;">Videoclase</h6>
+                                <small class="text-white-50">Acceso directo</small>
                             </div>
                         </div>
-                        <a href="https://zoom.us/j/124" target="_blank" class="btn btn-light btn-sm rounded-pill fw-bold text-primary px-3">Unirse</a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-light d-none btn-edit-enlace" data-tipo="video" title="Editar enlace"><i class="bi bi-pencil"></i></button>
+                            <a href="#" id="btnEnlaceVideo" target="_blank" class="btn btn-light btn-sm rounded-pill fw-bold text-primary px-3">Unirse</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="card link-card bg-success text-white p-3 h-100 shadow-sm" style="background-color: var(--whatsapp-color) !important;">
-                    <div class="d-flex align-items-center justify-content-between">
+            <div class="col-md-4">
+                <div class="card link-card bg-success text-white p-3 h-100 shadow-sm position-relative" style="background-color: var(--whatsapp-color) !important;">
+                    <div class="d-flex align-items-center justify-content-between h-100">
                         <div class="d-flex align-items-center">
                             <div class="bg-white text-success rounded-3 p-2 me-3">
                                 <i class="bi bi-whatsapp fs-4"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold mb-0">Grupo Oficial de WhatsApp</h6>
-                                <small class="text-white-50">Canal de avisos rápidos con el docente</small>
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 150px;">WhatsApp</h6>
+                                <small class="text-white-50">Grupo de clase</small>
                             </div>
                         </div>
-                        <a href="https://chat.whatsapp.com/ejemplo" target="_blank" class="btn btn-light btn-sm rounded-pill fw-bold text-success px-3">Entrar</a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-light d-none btn-edit-enlace" data-tipo="whatsapp" title="Editar enlace"><i class="bi bi-pencil"></i></button>
+                            <a href="#" id="btnEnlaceWhatsapp" target="_blank" class="btn btn-light btn-sm rounded-pill fw-bold text-success px-3">Entrar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card link-card text-white p-3 h-100 shadow-sm position-relative" style="background-color: #6f42c1;">
+                    <div class="d-flex align-items-center justify-content-between h-100">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white text-purple rounded-3 p-2 me-3" style="color: #6f42c1;">
+                                <i class="bi bi-headset fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 150px;">Asesorías</h6>
+                                <small class="text-white-50">Resuelve tus dudas</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="asesorias.html" class="btn btn-light btn-sm rounded-pill fw-bold px-3" style="color: #6f42c1;">Ir ahora</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -659,6 +684,30 @@
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-success px-4" id="btnGuardarActividadSemana">Crear Actividad</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Enlace -->
+    <div class="modal fade" id="modalEditarEnlace" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg me-2 text-primary"></i>Editar Enlace</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="tipoEnlaceEditar">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">URL / Enlace</label>
+                        <input type="url" class="form-control" id="inputUrlEnlace" placeholder="https://...">
+                        <small class="text-muted d-block mt-1">Ingresa el link directo de Zoom, Teams, WhatsApp, etc.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" id="btnGuardarEnlace">Guardar</button>
                 </div>
             </div>
         </div>
