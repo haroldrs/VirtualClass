@@ -210,7 +210,7 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-sm btn-outline-light d-none btn-edit-enlace" data-bs-toggle="modal" data-bs-target="#modalEditarEnlace" data-tipo="video" title="Editar enlace"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-light d-none btn-edit-enlace" id="btnEditVideo" data-tipo="video" title="Editar enlace"><i class="bi bi-pencil"></i></button>
                             <a href="#" id="btnEnlaceVideo" target="_blank" class="btn btn-light btn-sm rounded-pill fw-bold text-primary px-3">Unirse</a>
                         </div>
                     </div>
@@ -230,7 +230,7 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-sm btn-outline-light d-none btn-edit-enlace" data-bs-toggle="modal" data-bs-target="#modalEditarEnlace" data-tipo="whatsapp" title="Editar enlace"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-light d-none btn-edit-enlace" id="btnEditWhatsapp" data-tipo="whatsapp" title="Editar enlace"><i class="bi bi-pencil"></i></button>
                             <a href="#" id="btnEnlaceWhatsapp" target="_blank" class="btn btn-light btn-sm rounded-pill fw-bold text-success px-3">Entrar</a>
                         </div>
                     </div>
@@ -701,7 +701,7 @@
                     <input type="hidden" id="tipoEnlaceEditar">
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-bold">URL / Enlace</label>
-                        <input type="url" class="form-control" id="inputUrlEnlace" placeholder="https://...">
+                        <input type="text" class="form-control" id="inputUrlEnlace" placeholder="https://...">
                         <small class="text-muted d-block mt-1">Ingresa el link directo de Zoom, Teams, WhatsApp, etc.</small>
                     </div>
                 </div>
