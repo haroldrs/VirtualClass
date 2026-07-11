@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarGrupos();
     await cargarEstructuraModular();
+    await cargarAvisosCurso();
 
     // ===================== ESTRUCTURA MODULAR =====================
 
@@ -1392,9 +1393,3 @@ async function guardarAvisoCurso(e) {
     }
 }
 
-// Interceptar la carga inicial para llamar a cargarAvisosCurso
-const _originalCargarInfoClase = cargarInfoClase;
-cargarInfoClase = async function() {
-    await _originalCargarInfoClase();
-    cargarAvisosCurso();
-}
