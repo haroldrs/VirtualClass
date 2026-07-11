@@ -36,6 +36,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? 'http://localhost:3000/api/modular'
         : 'https://virtualclass-sm1i.onrender.com/api/modular';
 
+    // URL base del API clase
+    const API_CLASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api/clase'
+        : 'https://virtualclass-sm1i.onrender.com/api/clase';
+
     await cargarDetallesClase();
     await cargarCompañeros();
     
@@ -442,7 +447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarDetallesClase() {
         try {
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/${idClase}`);
+            const res = await fetch(`${API_CLASE}/${idClase}`);
             const data = await res.json();
             
             if (res.ok) {
@@ -1139,23 +1144,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // LÓGICA DE EDICIÓN DE ENLACES (ZOOM/WHATSAPP)
     // ==========================================
     const modalEditarEnlaceEl = document.getElementById('modalEditarEnlace');
-    if (modalEditarEnlaceEl) {
-        modalEditarEnlaceEl.addEventListener('show.bs.modal', (e) => {
-            // El botón que abrió el modal
-            const btn = e.relatedTarget;
-            // O si es click directo (por si e.relatedTarget no lo pilla bien al hacer click en el icono)
-            const tipo = btn ? (btn.dataset.tipo || btn.closest('.btn-edit-enlace').dataset.tipo) : null;
+    
+    document.querySelectorAll('.btn-edit-enlace').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Asegurarnos de obtener el botón real aunque se haga clic en el icono
+            const targetBtn = e.currentTarget;
+            const tipo = targetBtn.dataset.tipo;
             
-            if (tipo) {
-                document.getElementById('tipoEnlaceEditar').value = tipo;
-                
-                const btnLink = tipo === 'video' ? document.getElementById('btnEnlaceVideo') : document.getElementById('btnEnlaceWhatsapp');
-                const currentUrl = btnLink.href !== '#' && !btnLink.href.includes(window.location.host) ? btnLink.href : '';
-                
-                document.getElementById('inputUrlEnlace').value = currentUrl;
-            }
+            document.getElementById('tipoEnlaceEditar').value = tipo;
+            
+            const btnLink = tipo === 'video' ? document.getElementById('btnEnlaceVideo') : document.getElementById('btnEnlaceWhatsapp');
+            const currentUrl = btnLink.href !== '#' && !btnLink.href.includes(window.location.host) ? btnLink.href : '';
+            
+            document.getElementById('inputUrlEnlace').value = currentUrl;
         });
-    }
+    });
 
     document.getElementById('btnGuardarEnlace').addEventListener('click', async () => {
         const tipo = document.getElementById('tipoEnlaceEditar').value;
@@ -1176,15 +1179,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (tipo === 'video') enlaceVideo = url;
             if (tipo === 'whatsapp') enlaceWhatsapp = url;
             
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/${idClase}/enlaces`, {
+            const res = await fetch(`${API_CLASE}/${idClase}/enlaces`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ enlaceVideo, enlaceWhatsapp })
             });
             
             if (res.ok) {
-                const bsModal = bootstrap.Modal.getInstance(document.getElementById('modalEditarEnlace'));
-                if (bsModal) bsModal.hide();
+                alert("Enlace actualizado correctamente");
+                const modalEl = document.getElementById('modalEditarEnlace');
+                const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                bsModal.hide();
                 await cargarDetallesClase(); // Recargar UI con los nuevos enlaces
             } else {
                 alert("Error al actualizar enlace");
