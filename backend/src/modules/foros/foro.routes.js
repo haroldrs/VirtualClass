@@ -20,4 +20,10 @@ router.post('/:idForo/temas', foroController.publicarTema);
 // Responder a un tema
 router.post('/temas/:idTema/respuestas', foroController.responderTema);
 
+// Obtener avisos de una clase
+router.get('/avisos/:idClase', foroController.obtenerAvisosClase);
+
+// Publicar un nuevo aviso (solo docente/admin)
+router.post('/:idForo/avisos', foroController.publicarAvisoClase);
+
 module.exports = router;

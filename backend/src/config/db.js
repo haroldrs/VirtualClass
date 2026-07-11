@@ -18,6 +18,7 @@ pool.connect()
         try {
             await client.query('ALTER TABLE CLASE ADD COLUMN IF NOT EXISTS ENLACE_VIDEO VARCHAR(255);');
             await client.query('ALTER TABLE CLASE ADD COLUMN IF NOT EXISTS ENLACE_WHATSAPP VARCHAR(255);');
+            await client.query('ALTER TABLE TEMA_FORO ADD COLUMN IF NOT EXISTS ES_AVISO BOOLEAN DEFAULT FALSE;');
             await client.query(`
                 CREATE TABLE IF NOT EXISTS ANUNCIO (
                     ID_ANUNCIO SERIAL PRIMARY KEY,

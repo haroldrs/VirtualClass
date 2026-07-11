@@ -41,19 +41,36 @@ const obtenerForosDeDocente = async (idUsuario) => {
 };
 
 // =============================================
-// 2. OBTENER TEMAS DE UN FORO
+// 2. OBTENER TEMAS DE UN FORO (SOLO DUDAS)
 // =============================================
 const obtenerTemasDelForo = async (idForo) => {
     const query = `
-        SELECT TF.ID_TEMA, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION,
+        SELECT TF.ID_TEMA, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION, TF.ES_AVISO,
                U.ID_USUARIO, U.NOMBRES, U.APELLIDOS,
                (SELECT COUNT(*) FROM RESPUESTA_FORO RF WHERE RF.ID_TEMA = TF.ID_TEMA) AS TOTAL_RESPUESTAS
         FROM TEMA_FORO TF
         JOIN USUARIO U ON TF.ID_USUARIO = U.ID_USUARIO
-        WHERE TF.ID_FORO = $1
+        WHERE TF.ID_FORO = $1 AND TF.ES_AVISO = FALSE
         ORDER BY TF.FECHA_CREACION DESC;
     `;
     const { rows } = await pool.query(query, [idForo]);
+    return rows;
+};
+
+// =============================================
+// 2.5 OBTENER AVISOS DE UNA CLASE
+// =============================================
+const obtenerAvisosDeClase = async (idClase) => {
+    const query = `
+        SELECT TF.ID_TEMA, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION,
+               U.ID_USUARIO, U.NOMBRES, U.APELLIDOS
+        FROM TEMA_FORO TF
+        JOIN FORO F ON TF.ID_FORO = F.ID_FORO
+        JOIN USUARIO U ON TF.ID_USUARIO = U.ID_USUARIO
+        WHERE F.ID_CLASE = $1 AND TF.ES_AVISO = TRUE
+        ORDER BY TF.FECHA_CREACION DESC;
+    `;
+    const { rows } = await pool.query(query, [idClase]);
     return rows;
 };
 
@@ -63,7 +80,7 @@ const obtenerTemasDelForo = async (idForo) => {
 const obtenerTemaConRespuestas = async (idTema) => {
     // Primero obtenemos el tema
     const queryTema = `
-        SELECT TF.ID_TEMA, TF.ID_FORO, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION,
+        SELECT TF.ID_TEMA, TF.ID_FORO, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION, TF.ES_AVISO,
                U.ID_USUARIO, U.NOMBRES, U.APELLIDOS
         FROM TEMA_FORO TF
         JOIN USUARIO U ON TF.ID_USUARIO = U.ID_USUARIO
@@ -91,15 +108,15 @@ const obtenerTemaConRespuestas = async (idTema) => {
 };
 
 // =============================================
-// 4. CREAR UN NUEVO TEMA
+// 4. CREAR UN NUEVO TEMA O AVISO
 // =============================================
-const crearTema = async (idForo, idUsuario, tituloTema, mensajeInicial) => {
+const crearTema = async (idForo, idUsuario, tituloTema, mensajeInicial, esAviso = false) => {
     const query = `
-        INSERT INTO TEMA_FORO (ID_FORO, ID_USUARIO, TITULO_TEMA, MENSAJE_INICIAL)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO TEMA_FORO (ID_FORO, ID_USUARIO, TITULO_TEMA, MENSAJE_INICIAL, ES_AVISO)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [idForo, idUsuario, tituloTema, mensajeInicial]);
+    const { rows } = await pool.query(query, [idForo, idUsuario, tituloTema, mensajeInicial, esAviso]);
     return rows[0];
 };
 
@@ -121,7 +138,7 @@ const crearRespuesta = async (idTema, idUsuario, contenido) => {
 // =============================================
 const buscarTemas = async (idForo, palabraClave) => {
     const query = `
-        SELECT TF.ID_TEMA, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION,
+        SELECT TF.ID_TEMA, TF.TITULO_TEMA, TF.MENSAJE_INICIAL, TF.FECHA_CREACION, TF.ES_AVISO,
                U.ID_USUARIO, U.NOMBRES, U.APELLIDOS,
                (SELECT COUNT(*) FROM RESPUESTA_FORO RF WHERE RF.ID_TEMA = TF.ID_TEMA) AS TOTAL_RESPUESTAS
         FROM TEMA_FORO TF
@@ -138,6 +155,7 @@ module.exports = {
     obtenerForosDeAlumno,
     obtenerForosDeDocente,
     obtenerTemasDelForo,
+    obtenerAvisosDeClase,
     obtenerTemaConRespuestas,
     crearTema,
     crearRespuesta,

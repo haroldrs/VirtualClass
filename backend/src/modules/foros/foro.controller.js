@@ -122,11 +122,57 @@ const buscarEnForo = async (req, res) => {
     }
 };
 
+// =============================================
+// 7. Obtener avisos de una clase (solo temas con ES_AVISO = TRUE)
+// =============================================
+const obtenerAvisosClase = async (req, res) => {
+    const { idClase } = req.params;
+
+    try {
+        const avisos = await foroModel.obtenerAvisosDeClase(idClase);
+        res.status(200).json(avisos);
+    } catch (error) {
+        console.error('Error al obtener avisos:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor', error: error.message });
+    }
+};
+
+// =============================================
+// 8. Publicar un aviso (solo docentes/admins)
+// =============================================
+const publicarAvisoClase = async (req, res) => {
+    const { idForo } = req.params;
+    const { id_usuario, titulo_tema, mensaje_inicial, es_docente } = req.body;
+
+    // Validación de seguridad básica en backend
+    if (!es_docente) {
+        return res.status(403).json({ mensaje: 'Acceso denegado: Solo los docentes pueden publicar avisos.' });
+    }
+
+    if (!id_usuario || !titulo_tema || !mensaje_inicial) {
+        return res.status(400).json({ mensaje: 'Faltan campos obligatorios' });
+    }
+
+    try {
+        // Pasamos esAviso = true al modelo
+        const nuevoAviso = await foroModel.crearTema(idForo, id_usuario, titulo_tema, mensaje_inicial, true);
+        res.status(201).json({
+            mensaje: 'Aviso publicado exitosamente',
+            aviso: nuevoAviso
+        });
+    } catch (error) {
+        console.error('Error al crear aviso:', error);
+        res.status(500).json({ mensaje: 'Error al publicar el aviso', error: error.message });
+    }
+};
+
 module.exports = {
     obtenerMisForos,
     obtenerTemas,
     obtenerDiscusion,
     publicarTema,
     responderTema,
-    buscarEnForo
+    buscarEnForo,
+    obtenerAvisosClase,
+    publicarAvisoClase
 };

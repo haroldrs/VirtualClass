@@ -1250,3 +1250,137 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 });
+
+// ==========================================
+// FORO DE AVISOS DEL CURSO
+// ==========================================
+let idForoClase = null;
+
+async function cargarAvisosCurso() {
+    const container = document.getElementById('avisosCursoContainer');
+    
+    // Si somos docentes, mostrar botón de crear aviso
+    const esDocente = currentUser.rol && currentUser.rol.toLowerCase().includes('docente');
+    if (esDocente) {
+        document.getElementById('btnCrearAvisoCurso').classList.remove('d-none');
+    }
+
+    try {
+        // 1. Obtener los foros de la clase para sacar el idForo
+        // Necesitamos un endpoint para sacar el foro de una clase, o traer los avisos por idClase
+        const resAvisos = await fetch(`${API_BASE}/foros/avisos/${idClase}`);
+        const avisos = await resAvisos.json();
+
+        container.innerHTML = '';
+        if (avisos.length === 0) {
+            container.innerHTML = '<p class="text-muted small text-center mb-0">No hay avisos recientes en este curso.</p>';
+            return;
+        }
+
+        // Si hay avisos, necesitamos el ID del foro para poder crear nuevos. 
+        // Asumimos que los avisos traen el id_foro, pero la query no lo trae. 
+        // Para simplificar, cuando creamos aviso, en el backend requerimos idForo. 
+        // Mejor obtenemos la lista de foros del estudiante y buscamos el de esta clase.
+        
+        avisos.forEach((aviso, index) => {
+            const fecha = new Date(aviso.fecha_creacion).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
+            const autor = `${aviso.nombres} ${aviso.apellidos}`;
+            
+            // Alternar colores de borde (danger y secondary)
+            const colorBorde = index % 2 === 0 ? 'border-danger' : 'border-secondary';
+            const colorTitulo = index % 2 === 0 ? 'text-dark' : 'text-secondary';
+            
+            const div = document.createElement('div');
+            div.className = `border-start border-3 ${colorBorde} ps-3 mb-3`;
+            div.innerHTML = `
+                <span class="d-block text-muted extra-small mb-1" style="font-size: 0.75rem;">${fecha} • Por: ${autor}</span>
+                <h6 class="fw-bold ${colorTitulo} mb-1">${aviso.titulo_tema}</h6>
+                <p class="text-muted small mb-0">${aviso.mensaje_inicial}</p>
+            `;
+            container.appendChild(div);
+        });
+
+    } catch (error) {
+        console.error('Error al cargar avisos:', error);
+        container.innerHTML = '<p class="text-danger small text-center">Error al cargar avisos.</p>';
+    }
+}
+
+// Necesitamos el idForo para publicar
+async function obtenerIdForoDeClase() {
+    if (idForoClase) return idForoClase;
+    try {
+        const res = await fetch(`${API_BASE}/foros/mis-foros/${currentUser.id_usuario}/${currentUser.rol}`);
+        const foros = await res.json();
+        const foroClase = foros.find(f => parseInt(f.id_clase) === parseInt(idClase));
+        if (foroClase) {
+            idForoClase = foroClase.id_foro;
+            return idForoClase;
+        }
+    } catch (e) {
+        console.error('Error al obtener idForo', e);
+    }
+    return null;
+}
+
+async function guardarAvisoCurso(e) {
+    e.preventDefault();
+    
+    const titulo = document.getElementById('avisoCursoTitulo').value.trim();
+    const contenido = document.getElementById('avisoCursoContenido').value.trim();
+    const btn = e.target;
+
+    if (!titulo || !contenido) {
+        alert('Por favor, completa el título y mensaje del aviso.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Publicando...';
+
+    const idForo = await obtenerIdForoDeClase();
+    if (!idForo) {
+        alert('No se pudo encontrar el foro de esta clase.');
+        btn.disabled = false;
+        btn.innerHTML = 'Publicar Aviso';
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/foros/${idForo}/avisos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_usuario: currentUser.id_usuario,
+                titulo_tema: titulo,
+                mensaje_inicial: contenido,
+                es_docente: true // backend validará esto
+            })
+        });
+
+        if (res.ok) {
+            const modalEl = document.getElementById('modalCrearAvisoCurso');
+            const modalInst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInst.hide();
+            
+            document.getElementById('formCrearAvisoCurso').reset();
+            cargarAvisosCurso(); // Recargar
+        } else {
+            const err = await res.json();
+            alert('Error: ' + err.mensaje);
+        }
+    } catch (error) {
+        console.error('Error al publicar aviso:', error);
+        alert('Error de conexión al publicar el aviso.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Publicar Aviso';
+    }
+}
+
+// Interceptar la carga inicial para llamar a cargarAvisosCurso
+const _originalCargarInfoClase = cargarInfoClase;
+cargarInfoClase = async function() {
+    await _originalCargarInfoClase();
+    cargarAvisosCurso();
+}
