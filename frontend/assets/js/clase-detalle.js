@@ -1259,6 +1259,15 @@ let idForoClase = null;
 async function cargarAvisosCurso() {
     const container = document.getElementById('avisosCursoContainer');
     
+    // Obtener idClase desde la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const localIdClase = urlParams.get('id');
+    if (!localIdClase) return;
+
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://virtualclass-sm1i.onrender.com/api';
+
     // Si somos docentes, mostrar botón de crear aviso
     const esDocente = currentUser.rol && currentUser.rol.toLowerCase().includes('docente');
     if (esDocente) {
@@ -1266,9 +1275,8 @@ async function cargarAvisosCurso() {
     }
 
     try {
-        // 1. Obtener los foros de la clase para sacar el idForo
-        // Necesitamos un endpoint para sacar el foro de una clase, o traer los avisos por idClase
-        const resAvisos = await fetch(`${API_BASE}/foros/avisos/${idClase}`);
+        const resAvisos = await fetch(`${API_URL}/foros/avisos/${localIdClase}`);
+        if(!resAvisos.ok) throw new Error('Error en API');
         const avisos = await resAvisos.json();
 
         container.innerHTML = '';
@@ -1276,17 +1284,11 @@ async function cargarAvisosCurso() {
             container.innerHTML = '<p class="text-muted small text-center mb-0">No hay avisos recientes en este curso.</p>';
             return;
         }
-
-        // Si hay avisos, necesitamos el ID del foro para poder crear nuevos. 
-        // Asumimos que los avisos traen el id_foro, pero la query no lo trae. 
-        // Para simplificar, cuando creamos aviso, en el backend requerimos idForo. 
-        // Mejor obtenemos la lista de foros del estudiante y buscamos el de esta clase.
         
         avisos.forEach((aviso, index) => {
             const fecha = new Date(aviso.fecha_creacion).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
             const autor = `${aviso.nombres} ${aviso.apellidos}`;
             
-            // Alternar colores de borde (danger y secondary)
             const colorBorde = index % 2 === 0 ? 'border-danger' : 'border-secondary';
             const colorTitulo = index % 2 === 0 ? 'text-dark' : 'text-secondary';
             
@@ -1309,10 +1311,18 @@ async function cargarAvisosCurso() {
 // Necesitamos el idForo para publicar
 async function obtenerIdForoDeClase() {
     if (idForoClase) return idForoClase;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const localIdClase = urlParams.get('id');
+    
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://virtualclass-sm1i.onrender.com/api';
+
     try {
-        const res = await fetch(`${API_BASE}/foros/mis-foros/${currentUser.id_usuario}/${currentUser.rol}`);
+        const res = await fetch(`${API_URL}/foros/mis-foros/${currentUser.id_usuario}/${currentUser.rol}`);
         const foros = await res.json();
-        const foroClase = foros.find(f => parseInt(f.id_clase) === parseInt(idClase));
+        const foroClase = foros.find(f => parseInt(f.id_clase) === parseInt(localIdClase));
         if (foroClase) {
             idForoClase = foroClase.id_foro;
             return idForoClase;
@@ -1346,8 +1356,12 @@ async function guardarAvisoCurso(e) {
         return;
     }
 
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://virtualclass-sm1i.onrender.com/api';
+
     try {
-        const res = await fetch(`${API_BASE}/foros/${idForo}/avisos`, {
+        const res = await fetch(`${API_URL}/foros/${idForo}/avisos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
