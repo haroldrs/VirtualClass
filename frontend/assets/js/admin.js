@@ -503,25 +503,7 @@ function generarReporteUsuariosCSV() {
     link.remove();
 }
 
-// --- AVISO GLOBAL ---
-function enviarAvisoGlobal() {
-    const asunto = document.getElementById('avisoAsunto').value;
-    const mensaje = document.getElementById('avisoMensaje').value;
 
-    if(!asunto || !mensaje) {
-        alert('Por favor completa el asunto y el mensaje del aviso.');
-        return;
-    }
-
-    // Aquí iría el fetch POST a un endpoint como /api/admin/avisos si tuvieras la tabla en DB
-    // Simulamos la respuesta exitosa
-    alert(`El aviso "${asunto}" ha sido enviado exitosamente a todos los usuarios.`);
-    
-    bootstrap.Modal.getInstance(document.getElementById('modalAvisoGlobal')).hide();
-    document.getElementById('formAvisoGlobal').reset();
-    
-    agregarLog('Admin', `Aviso Global: ${asunto}`, 'Completado', 'bg-warning text-dark');
-}
 
 // --- MATRICULA MASIVA ---
 async function procesarMatriculaMasiva() {
