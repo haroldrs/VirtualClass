@@ -445,10 +445,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnUnidad) btnUnidad.classList.remove('d-none');
     }
 
+    let currentClaseData = {};
+
     async function cargarDetallesClase() {
         try {
             const res = await fetch(`${API_CLASE}/${idClase}`);
             const data = await res.json();
+            currentClaseData = data;
             
             if (res.ok) {
                 document.getElementById('cursoBadge').innerText = `${data.codigo} • Sección ${data.seccion}`;
@@ -1147,37 +1150,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     document.querySelectorAll('.btn-edit-enlace').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Asegurarnos de obtener el botón real aunque se haga clic en el icono
             const targetBtn = e.currentTarget;
             const tipo = targetBtn.dataset.tipo;
             
             document.getElementById('tipoEnlaceEditar').value = tipo;
             
-            const btnLink = tipo === 'video' ? document.getElementById('btnEnlaceVideo') : document.getElementById('btnEnlaceWhatsapp');
-            const currentUrl = btnLink.href !== '#' && !btnLink.href.includes(window.location.host) ? btnLink.href : '';
-            
-            document.getElementById('inputUrlEnlace').value = currentUrl;
+            const currentUrl = tipo === 'video' ? currentClaseData.enlace_video : currentClaseData.enlace_whatsapp;
+            document.getElementById('inputUrlEnlace').value = currentUrl || '';
         });
     });
 
     document.getElementById('btnGuardarEnlace').addEventListener('click', async () => {
         const tipo = document.getElementById('tipoEnlaceEditar').value;
-        const url = document.getElementById('inputUrlEnlace').value.trim();
+        let url = document.getElementById('inputUrlEnlace').value.trim();
         const btnGuardar = document.getElementById('btnGuardarEnlace');
         
         btnGuardar.disabled = true;
         btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
         
         try {
-            // Obtenemos los valores actuales (del DOM)
-            let enlaceVideo = document.getElementById('btnEnlaceVideo').href;
-            if (enlaceVideo === '#' || enlaceVideo.includes(window.location.host)) enlaceVideo = null;
+            // Asegurarse de que sea una URL válida añadiendo https:// si falta
+            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            let enlaceVideo = currentClaseData.enlace_video;
+            let enlaceWhatsapp = currentClaseData.enlace_whatsapp;
             
-            let enlaceWhatsapp = document.getElementById('btnEnlaceWhatsapp').href;
-            if (enlaceWhatsapp === '#' || enlaceWhatsapp.includes(window.location.host)) enlaceWhatsapp = null;
-            
-            if (tipo === 'video') enlaceVideo = url;
-            if (tipo === 'whatsapp') enlaceWhatsapp = url;
+            if (tipo === 'video') enlaceVideo = url || null;
+            if (tipo === 'whatsapp') enlaceWhatsapp = url || null;
             
             const res = await fetch(`${API_CLASE}/${idClase}/enlaces`, {
                 method: 'PUT',
