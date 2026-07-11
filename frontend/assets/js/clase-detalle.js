@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const esDocente = currentUser.rol.toLowerCase().includes('docente');
+    const esDocente = currentUser && currentUser.rol ? currentUser.rol.toLowerCase().includes('docente') : false;
 
     // UI Elements
     const btnAñadirGrupo = document.getElementById('btnAñadirGrupo');
@@ -491,6 +491,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (e) {
             console.error("Error al cargar detalles de clase", e);
+            alert("Error de Javascript al cargar la clase: " + e.message);
         }
     }
 
@@ -1147,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // LÓGICA DE EDICIÓN DE ENLACES (ZOOM/WHATSAPP)
     // ==========================================
     const modalEditarEnlaceEl = document.getElementById('modalEditarEnlace');
-    const modalEditarEnlace = new bootstrap.Modal(modalEditarEnlaceEl);
+    const modalEditarEnlace = modalEditarEnlaceEl ? new bootstrap.Modal(modalEditarEnlaceEl) : null;
     const inputTipoEnlace = document.getElementById('tipoEnlaceEditar');
     const inputUrlEnlace = document.getElementById('inputUrlEnlace');
     const btnGuardarEnlace = document.getElementById('btnGuardarEnlace');
