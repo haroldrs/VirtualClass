@@ -677,7 +677,9 @@ async function guardarAnuncio(e) {
             body
         });
         if (resp.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('modalAnuncio')).hide();
+            const modalEl = document.getElementById('modalAnuncio');
+            const modalInst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modalInst.hide();
             cargarAnuncios();
             agregarLog(`Anuncio ${id ? 'editado' : 'creado'}: ${titulo}`, 'Completado');
         } else {
