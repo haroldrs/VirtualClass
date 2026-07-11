@@ -43,6 +43,110 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let currentClaseData = {};
 
+    // ==========================================
+    // LÓGICA DE EDICIÓN DE ENLACES (ZOOM/WHATSAPP)
+    // ==========================================
+    const modalEditarEnlaceEl = document.getElementById('modalEditarEnlace');
+    const modalEditarEnlace = modalEditarEnlaceEl ? new bootstrap.Modal(modalEditarEnlaceEl) : null;
+    const inputTipoEnlace = document.getElementById('tipoEnlaceEditar');
+    const inputUrlEnlace = document.getElementById('inputUrlEnlace');
+    const btnGuardarEnlace = document.getElementById('btnGuardarEnlace');
+
+    const btnEditVideo = document.getElementById('btnEditVideo');
+    if (btnEditVideo) {
+        btnEditVideo.addEventListener('click', function() {
+            inputTipoEnlace.value = 'video';
+            inputUrlEnlace.value = currentClaseData.enlace_video || '';
+            if(modalEditarEnlace) modalEditarEnlace.show();
+        });
+    }
+
+    const btnEditWhatsapp = document.getElementById('btnEditWhatsapp');
+    if (btnEditWhatsapp) {
+        btnEditWhatsapp.addEventListener('click', function() {
+            inputTipoEnlace.value = 'whatsapp';
+            inputUrlEnlace.value = currentClaseData.enlace_whatsapp || '';
+            if(modalEditarEnlace) modalEditarEnlace.show();
+        });
+    }
+
+    if (btnGuardarEnlace) {
+        btnGuardarEnlace.addEventListener('click', async function() {
+            const tipo = inputTipoEnlace.value;
+            let url = inputUrlEnlace.value.trim();
+
+            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            const payload = {
+                enlaceVideo: currentClaseData.enlace_video || null,
+                enlaceWhatsapp: currentClaseData.enlace_whatsapp || null
+            };
+
+            if (tipo === 'video') payload.enlaceVideo = url || null;
+            else if (tipo === 'whatsapp') payload.enlaceWhatsapp = url || null;
+
+            const btnTextOriginal = btnGuardarEnlace.innerText;
+            btnGuardarEnlace.innerText = 'Guardando...';
+            btnGuardarEnlace.disabled = true;
+
+            try {
+                const res = await fetch(`${API_CLASE}/${idClase}/enlaces`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    if (tipo === 'video') currentClaseData.enlace_video = url || null;
+                    if (tipo === 'whatsapp') currentClaseData.enlace_whatsapp = url || null;
+
+                    if(modalEditarEnlace) modalEditarEnlace.hide();
+                    
+                    const alertEl = document.createElement('div');
+                    alertEl.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3 shadow-sm';
+                    alertEl.style.zIndex = '9999';
+                    alertEl.innerText = 'Enlace guardado correctamente';
+                    document.body.appendChild(alertEl);
+                    
+                    setTimeout(() => { alertEl.remove(); }, 3000);
+
+                    const btnVideoAct = document.getElementById('btnEnlaceVideo');
+                    if (currentClaseData.enlace_video) {
+                        btnVideoAct.href = currentClaseData.enlace_video;
+                        btnVideoAct.innerText = "Unirse";
+                        btnVideoAct.classList.remove('disabled');
+                    } else {
+                        btnVideoAct.href = "#";
+                        btnVideoAct.innerText = "No disponible";
+                        btnVideoAct.classList.add('disabled');
+                    }
+
+                    const btnWhatsappAct = document.getElementById('btnEnlaceWhatsapp');
+                    if (currentClaseData.enlace_whatsapp) {
+                        btnWhatsappAct.href = currentClaseData.enlace_whatsapp;
+                        btnWhatsappAct.innerText = "Entrar";
+                        btnWhatsappAct.classList.remove('disabled');
+                    } else {
+                        btnWhatsappAct.href = "#";
+                        btnWhatsappAct.innerText = "No disponible";
+                        btnWhatsappAct.classList.add('disabled');
+                    }
+
+                } else {
+                    alert('Error al guardar el enlace en el servidor.');
+                }
+            } catch (error) {
+                console.error("Error actualizando enlaces", error);
+                alert('Error de red al guardar el enlace.');
+            } finally {
+                btnGuardarEnlace.innerText = btnTextOriginal;
+                btnGuardarEnlace.disabled = false;
+            }
+        });
+    }
+
     await cargarDetallesClase();
     await cargarCompañeros();
     
@@ -1142,104 +1246,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     alert(err.mensaje || 'Error al asignar');
                 }
             } catch (e) { console.error(e); }
-        });
-    }
-
-    // ==========================================
-    // LÓGICA DE EDICIÓN DE ENLACES (ZOOM/WHATSAPP)
-    // ==========================================
-    const modalEditarEnlaceEl = document.getElementById('modalEditarEnlace');
-    const modalEditarEnlace = modalEditarEnlaceEl ? new bootstrap.Modal(modalEditarEnlaceEl) : null;
-    const inputTipoEnlace = document.getElementById('tipoEnlaceEditar');
-    const inputUrlEnlace = document.getElementById('inputUrlEnlace');
-    const btnGuardarEnlace = document.getElementById('btnGuardarEnlace');
-
-    // Botón editar Video
-    const btnEditVideo = document.getElementById('btnEditVideo');
-    if (btnEditVideo) {
-        btnEditVideo.addEventListener('click', function() {
-            console.log('[ENLACES] Abrir modal para VIDEO');
-            inputTipoEnlace.value = 'video';
-            inputUrlEnlace.value = currentClaseData.enlace_video || '';
-            modalEditarEnlace.show();
-        });
-    }
-
-    // Botón editar WhatsApp
-    const btnEditWhatsapp = document.getElementById('btnEditWhatsapp');
-    if (btnEditWhatsapp) {
-        btnEditWhatsapp.addEventListener('click', function() {
-            console.log('[ENLACES] Abrir modal para WHATSAPP');
-            inputTipoEnlace.value = 'whatsapp';
-            inputUrlEnlace.value = currentClaseData.enlace_whatsapp || '';
-            modalEditarEnlace.show();
-        });
-    }
-
-    // Botón Guardar
-    if (btnGuardarEnlace) {
-        btnGuardarEnlace.addEventListener('click', async function() {
-            const tipo = inputTipoEnlace.value;
-            let url = inputUrlEnlace.value.trim();
-
-            console.log('[ENLACES] Guardando:', tipo, '→', url);
-
-            // Validación básica
-            if (!tipo) {
-                alert('Error: No se ha seleccionado el tipo de enlace.');
-                return;
-            }
-
-            btnGuardarEnlace.disabled = true;
-            btnGuardarEnlace.textContent = 'Guardando...';
-
-            try {
-                // Añadir https:// si falta
-                if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-                    url = 'https://' + url;
-                }
-
-                // Construir el payload manteniendo el otro enlace intacto
-                const payload = {
-                    enlaceVideo: currentClaseData.enlace_video || null,
-                    enlaceWhatsapp: currentClaseData.enlace_whatsapp || null
-                };
-
-                if (tipo === 'video') {
-                    payload.enlaceVideo = url || null;
-                } else if (tipo === 'whatsapp') {
-                    payload.enlaceWhatsapp = url || null;
-                }
-
-                console.log('[ENLACES] Payload:', JSON.stringify(payload));
-                console.log('[ENLACES] URL:', `${API_CLASE}/${idClase}/enlaces`);
-
-                const res = await fetch(`${API_CLASE}/${idClase}/enlaces`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                console.log('[ENLACES] Response status:', res.status);
-
-                if (res.ok) {
-                    const data = await res.json();
-                    console.log('[ENLACES] Éxito:', data);
-                    modalEditarEnlace.hide();
-                    alert('¡Enlace actualizado correctamente!');
-                    await cargarDetallesClase();
-                } else {
-                    const errData = await res.text();
-                    console.error('[ENLACES] Error del servidor:', errData);
-                    alert('Error al actualizar el enlace: ' + errData);
-                }
-            } catch (e) {
-                console.error('[ENLACES] Error de conexión:', e);
-                alert('Error de conexión: ' + e.message);
-            } finally {
-                btnGuardarEnlace.disabled = false;
-                btnGuardarEnlace.textContent = 'Guardar';
-            }
         });
     }
 
