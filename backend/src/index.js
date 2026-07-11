@@ -19,6 +19,7 @@ const gruposRoutes = require('./modules/grupos/grupo.routes');
 const asesoriasRoutes = require('./modules/asesorias/asesoria.routes');
 const adminRoutes = require('./modules/admin/admin.routes'); // Nueva ruta admin
 const modularRoutes = require('./modules/clase/modular.routes'); // Estructura modular
+const anuncioRoutes = require('./modules/anuncios/anuncio.routes'); // Anuncios institucionales
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -46,6 +47,7 @@ app.use('/api/grupos', gruposRoutes);
 app.use('/api/asesorias', asesoriasRoutes);
 app.use('/api/admin', adminRoutes); // Ruta para el panel de administración
 app.use('/api/modular', modularRoutes); // Estructura modular por unidades y semanas
+app.use('/api/anuncios', anuncioRoutes); // Anuncios institucionales
 
 // Arrancamos el motor
 app.listen(PORT, () => {

@@ -18,7 +18,19 @@ pool.connect()
         try {
             await client.query('ALTER TABLE CLASE ADD COLUMN IF NOT EXISTS ENLACE_VIDEO VARCHAR(255);');
             await client.query('ALTER TABLE CLASE ADD COLUMN IF NOT EXISTS ENLACE_WHATSAPP VARCHAR(255);');
-            console.log('🔄 Migración automática: Columnas de enlaces verificadas/agregadas con éxito.');
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS ANUNCIO (
+                    ID_ANUNCIO SERIAL PRIMARY KEY,
+                    TITULO VARCHAR(200) NOT NULL,
+                    CONTENIDO TEXT NOT NULL,
+                    NIVEL VARCHAR(20) DEFAULT 'info' CHECK (NIVEL IN ('info','advertencia','urgente')),
+                    ID_AUTOR INT,
+                    FECHA_PUBLICACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    ACTIVO BOOLEAN DEFAULT TRUE,
+                    FOREIGN KEY(ID_AUTOR) REFERENCES USUARIO(ID_USUARIO)
+                );
+            `);
+            console.log('🔄 Migración automática: Columnas de enlaces y tabla ANUNCIO verificadas.');
         } catch (migErr) {
             console.error('⚠️ Advertencia: Error en auto-migración de columnas:', migErr.message);
         } finally {

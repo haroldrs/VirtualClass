@@ -123,15 +123,13 @@
 <body>
 
     <div class="sidebar" id="sidebar">
-        <div class="d-flex justify-content-end p-2 d-lg-none">
-        <button class="btn btn-sm text-secondary fs-4" id="sidebarClose">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
         <div class="brand-area text-center">
             <img src="assets/images/virtuclass_logo.png" alt="VirtuClass Logo" class="brand-logo">
         </div>
         <div class="mt-4">
+            <a href="inicio.html" class="nav-link-custom">
+                <i class="bi bi-house-door"></i> Inicio
+            </a>
             <a href="dashboard.html" class="nav-link-custom active">
                 <i class="bi bi-grid-1x2"></i> Mis Cursos
             </a>
@@ -255,33 +253,17 @@
         </div> </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarClose = document.getElementById('sidebarClose');
-
-    // Acción para Abrir (Botón de hamburguesa)
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', (e) => {
-            e.stopPropagation(); // Evita que el click se propague
-            sidebar.classList.add('active');
-        });
-    }
-
-    // Acción para Cerrar (Botón X)
-    if (sidebarClose) {
-        sidebarClose.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-        });
-    }
-
-    // EXTRA TRUCO DE UX: Si el usuario toca cualquier parte fuera del menú, este se cierra solo
-    document.addEventListener('click', (e) => {
-        if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-            sidebar.classList.remove('active');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        if(sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
         }
-    });
-</script>
+    </script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/dashboard.js"></script>
 </body>

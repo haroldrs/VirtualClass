@@ -514,3 +514,25 @@ INSERT INTO RESPUESTA_FORO (ID_TEMA, ID_USUARIO, CONTENIDO) VALUES
 (8, 2, 'Tienes que entrar como root usando su - para darte permisos.'),
 (9, 3, 'Si, fue por no actualizar los parches de seguridad de Windows.'),
 (10, 1, 'Fue una negligencia de analisis de requisitos y escalabilidad.');
+
+/* --------------------------------------------------------
+   22. TABLA ANUNCIO (Comunicados Institucionales)
+-------------------------------------------------------- */
+CREATE TABLE IF NOT EXISTS ANUNCIO (
+    ID_ANUNCIO SERIAL PRIMARY KEY,
+    TITULO VARCHAR(200) NOT NULL,
+    CONTENIDO TEXT NOT NULL,
+    NIVEL VARCHAR(20) DEFAULT 'info' CHECK (NIVEL IN ('info','advertencia','urgente')),
+    ID_AUTOR INT,
+    FECHA_PUBLICACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ACTIVO BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY(ID_AUTOR) REFERENCES USUARIO(ID_USUARIO)
+);
+
+/* --------------------------------------------------------
+   23. DATOS DE EJEMPLO ANUNCIOS
+-------------------------------------------------------- */
+INSERT INTO ANUNCIO (TITULO, CONTENIDO, NIVEL, ID_AUTOR) VALUES
+('Bienvenidos al Ciclo Académico 2026-I', 'Les damos la bienvenida a todos los estudiantes y docentes a este nuevo periodo. Les deseamos mucho éxito en sus actividades académicas.', 'info', NULL),
+('Mantenimiento Programado del Sistema', 'El sistema estará en mantenimiento el día domingo 20 de julio de 6:00am a 10:00am. Disculpen las molestias.', 'advertencia', NULL),
+('Fechas de Exámenes Parciales', 'Los exámenes parciales se realizarán del 28 al 31 de julio. Consulta con tu docente los horarios específicos de cada curso.', 'urgente', NULL);
