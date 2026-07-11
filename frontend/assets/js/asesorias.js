@@ -125,10 +125,13 @@ function renderAsesoria(a) {
             </div>`;
     } else if (esDocente && a.estado === 'confirmada') {
         accionesHtml = `
-            <div class="mt-3 pt-3 border-top">
-                <a href="${a.enlace_reunion || '#'}" target="_blank" class="btn btn-sm btn-primary w-100 fw-bold ${!a.enlace_reunion ? 'disabled' : ''}">
+            <div class="mt-3 pt-3 border-top d-flex gap-2">
+                <a href="${a.enlace_reunion || '#'}" target="_blank" class="btn btn-sm btn-primary flex-grow-1 fw-bold ${!a.enlace_reunion ? 'disabled' : ''}">
                     <i class="bi bi-camera-video me-1"></i>Ir a la Reunión
                 </a>
+                <button class="btn btn-sm btn-outline-secondary fw-bold btn-editar-enlace-asesoria" data-id="${a.id_asesoria}" data-enlace="${a.enlace_reunion || ''}" title="Editar Enlace">
+                    <i class="bi bi-pencil"></i>
+                </button>
             </div>`;
     }
 
@@ -264,6 +267,36 @@ function asignarEventos() {
         });
     });
 
+    // Editar enlace asesoría (Docente - desde la tarjeta)
+    document.querySelectorAll('.btn-editar-enlace-asesoria').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const btnEl = e.target.closest('.btn-editar-enlace-asesoria');
+            const idAsesoria = btnEl.dataset.id;
+            const enlaceActual = btnEl.dataset.enlace || '';
+            
+            const nuevoEnlace = prompt('Edita el enlace de la reunión (Zoom/Teams/Meet):', enlaceActual);
+            if (nuevoEnlace === null || nuevoEnlace === enlaceActual) return;
+
+            try {
+                const resp = await fetch(`${API_ASESORIAS}/${idAsesoria}/estado`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: 'confirmada', enlace_reunion: nuevoEnlace })
+                });
+
+                if (resp.ok) {
+                    await cargarAsesorias();
+                } else {
+                    const err = await resp.json();
+                    alert('Error: ' + err.mensaje);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error al actualizar el enlace');
+            }
+        });
+    });
+
     // Rechazar asesoría (Docente)
     document.querySelectorAll('.btn-rechazar').forEach(btn => {
         btn.addEventListener('click', async (e) => {
@@ -367,10 +400,13 @@ async function mostrarDetalle(idAsesoria) {
                 </div>
             </div>
 
-            ${data.enlace_reunion && data.estado === 'confirmada' ? `
-            <div class="bg-primary-subtle rounded-3 p-3 mb-3">
-                <span class="d-block text-primary small fw-bold text-uppercase mb-1"><i class="bi bi-camera-video me-1"></i>Enlace de Reunión</span>
-                <a href="${data.enlace_reunion}" target="_blank" class="fw-semibold text-primary text-break">${data.enlace_reunion}</a>
+            ${data.estado === 'confirmada' ? `
+            <div class="bg-primary-subtle rounded-3 p-3 mb-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="d-block text-primary small fw-bold text-uppercase mb-1"><i class="bi bi-camera-video me-1"></i>Enlace de Reunión</span>
+                    ${data.enlace_reunion ? `<a href="${data.enlace_reunion}" target="_blank" class="fw-semibold text-primary text-break">${data.enlace_reunion}</a>` : `<span class="fw-semibold text-muted">Sin enlace asignado</span>`}
+                </div>
+                ${esDocente ? `<button class="btn btn-sm btn-outline-primary ms-3" onclick="editarEnlaceAsesoriaPrompt(${data.id_asesoria}, '${data.enlace_reunion || ''}')" title="Editar enlace"><i class="bi bi-pencil"></i></button>` : ''}
             </div>` : ''}
 
             ${data.nombre_grupo ? `
@@ -433,3 +469,30 @@ function actualizarContadores(asesorias) {
     if (el3) el3.textContent = rechazadas;
     if (el4) el4.textContent = asesorias.length;
 }
+
+// =============================================
+// 8. FUNCIÓN GLOBAL PARA EDITAR ENLACE DESDE EL MODAL
+// =============================================
+window.editarEnlaceAsesoriaPrompt = async function(idAsesoria, enlaceActual) {
+    const nuevoEnlace = prompt('Edita el enlace de la reunión (Zoom/Teams/Meet):', enlaceActual);
+    if (nuevoEnlace === null || nuevoEnlace === enlaceActual) return;
+
+    try {
+        const resp = await fetch(`${API_ASESORIAS}/${idAsesoria}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'confirmada', enlace_reunion: nuevoEnlace })
+        });
+        
+        if (resp.ok) {
+            await cargarAsesorias();
+            await mostrarDetalle(idAsesoria); // Refrescar el modal
+        } else {
+            const err = await resp.json();
+            alert('Error: ' + err.mensaje);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error al actualizar el enlace');
+    }
+};

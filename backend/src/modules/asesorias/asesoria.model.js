@@ -90,7 +90,7 @@ const crearAsesoria = async (idDocente, idSolicitante, idGrupo, motivo, descripc
 const actualizarEstado = async (idAsesoria, estado, enlaceReunion) => {
     let query;
     let params;
-    if (enlaceReunion) {
+    if (enlaceReunion !== undefined) {
         query = `UPDATE ASESORIA SET ESTADO = $1, ENLACE_REUNION = $2 WHERE ID_ASESORIA = $3 RETURNING *;`;
         params = [estado, enlaceReunion, idAsesoria];
     } else {
