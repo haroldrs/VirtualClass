@@ -154,7 +154,10 @@
                 <i class="bi bi-journal-bookmark"></i> Cursos y Clases
             </a>
             <a href="#matriculas" class="nav-link-custom" onclick="showSection('matriculas', this)">
-                <i class="bi bi-card-checklist"></i> Matriculación
+                <i class="bi bi-person-badge"></i> Matrículas
+            </a>
+            <a href="#anuncios" class="nav-link-custom" onclick="showSection('anuncios', this)">
+                <i class="bi bi-megaphone"></i> Anuncios
             </a>
             <a href="#reportes" class="nav-link-custom" onclick="showSection('reportes', this)">
                 <i class="bi bi-bar-chart"></i> Reportes del Sistema
@@ -428,6 +431,37 @@
         </div>
 
         <!-- SECCIÓN REPORTES -->
+        <!-- ==================== SECCIÓN ANUNCIOS ==================== -->
+        <div id="anuncios" class="content-section" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold text-dark mb-0">Gestión de Comunicados Institucionales</h4>
+                <button class="btn btn-primary fw-semibold rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalAnuncio" onclick="limpiarModalAnuncio()">
+                    <i class="bi bi-plus-lg me-1"></i> Nuevo Anuncio
+                </button>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tablaAnuncios">
+                            <thead class="table-light text-secondary">
+                                <tr>
+                                    <th class="ps-4">Nivel</th>
+                                    <th>Título</th>
+                                    <th>Fecha y Autor</th>
+                                    <th>Estado</th>
+                                    <th class="text-end pe-4">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAnunciosBody">
+                                <!-- Filas renderizadas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="reportes" class="content-section" style="display:none;">
             <div class="table-container">
                 <h4 class="fw-bold text-dark mb-4">Reportes de Administración</h4>
@@ -748,6 +782,40 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="guardarClase()">Crear Clase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Anuncio (Crear / Editar) -->
+    <div class="modal fade" id="modalAnuncio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold text-dark" id="modalAnuncioTitle">Nuevo Anuncio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formAnuncio">
+                        <input type="hidden" id="anuncioId">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Título del Comunicado</label>
+                            <input type="text" class="form-control" id="anuncioTitulo" required placeholder="Ej: Feriado Nacional">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Nivel de Importancia</label>
+                            <select class="form-select" id="anuncioNivel" required>
+                                <option value="info">🔵 Informativo</option>
+                                <option value="advertencia">🟡 Advertencia</option>
+                                <option value="urgente">🔴 Urgente</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-muted">Contenido</label>
+                            <textarea class="form-control" id="anuncioContenido" rows="4" required placeholder="Detalles del aviso..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill">Guardar Anuncio</button>
+                    </form>
                 </div>
             </div>
         </div>

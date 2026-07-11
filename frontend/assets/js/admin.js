@@ -566,3 +566,152 @@ async function procesarMatriculaMasiva() {
     
     bootstrap.Modal.getInstance(document.getElementById('modalMatriculaMasiva')).hide();
 }
+
+// ==========================================
+// GESTIÓN DE ANUNCIOS INSTITUCIONALES
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('a[href="#anuncios"]').addEventListener('click', cargarAnuncios);
+    const formAnuncio = document.getElementById('formAnuncio');
+    if(formAnuncio) formAnuncio.addEventListener('submit', guardarAnuncio);
+});
+
+function getAnunciosApiUrl() {
+    return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api/anuncios'
+        : 'https://virtualclass-sm1i.onrender.com/api/anuncios';
+}
+
+async function cargarAnuncios() {
+    const tbody = document.getElementById('tablaAnunciosBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>';
+    
+    try {
+        const resp = await fetch(getAnunciosApiUrl());
+        const anuncios = await resp.json();
+        
+        tbody.innerHTML = '';
+        if (anuncios.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay anuncios publicados.</td></tr>';
+            return;
+        }
+
+        anuncios.forEach(anuncio => {
+            const fecha = new Date(anuncio.fecha_publicacion).toLocaleDateString('es-PE');
+            const autor = anuncio.autor_nombres ? `${anuncio.autor_nombres} ${anuncio.autor_apellidos}` : 'Admin';
+            
+            let badgeColor = 'bg-primary';
+            let icon = 'bi-info-circle';
+            if (anuncio.nivel === 'advertencia') { badgeColor = 'bg-warning text-dark'; icon = 'bi-exclamation-triangle'; }
+            if (anuncio.nivel === 'urgente') { badgeColor = 'bg-danger'; icon = 'bi-exclamation-circle'; }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="ps-4">
+                    <span class="badge ${badgeColor} rounded-pill px-3 py-2"><i class="bi ${icon} me-1"></i>${anuncio.nivel}</span>
+                </td>
+                <td class="fw-bold">${anuncio.titulo}</td>
+                <td>
+                    <span class="d-block small"><i class="bi bi-calendar3 me-1"></i>${fecha}</span>
+                    <span class="d-block text-muted" style="font-size:0.75rem;"><i class="bi bi-person me-1"></i>${autor}</span>
+                </td>
+                <td>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" 
+                            ${anuncio.activo ? 'checked' : ''} 
+                            onchange="toggleEstadoAnuncio(${anuncio.id_anuncio}, this.checked)">
+                    </div>
+                </td>
+                <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-light rounded-circle me-1" title="Editar" 
+                        onclick='editarAnuncio(${JSON.stringify(anuncio).replace(/'/g, "&#39;")})'>
+                        <i class="bi bi-pencil text-primary"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light rounded-circle" title="Eliminar" 
+                        onclick="eliminarAnuncio(${anuncio.id_anuncio})">
+                        <i class="bi bi-trash text-danger"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Error al cargar anuncios.</td></tr>';
+    }
+}
+
+function limpiarModalAnuncio() {
+    document.getElementById('formAnuncio').reset();
+    document.getElementById('anuncioId').value = '';
+    document.getElementById('modalAnuncioTitle').innerText = 'Nuevo Anuncio';
+}
+
+function editarAnuncio(anuncio) {
+    document.getElementById('modalAnuncioTitle').innerText = 'Editar Anuncio';
+    document.getElementById('anuncioId').value = anuncio.id_anuncio;
+    document.getElementById('anuncioTitulo').value = anuncio.titulo;
+    document.getElementById('anuncioNivel').value = anuncio.nivel;
+    document.getElementById('anuncioContenido').value = anuncio.contenido;
+    new bootstrap.Modal(document.getElementById('modalAnuncio')).show();
+}
+
+async function guardarAnuncio(e) {
+    e.preventDefault();
+    const id = document.getElementById('anuncioId').value;
+    const titulo = document.getElementById('anuncioTitulo').value.trim();
+    const nivel = document.getElementById('anuncioNivel').value;
+    const contenido = document.getElementById('anuncioContenido').value.trim();
+    
+    // currentUser se obtiene de utils.js, ya estamos en zona logueada
+    const idAutor = currentUser ? currentUser.id_usuario : null;
+
+    const body = JSON.stringify({ titulo, contenido, nivel, id_autor: idAutor });
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${getAnunciosApiUrl()}/${id}` : getAnunciosApiUrl();
+
+    try {
+        const resp = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body
+        });
+        if (resp.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('modalAnuncio')).hide();
+            cargarAnuncios();
+            agregarLog(`Anuncio ${id ? 'editado' : 'creado'}: ${titulo}`, 'Completado');
+        } else {
+            const err = await resp.json();
+            alert('Error: ' + err.mensaje);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error de conexión');
+    }
+}
+
+async function toggleEstadoAnuncio(id, estadoActivo) {
+    try {
+        await fetch(`${getAnunciosApiUrl()}/${id}/toggle`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activo: estadoActivo })
+        });
+    } catch (e) {
+        console.error(e);
+        cargarAnuncios(); // Revertir si falla
+    }
+}
+
+async function eliminarAnuncio(id) {
+    if (!confirm('¿Seguro que deseas eliminar este anuncio permanentemente?')) return;
+    try {
+        const resp = await fetch(`${getAnunciosApiUrl()}/${id}`, { method: 'DELETE' });
+        if (resp.ok) {
+            cargarAnuncios();
+            agregarLog(`Anuncio ID ${id} eliminado`, 'Eliminado');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
