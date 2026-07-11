@@ -1138,20 +1138,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
     // LÓGICA DE EDICIÓN DE ENLACES (ZOOM/WHATSAPP)
     // ==========================================
-    const modalEditarEnlace = new bootstrap.Modal(document.getElementById('modalEditarEnlace'));
-    
-    document.querySelectorAll('.btn-edit-enlace').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tipo = btn.dataset.tipo;
-            document.getElementById('tipoEnlaceEditar').value = tipo;
+    const modalEditarEnlaceEl = document.getElementById('modalEditarEnlace');
+    if (modalEditarEnlaceEl) {
+        modalEditarEnlaceEl.addEventListener('show.bs.modal', (e) => {
+            // El botón que abrió el modal
+            const btn = e.relatedTarget;
+            // O si es click directo (por si e.relatedTarget no lo pilla bien al hacer click en el icono)
+            const tipo = btn ? (btn.dataset.tipo || btn.closest('.btn-edit-enlace').dataset.tipo) : null;
             
-            const btnLink = tipo === 'video' ? document.getElementById('btnEnlaceVideo') : document.getElementById('btnEnlaceWhatsapp');
-            const currentUrl = btnLink.href !== '#' && !btnLink.href.includes(window.location.host) ? btnLink.href : '';
-            
-            document.getElementById('inputUrlEnlace').value = currentUrl;
-            modalEditarEnlace.show();
+            if (tipo) {
+                document.getElementById('tipoEnlaceEditar').value = tipo;
+                
+                const btnLink = tipo === 'video' ? document.getElementById('btnEnlaceVideo') : document.getElementById('btnEnlaceWhatsapp');
+                const currentUrl = btnLink.href !== '#' && !btnLink.href.includes(window.location.host) ? btnLink.href : '';
+                
+                document.getElementById('inputUrlEnlace').value = currentUrl;
+            }
         });
-    });
+    }
 
     document.getElementById('btnGuardarEnlace').addEventListener('click', async () => {
         const tipo = document.getElementById('tipoEnlaceEditar').value;
@@ -1179,7 +1183,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             if (res.ok) {
-                modalEditarEnlace.hide();
+                const bsModal = bootstrap.Modal.getInstance(document.getElementById('modalEditarEnlace'));
+                if (bsModal) bsModal.hide();
                 await cargarDetallesClase(); // Recargar UI con los nuevos enlaces
             } else {
                 alert("Error al actualizar enlace");
