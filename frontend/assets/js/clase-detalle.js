@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? 'http://localhost:3000/api/clase'
         : 'https://virtualclass-sm1i.onrender.com/api/clase';
 
+    let currentClaseData = {};
+
     await cargarDetallesClase();
     await cargarCompañeros();
     
@@ -445,7 +447,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnUnidad) btnUnidad.classList.remove('d-none');
     }
 
-    let currentClaseData = {};
 
     async function cargarDetallesClase() {
         try {
