@@ -88,10 +88,60 @@ const obtenerResumenGlobalDocente = async (idUsuario) => {
     return rows;
 };
 
+// ===================== NOTAS POR UNIDAD (ALUMNO) =====================
+
+const obtenerNotasAlumnoPorUnidad = async (idUsuario, idClase) => {
+    const query = `
+        SELECT U.ID_UNIDAD, U.TITULO AS UNIDAD_TITULO, U.NUMERO AS UNIDAD_NUMERO,
+               E.ID_EVALUACION, E.NOMBRE_EVA, E.PORCENTAJE, E.FECHA_EVALUACION,
+               M.TITULO AS SEMANA_TITULO, M.ORDEN AS SEMANA_ORDEN,
+               N.CALIFICACION, N.COMENTARIO,
+               EE.ID_ENTREGA, EE.ARCHIVO_URL, EE.FECHA_ENTREGA
+        FROM UNIDAD U
+        LEFT JOIN MODULO_CLASE M ON M.ID_UNIDAD = U.ID_UNIDAD
+        LEFT JOIN EVALUACION E ON E.ID_MODULO = M.ID_MODULO
+        LEFT JOIN NOTA N ON E.ID_EVALUACION = N.ID_EVALUACION AND N.ID_USUARIO = $1
+        LEFT JOIN ENTREGA_EVALUACION EE ON E.ID_EVALUACION = EE.ID_EVALUACION AND EE.ID_USUARIO = $1
+        WHERE U.ID_CLASE = $2
+        ORDER BY U.NUMERO ASC, M.ORDEN ASC, E.FECHA_EVALUACION ASC;
+    `;
+    const { rows } = await pool.query(query, [idUsuario, idClase]);
+    return rows;
+};
+
+// ===================== NOTAS POR UNIDAD (DOCENTE) =====================
+
+const obtenerAlumnosDocentePorUnidad = async (idClase) => {
+    const query = `
+        SELECT U2.ID_UNIDAD, U2.TITULO AS UNIDAD_TITULO, U2.NUMERO AS UNIDAD_NUMERO,
+               E.ID_EVALUACION, E.NOMBRE_EVA, E.PORCENTAJE, E.FECHA_EVALUACION,
+               US.ID_USUARIO, US.NOMBRES, US.APELLIDOS,
+               N.CALIFICACION, N.ID_NOTA,
+               EE.ID_ENTREGA, EE.ARCHIVO_URL, EE.FECHA_ENTREGA
+        FROM UNIDAD U2
+        LEFT JOIN MODULO_CLASE M ON M.ID_UNIDAD = U2.ID_UNIDAD
+        LEFT JOIN EVALUACION E ON E.ID_MODULO = M.ID_MODULO
+        CROSS JOIN (
+            SELECT U.ID_USUARIO, U.NOMBRES, U.APELLIDOS
+            FROM MATRICULA MA
+            JOIN USUARIO U ON MA.ID_USUARIO = U.ID_USUARIO
+            WHERE MA.ID_CLASE = $1 AND MA.ESTADO_MATRICULA = 'ACTIVO'
+        ) US
+        LEFT JOIN NOTA N ON E.ID_EVALUACION = N.ID_EVALUACION AND N.ID_USUARIO = US.ID_USUARIO
+        LEFT JOIN ENTREGA_EVALUACION EE ON E.ID_EVALUACION = EE.ID_EVALUACION AND EE.ID_USUARIO = US.ID_USUARIO
+        WHERE U2.ID_CLASE = $1
+        ORDER BY U2.NUMERO ASC, US.APELLIDOS ASC, US.NOMBRES ASC, E.FECHA_EVALUACION ASC;
+    `;
+    const { rows } = await pool.query(query, [idClase]);
+    return rows;
+};
+
 module.exports = {
     obtenerNotasDeAlumno,
     obtenerAlumnosParaDocente,
     registrarOActualizarNota,
     obtenerResumenGlobalAlumno,
-    obtenerResumenGlobalDocente
+    obtenerResumenGlobalDocente,
+    obtenerNotasAlumnoPorUnidad,
+    obtenerAlumnosDocentePorUnidad
 };

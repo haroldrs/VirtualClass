@@ -45,8 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function cargarDatosCalificaciones(idClase, isDocente) {
-        tableContainer.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
-        
         try {
             if (idClase === 'global') {
                 if (isDocente) {
@@ -56,18 +54,307 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             } else {
                 if (isDocente) {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/docente/${idClase}`);
-                    const alumnos = await res.json();
-                    renderizarTablaDocente(alumnos);
+                    await cargarDocentePorUnidad(idClase);
                 } else {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}/${currentUser.id_usuario}`);
-                    const notas = await res.json();
-                    renderizarTablaAlumno(notas);
+                    await cargarAlumnoPorUnidad(idClase);
                 }
             }
         } catch (error) {
             console.error("Error fetching calificaciones", error);
-            tableContainer.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar los datos</td></tr>';
+        }
+    }
+
+    // ===================== HELPER: ocultar todos los contenedores =====================
+    function ocultarTodosContenedores() {
+        document.getElementById('tableWrapper').classList.add('d-none');
+        document.getElementById('studentCardsContainer').classList.add('d-none');
+        document.getElementById('unidadesContainer').classList.add('d-none');
+        document.getElementById('docenteUnidadesContainer').classList.add('d-none');
+    }
+
+    // ===================== VISTA ALUMNO POR UNIDAD =====================
+    async function cargarAlumnoPorUnidad(idClase) {
+        const mainContainer = document.getElementById('mainContainer');
+        const resumenCards = document.getElementById('resumenCards');
+        const contenedor = document.getElementById('unidadesContainer');
+
+        ocultarTodosContenedores();
+        contenedor.classList.remove('d-none');
+        contenedor.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        mainContainer.style.backgroundColor = 'transparent';
+        mainContainer.style.boxShadow = 'none';
+
+        if (resumenCards) resumenCards.style.display = 'flex';
+        document.getElementById('lblResumen1').innerText = 'Nota Final del Curso';
+        document.getElementById('iconResumen1').innerHTML = '<i class="bi bi-mortarboard-fill fs-4"></i>';
+        document.getElementById('lblResumen2').innerText = 'Evaluaciones Calificadas';
+        document.getElementById('iconResumen2').innerHTML = '<i class="bi bi-check-circle-fill fs-4"></i>';
+        document.getElementById('lblResumen3').innerText = 'Evaluaciones Pendientes';
+        document.getElementById('iconResumen3').innerHTML = '<i class="bi bi-clock-history fs-4"></i>';
+
+        try {
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/alumno/${currentUser.id_usuario}/${idClase}/por-unidad`);
+            const data = await res.json();
+            contenedor.innerHTML = '';
+
+            if (!data.unidades || data.unidades.length === 0) {
+                contenedor.innerHTML = '<div class="alert alert-info text-center border-0 shadow-sm m-3" style="border-radius:12px">No hay unidades configuradas para este curso.</div>';
+                if (resumenCards) resumenCards.style.display = 'none';
+                return;
+            }
+
+            let totalCalificadas = 0, totalPendientes = 0;
+
+            data.unidades.forEach((unidad, uIdx) => {
+                const promColor = unidad.promedio !== null ? (unidad.promedio >= 13 ? 'text-success' : 'text-danger') : 'text-muted';
+                const promText = unidad.promedio !== null ? unidad.promedio.toFixed(2) : '- -';
+                const progreso = unidad.pesoTotal > 0 ? Math.round((unidad.pesoCalificado / unidad.pesoTotal) * 100) : 0;
+                const riesgo = unidad.promedio !== null && unidad.promedio < 13 ? '<span class="badge bg-danger-subtle text-danger ms-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>En riesgo</span>' : '';
+
+                let evasHtml = '';
+                unidad.evaluaciones.forEach(ev => {
+                    if (ev.calificacion !== null) totalCalificadas++;
+                    else totalPendientes++;
+
+                    const dateObj = new Date(ev.fecha_evaluacion);
+                    dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+                    const fecha = dateObj.toLocaleDateString('es-ES');
+
+                    let notaBadge = '<span class="badge bg-light text-muted">- -</span>';
+                    let estadoHtml = '';
+                    if (ev.calificacion !== null) {
+                        const v = parseFloat(ev.calificacion);
+                        const cls = v >= 13 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger';
+                        notaBadge = `<span class="badge ${cls} fs-6 fw-bold">${v.toFixed(2)}</span>`;
+                        estadoHtml = ev.comentario ? `<div class="mt-2 p-2 bg-light rounded-3 small"><i class="bi bi-chat-quote text-primary me-1"></i>${ev.comentario}</div>` : '';
+                    } else if (ev.id_entrega) {
+                        notaBadge = '<span class="badge bg-primary-subtle text-primary">Entregado</span>';
+                        estadoHtml = '<div class="mt-2 small text-primary"><i class="bi bi-clock-history me-1"></i>Esperando revisión</div>';
+                    } else {
+                        notaBadge = '<span class="badge bg-warning-subtle text-warning">Pendiente</span>';
+                        estadoHtml = '<div class="mt-2 small text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Falta entregar</div>';
+                    }
+
+                    evasHtml += `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm h-100" style="border-radius:12px">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 small">${ev.nombre_eva}</h6>
+                                        ${notaBadge}
+                                    </div>
+                                    <div class="d-flex gap-3 text-muted" style="font-size:.75rem">
+                                        <span><i class="bi bi-percent me-1"></i>Peso: ${ev.porcentaje}%</span>
+                                        <span><i class="bi bi-calendar-event me-1"></i>${fecha}</span>
+                                    </div>
+                                    ${estadoHtml}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+
+                if (unidad.evaluaciones.length === 0) {
+                    evasHtml = '<div class="col-12"><div class="text-muted small text-center p-3">Sin evaluaciones en esta unidad</div></div>';
+                }
+
+                contenedor.innerHTML += `
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius:16px;overflow:hidden">
+                        <div class="card-header bg-white border-0 py-3 px-4 cursor-pointer d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#unidadAlumno_${unidad.id_unidad}" role="button">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px">
+                                    <i class="bi bi-journal-bookmark-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">${unidad.titulo}</h6>
+                                    <span class="text-muted small">${unidad.calificadas}/${unidad.total} evaluaciones calificadas</span>
+                                </div>
+                                ${riesgo}
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:100px">
+                                    <div class="progress" style="height:6px;border-radius:3px">
+                                        <div class="progress-bar bg-primary" style="width:${progreso}%"></div>
+                                    </div>
+                                    <span class="text-muted" style="font-size:.65rem">${progreso}% evaluado</span>
+                                </div>
+                                <span class="fw-bold fs-5 ${promColor}">${promText}</span>
+                                <i class="bi bi-chevron-down text-muted"></i>
+                            </div>
+                        </div>
+                        <div class="collapse ${uIdx === 0 ? 'show' : ''}" id="unidadAlumno_${unidad.id_unidad}">
+                            <div class="card-body pt-0 px-4 pb-4">
+                                <div class="row g-3">${evasHtml}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            // Nota final
+            if (data.notaFinal !== null) {
+                const nfColor = data.notaFinal >= 13 ? 'bg-success' : 'bg-danger';
+                contenedor.innerHTML += `
+                    <div class="card border-0 ${nfColor} text-white shadow mb-3" style="border-radius:16px">
+                        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                            <div><i class="bi bi-mortarboard-fill fs-4 me-2"></i><span class="fw-bold fs-5">Nota Final del Curso</span></div>
+                            <span class="fw-bold fs-2">${data.notaFinal.toFixed(2)}</span>
+                        </div>
+                    </div>`;
+            }
+
+            document.getElementById('resumenPromedio').innerText = data.notaFinal !== null ? data.notaFinal.toFixed(2) : '- -';
+            document.getElementById('resumenRevisadas').innerText = totalCalificadas;
+            document.getElementById('resumenPendientes').innerText = totalPendientes;
+
+        } catch (e) {
+            console.error(e);
+            contenedor.innerHTML = '<div class="alert alert-danger m-3">Error al cargar calificaciones por unidad</div>';
+        }
+    }
+
+    // ===================== VISTA DOCENTE POR UNIDAD =====================
+    async function cargarDocentePorUnidad(idClase) {
+        const mainContainer = document.getElementById('mainContainer');
+        const resumenCards = document.getElementById('resumenCards');
+        const contenedor = document.getElementById('docenteUnidadesContainer');
+
+        ocultarTodosContenedores();
+        contenedor.classList.remove('d-none');
+        contenedor.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        mainContainer.style.backgroundColor = 'transparent';
+        mainContainer.style.boxShadow = 'none';
+        if (resumenCards) resumenCards.style.display = 'none';
+
+        try {
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/docente/${idClase}/por-unidad`);
+            const data = await res.json();
+            contenedor.innerHTML = '';
+
+            if (!data.unidades || data.unidades.length === 0) {
+                contenedor.innerHTML = '<div class="alert alert-info text-center border-0 shadow-sm m-3" style="border-radius:12px">No hay unidades configuradas para este curso.</div>';
+                return;
+            }
+
+            // Tabs de unidades
+            let tabsNav = '<ul class="nav nav-tabs border-0 mb-3" role="tablist">';
+            let tabsContent = '<div class="tab-content">';
+
+            data.unidades.forEach((unidad, uIdx) => {
+                const active = uIdx === 0 ? 'active' : '';
+                const show = uIdx === 0 ? 'show active' : '';
+                tabsNav += `<li class="nav-item"><a class="nav-link ${active} fw-semibold" data-bs-toggle="tab" href="#tabUnidad_${unidad.id_unidad}" role="tab">${unidad.titulo}</a></li>`;
+
+                // Construir tabla de alumnos x evaluaciones
+                let thEvals = '';
+                unidad.evaluaciones.forEach(ev => {
+                    thEvals += `<th class="text-center small">${ev.nombre_eva}<br><span class="text-muted fw-normal">(${ev.porcentaje}%)</span></th>`;
+                });
+
+                let tbodyHtml = '';
+                if (!unidad.alumnos || unidad.alumnos.length === 0) {
+                    const colSpan = unidad.evaluaciones.length + 3;
+                    tbodyHtml = `<tr><td colspan="${colSpan}" class="text-center text-muted">No hay alumnos matriculados</td></tr>`;
+                } else {
+                    unidad.alumnos.forEach(al => {
+                        let cells = '';
+                        unidad.evaluaciones.forEach(ev => {
+                            const nota = al.notas[ev.id_evaluacion];
+                            const val = nota && nota.calificacion !== null ? nota.calificacion : '';
+                            let entregaIcon = '';
+                            if (nota && nota.id_entrega && (nota.calificacion === null || nota.calificacion === undefined)) {
+                                entregaIcon = `<a href="${nota.archivo_url}" target="_blank" class="text-danger ms-1" title="Revisar entrega"><i class="bi bi-bell-fill"></i></a>`;
+                            }
+                            cells += `<td class="text-center">
+                                <input type="number" class="form-control form-control-sm nota-input-unidad border-primary-subtle text-center shadow-none" style="width:75px;border-radius:8px;margin:0 auto" data-idev="${ev.id_evaluacion}" data-idus="${al.id_usuario}" value="${val}" min="0" max="20" step="0.1">
+                                ${entregaIcon}
+                            </td>`;
+                        });
+
+                        const promColor = al.promedio !== null ? (al.promedio >= 13 ? 'text-success' : 'text-danger') : 'text-muted';
+                        const promText = al.promedio !== null ? al.promedio.toFixed(2) : '- -';
+
+                        tbodyHtml += `
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold me-2" style="width:36px;height:36px;font-size:.8rem">${al.nombres.charAt(0)}${al.apellidos.charAt(0)}</div>
+                                        <div>
+                                            <span class="d-block fw-semibold text-dark small">${al.apellidos}, ${al.nombres}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                ${cells}
+                                <td class="text-center fw-bold ${promColor}">${promText}</td>
+                            </tr>`;
+                    });
+                }
+
+                tabsContent += `
+                    <div class="tab-pane fade ${show}" id="tabUnidad_${unidad.id_unidad}" role="tabpanel">
+                        <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden">
+                            <div class="table-responsive">
+                                <table class="table mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Alumno</th>
+                                            ${thEvals}
+                                            <th class="text-center">Prom. Unidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${tbodyHtml}</tbody>
+                                </table>
+                            </div>
+                            <div class="card-footer bg-light border-0 text-end p-3">
+                                <button class="btn btn-primary rounded-pill px-4 shadow-sm btn-guardar-unidad" data-idunidad="${unidad.id_unidad}" data-idclase="${idClase}">
+                                    <i class="bi bi-save2 me-1"></i> Guardar Notas
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            tabsNav += '</ul>';
+            tabsContent += '</div>';
+            contenedor.innerHTML = tabsNav + tabsContent;
+
+            // Eventos de guardar por unidad
+            contenedor.querySelectorAll('.btn-guardar-unidad').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const tabPane = btn.closest('.tab-pane');
+                    const inputs = tabPane.querySelectorAll('.nota-input-unidad');
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+                    btn.disabled = true;
+
+                    for (let input of inputs) {
+                        if (input.value !== '') {
+                            await fetch('https://virtualclass-sm1i.onrender.com/api/calificaciones/calificar', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    idEvaluacion: input.dataset.idev,
+                                    idUsuario: input.dataset.idus,
+                                    calificacion: input.value,
+                                    comentario: 'Calificado por docente'
+                                })
+                            });
+                        }
+                    }
+
+                    btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Guardado';
+                    btn.classList.replace('btn-primary', 'btn-success');
+                    setTimeout(async () => {
+                        btn.innerHTML = '<i class="bi bi-save2 me-1"></i> Guardar Notas';
+                        btn.classList.replace('btn-success', 'btn-primary');
+                        btn.disabled = false;
+                        await cargarDocentePorUnidad(idClase);
+                    }, 1500);
+                });
+            });
+
+        } catch (e) {
+            console.error(e);
+            contenedor.innerHTML = '<div class="alert alert-danger m-3">Error al cargar calificaciones docente por unidad</div>';
         }
     }
 
@@ -298,9 +585,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (resumenCards) resumenCards.style.display = 'flex';
         
-        // Mostrar tabla, ocultar grilla
+        // Ocultar todos y mostrar tabla
+        ocultarTodosContenedores();
         tableWrapper.classList.remove('d-none');
-        gridContainer.classList.add('d-none');
         
         // Restaurar estilos del main container
         mainContainer.style.backgroundColor = '#ffffff';
@@ -397,9 +684,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (resumenCards) resumenCards.style.display = 'flex';
         
-        // Mostrar tabla, ocultar grilla
+        // Ocultar todos y mostrar tabla
+        ocultarTodosContenedores();
         tableWrapper.classList.remove('d-none');
-        gridContainer.classList.add('d-none');
         
         // Restaurar estilos del main container
         mainContainer.style.backgroundColor = '#ffffff';
