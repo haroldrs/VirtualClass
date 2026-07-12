@@ -1225,17 +1225,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Asignar alumno desde el select
     const btnAsignarAlumno = document.getElementById('btnAsignarAlumno');
     if(btnAsignarAlumno) {
-        btnAsignarAlumno.addEventListener('click', async () => {
+        btnAsignarAlumno.addEventListener('click', async (e) => {
+            e.preventDefault(); // Evitar cualquier comportamiento por defecto
             const idGrupo = document.getElementById('grupoSeleccionadoId').value;
             const idUsuario = document.getElementById('selectAlumnoSinGrupo').value;
             
             if (!idUsuario) return alert('Seleccione un alumno');
 
             try {
+                // Forzar ID a numero por si el backend es estricto
+                const payload = { id_usuario: parseInt(idUsuario, 10) };
+                console.log("Enviando asignacion:", payload, "al grupo:", idGrupo);
+
                 const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${idGrupo}/estudiantes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_usuario: idUsuario })
+                    body: JSON.stringify(payload)
                 });
 
                 if (res.ok) {
@@ -1243,10 +1248,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await cargarIntegrantesActuales(idGrupo);
                     await cargarGrupos(); // Actualizar lista principal
                 } else {
-                    const err = await res.json();
+                    const err = await res.json().catch(() => ({ mensaje: 'Error desconocido del servidor' }));
                     alert(err.mensaje || 'Error al asignar');
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error(e); 
+                alert('Error de red o de sistema: ' + e.message);
+            }
         });
     }
 
