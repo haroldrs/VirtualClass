@@ -1222,15 +1222,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) { console.error(e); }
     }
 
-    // Asignar alumno desde el select
-    const btnAsignarAlumno = document.getElementById('btnAsignarAlumno');
-    if(btnAsignarAlumno) {
-        btnAsignarAlumno.addEventListener('click', async (e) => {
+    // Asignar alumno desde el select usando event delegation por mayor seguridad
+    document.addEventListener('click', async (e) => {
+        const btnAsignar = e.target.closest('#btnAsignarAlumno');
+        if (btnAsignar) {
             e.preventDefault(); // Evitar cualquier comportamiento por defecto
             const idGrupo = document.getElementById('grupoSeleccionadoId').value;
             const idUsuario = document.getElementById('selectAlumnoSinGrupo').value;
             
             if (!idUsuario) return alert('Seleccione un alumno');
+
+            // Feedback visual
+            const originalHtml = btnAsignar.innerHTML;
+            btnAsignar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Asignando...';
+            btnAsignar.disabled = true;
 
             try {
                 // Forzar ID a numero por si el backend es estricto
@@ -1251,12 +1256,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const err = await res.json().catch(() => ({ mensaje: 'Error desconocido del servidor' }));
                     alert(err.mensaje || 'Error al asignar');
                 }
-            } catch (e) { 
-                console.error(e); 
-                alert('Error de red o de sistema: ' + e.message);
+            } catch (err) { 
+                console.error(err); 
+                alert('Error de red o de sistema: ' + err.message);
+            } finally {
+                // Restaurar botón
+                btnAsignar.innerHTML = originalHtml;
+                btnAsignar.disabled = false;
             }
-        });
-    }
+        }
+    });
 
 });
 
