@@ -1,8 +1,6 @@
 // assets/js/perfil.js
 
-const API_USUARIOS = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-    ? 'http://localhost:3000/api/usuarios'
-    : 'https://virtualclass-sm1i.onrender.com/api/usuarios';
+const API_USUARIOS = 'https://virtualclass-sm1i.onrender.com/api/usuarios';
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) return;
