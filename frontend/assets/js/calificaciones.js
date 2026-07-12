@@ -1,9 +1,5 @@
 // assets/js/calificaciones.js
 
-const API_BASE_GLOBAL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-    ? 'http://localhost:3000/api'
-    : '${API_BASE_GLOBAL}';
-
 document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) return;
 
@@ -22,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Cargar cursos en el select
     try {
-        const responseCursos = await fetch(`${API_BASE_GLOBAL}/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const responseCursos = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
         const cursos = await responseCursos.json();
 
         if (responseCursos.ok) {
@@ -98,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('iconResumen3').innerHTML = '<i class="bi bi-clock-history fs-4"></i>';
 
         try {
-            const res = await fetch(`${API_BASE_GLOBAL}/calificaciones/alumno/${currentUser.id_usuario}/${idClase}/por-unidad`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/alumno/${currentUser.id_usuario}/${idClase}/por-unidad`);
             const data = await res.json();
             contenedor.innerHTML = '';
 
@@ -231,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (resumenCards) resumenCards.style.display = 'none';
 
         try {
-            const res = await fetch(`${API_BASE_GLOBAL}/calificaciones/docente/${idClase}/por-unidad`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/docente/${idClase}/por-unidad`);
             const data = await res.json();
             contenedor.innerHTML = '';
 
@@ -332,7 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     for (let input of inputs) {
                         if (input.value !== '') {
-                            await fetch(`${API_BASE_GLOBAL}/calificaciones/calificar`, {
+                            await fetch('https://virtualclass-sm1i.onrender.com/api/calificaciones/calificar', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -560,7 +556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (input.value !== '') {
                         const idEv = input.getAttribute('data-idev');
                         const notaVal = input.value;
-                        await fetch(`${API_BASE_GLOBAL}/calificaciones/calificar`, {
+                        await fetch('https://virtualclass-sm1i.onrender.com/api/calificaciones/calificar', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ idEvaluacion: idEv, idUsuario: idUs, calificacion: notaVal, comentario: 'Calificado por docente' })
@@ -617,7 +613,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         
         try {
-            const res = await fetch(`${API_BASE_GLOBAL}/calificaciones/global/alumno/${currentUser.id_usuario}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/alumno/${currentUser.id_usuario}`);
             const datos = await res.json();
             
             tableContainer.innerHTML = '';
@@ -717,7 +713,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         
         try {
-            const res = await fetch(`${API_BASE_GLOBAL}/calificaciones/global/docente/${currentUser.id_usuario}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/docente/${currentUser.id_usuario}`);
             const datos = await res.json();
             
             tableContainer.innerHTML = '';
