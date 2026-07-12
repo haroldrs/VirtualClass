@@ -32,12 +32,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const offcanvasRevision = new bootstrap.Offcanvas(document.getElementById('offcanvasRevision'));
 
     // URL base del API modular
-    const API_MODULAR = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    const API_MODULAR = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
         ? 'http://localhost:3000/api/modular'
         : 'https://virtualclass-sm1i.onrender.com/api/modular';
 
     // URL base del API clase
-    const API_CLASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    const API_CLASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
         ? 'http://localhost:3000/api/clase'
         : 'https://virtualclass-sm1i.onrender.com/api/clase';
 
@@ -1265,7 +1265,7 @@ async function cargarAvisosCurso() {
     const localIdClase = urlParams.get('id');
     if (!localIdClase) return;
 
-    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
         ? 'http://localhost:3000/api'
         : 'https://virtualclass-sm1i.onrender.com/api';
 
@@ -1316,7 +1316,7 @@ async function obtenerIdForoDeClase() {
     const urlParams = new URLSearchParams(window.location.search);
     const localIdClase = urlParams.get('id');
     
-    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
         ? 'http://localhost:3000/api'
         : 'https://virtualclass-sm1i.onrender.com/api';
 
@@ -1357,7 +1357,7 @@ async function guardarAvisoCurso(e) {
         return;
     }
 
-    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
         ? 'http://localhost:3000/api'
         : 'https://virtualclass-sm1i.onrender.com/api';
 
