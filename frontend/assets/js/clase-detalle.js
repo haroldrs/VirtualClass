@@ -1066,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function cargarGrupos() {
         if (!gruposContainer) return;
         try {
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}?t=${Date.now()}`, { cache: 'no-store' });
             const grupos = await res.json();
             
             gruposContainer.innerHTML = '';
@@ -1119,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async (e) => {
                 if (!confirm("¿Seguro que deseas eliminar este grupo? Se perderán las asignaciones.")) return;
                 try {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${e.target.dataset.id}`, { method: 'DELETE' });
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${btn.dataset.id}`, { method: 'DELETE' });
                     if (res.ok) await cargarGrupos();
                 } catch (err) { console.error(err); }
             });
@@ -1128,8 +1128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Abrir modal de gestionar integrantes
         document.querySelectorAll('.btn-gestionar-grupo').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const idGrupo = e.target.dataset.id;
-                document.getElementById('tituloModalIntegrantes').innerText = `Gestionar: ${e.target.dataset.nombre}`;
+                const idGrupo = btn.dataset.id;
+                document.getElementById('tituloModalIntegrantes').innerText = `Gestionar: ${btn.dataset.nombre}`;
                 document.getElementById('grupoSeleccionadoId').value = idGrupo;
                 
                 await cargarOpcionesSinGrupo();
@@ -1166,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const select = document.getElementById('selectAlumnoSinGrupo');
         select.innerHTML = '<option value="">Cargando...</option>';
         try {
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}/sin-grupo`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}/sin-grupo?t=${Date.now()}`, { cache: 'no-store' });
             const alumnos = await res.json();
             
             select.innerHTML = '<option value="">Seleccione un alumno...</option>';
@@ -1183,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         try {
             // Obtenemos los grupos actualizados para extraer los estudiantes del grupo actual
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}?t=${Date.now()}`, { cache: 'no-store' });
             const grupos = await res.json();
             const grupoActual = grupos.find(g => g.id_grupo == idGrupo);
             
@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Asignar eventos de remover
             document.querySelectorAll('.btn-remover-estudiante').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const idUsu = e.target.dataset.idusu;
+                    const idUsu = btn.dataset.idusu;
                     try {
                         const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/${idGrupo}/estudiantes/${idUsu}`, { method: 'DELETE' });
                         if (res.ok) {
