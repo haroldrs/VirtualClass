@@ -73,7 +73,7 @@ const obtenerAlumnosSinGrupo = async (idClase) => {
     const query = `
         SELECT U.ID_USUARIO, U.NOMBRES, U.APELLIDOS, U.CORREO
         FROM MATRICULA M
-        JOIN USUARIO U ON M.ID_ESTUDIANTE = U.ID_USUARIO
+        JOIN USUARIO U ON M.ID_USUARIO = U.ID_USUARIO
         WHERE M.ID_CLASE = $1
         AND U.ID_USUARIO NOT IN (
             SELECT GE.ID_USUARIO 
