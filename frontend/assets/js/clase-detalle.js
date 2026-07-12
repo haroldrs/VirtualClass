@@ -1,6 +1,9 @@
 // assets/js/clase-detalle.js
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const API_BASE_GLOBAL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+        ? 'http://localhost:3000/api'
+        : 'https://virtualclass-sm1i.onrender.com/api';
     if (!currentUser) return;
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -41,10 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? 'http://localhost:3000/api/clase'
         : `${API_BASE_GLOBAL}/clase`;
 
-    const API_BASE_GLOBAL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-        ? 'http://localhost:3000/api'
-        : `${API_BASE_GLOBAL}`;
-
+    
 
 
     let currentClaseData = {};

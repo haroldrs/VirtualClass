@@ -59,7 +59,7 @@ const API_URL = '/api/admin'; // Ruta relativa para producción en render, en de
 // PERO el usuario lo sirve todo junto, mejor usar '/api/admin' o mantener localhost para prueba local. Para render, ideal es ruta relativa si ambos corren en el mismo servidor de Express, pero el frontend son archivos HTML estáticos.
 // Voy a dejar la URL base en función del host para que funcione en local y render.
 const getApiUrl = () => {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
         return 'http://localhost:3000/api/admin';
     }
     return 'https://virtualclass-sm1i.onrender.com/api/admin';

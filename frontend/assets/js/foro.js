@@ -1,6 +1,6 @@
 // assets/js/foro.js
 
-const API_BASE = 'https://virtualclass-sm1i.onrender.com/api/foros';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000/api/foros' : 'https://virtualclass-sm1i.onrender.com/api/foros';
 
 // Variables globales
 let forosDelUsuario = [];
