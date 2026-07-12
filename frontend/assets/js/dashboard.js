@@ -1,5 +1,9 @@
 // assets/js/dashboard.js
 
+const API_BASE_GLOBAL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+    ? 'http://localhost:3000/api'
+    : '${API_BASE_GLOBAL}';
+
 document.addEventListener('DOMContentLoaded', async () => {
     // currentUser viene de utils.js
     if (!currentUser) return;
@@ -17,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // Fetch cursos
-        const response = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const response = await fetch(`${API_BASE_GLOBAL}/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
         const cursos = await response.json();
 
         if (response.ok) {

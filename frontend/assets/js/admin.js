@@ -62,13 +62,13 @@ const getApiUrl = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:3000/api/admin';
     }
-    return 'https://virtualclass-sm1i.onrender.com/api/admin';
+    return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000/api/admin' : 'https://virtualclass-sm1i.onrender.com/api/admin';
 };
 const getUsuariosApiUrl = () => {
      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:3000/api/usuarios';
     }
-    return 'https://virtualclass-sm1i.onrender.com/api/usuarios';
+    return (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:3000/api/usuarios' : 'https://virtualclass-sm1i.onrender.com/api/usuarios';
 };
 
 // --- DASHBOARD ---
