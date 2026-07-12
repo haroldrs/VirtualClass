@@ -297,11 +297,6 @@
             .hero-banner { padding: 30px 20px; }
             .hero-banner h1 { font-size: 1.5rem; }
         }
-        
-        @media (min-width: 992px) {
-            .sidebar.collapsed { margin-left: calc(-1 * var(--sidebar-width)); }
-            .main-content.expanded { margin-left: 0; }
-        }
     </style>
 </head>
 <body>
@@ -348,7 +343,7 @@
         <!-- Top Navbar -->
         <div class="top-navbar d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
-                <button class="btn btn-light me-3" id="sidebarToggle">
+                <button class="btn btn-light d-lg-none me-2" id="sidebarToggle">
                     <i class="bi bi-list"></i>
                 </button>
                 <div>
@@ -499,15 +494,9 @@
     <script>
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
-        const mainContent = document.querySelector('.main-content');
         if(sidebarToggle) {
             sidebarToggle.addEventListener('click', () => {
-                if (window.innerWidth < 992) {
-                    sidebar.classList.toggle('active');
-                } else {
-                    sidebar.classList.toggle('collapsed');
-                    if (mainContent) mainContent.classList.toggle('expanded');
-                }
+                sidebar.classList.toggle('active');
             });
         }
     </script>
