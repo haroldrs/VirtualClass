@@ -1066,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function cargarGrupos() {
         if (!gruposContainer) return;
         try {
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}?t=${Date.now()}`, { cache: 'no-store' });
             const grupos = await res.json();
             
             gruposContainer.innerHTML = '';
@@ -1166,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const select = document.getElementById('selectAlumnoSinGrupo');
         select.innerHTML = '<option value="">Cargando...</option>';
         try {
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}/sin-grupo`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}/sin-grupo?t=${Date.now()}`, { cache: 'no-store' });
             const alumnos = await res.json();
             
             select.innerHTML = '<option value="">Seleccione un alumno...</option>';
@@ -1183,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         try {
             // Obtenemos los grupos actualizados para extraer los estudiantes del grupo actual
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}`);
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}?t=${Date.now()}`, { cache: 'no-store' });
             const grupos = await res.json();
             const grupoActual = grupos.find(g => g.id_grupo == idGrupo);
             
