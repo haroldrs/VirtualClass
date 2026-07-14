@@ -6,3 +6,6 @@ node_modules/
 
 # Ignorar archivos basura del sistema
 .DS_Store
+
+# Ignorar llaves de Google Drive
+google-credentials.json

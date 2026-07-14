@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Google Drive</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        .result { margin-top: 20px; padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd; word-break: break-all; }
+        a { color: #0066cc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Subir archivo a Google Drive</h2>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" required>
+        <button type="submit" style="margin-top: 10px; padding: 8px 15px; cursor: pointer;">Subir Archivo</button>
+    </form>
+    
+    <div id="status" style="margin-top: 15px; font-weight: bold; color: #555;"></div>
+
+    <div id="result" class="result" style="display: none;">
+        <h3>¡Archivo Subido! 🎉</h3>
+        <p><strong>ID:</strong> <span id="fileId"></span></p>
+        <p><strong>Ver en el navegador:</strong> <br><a id="viewLink" href="#" target="_blank">Abrir visor de Google Drive</a></p>
+        <p><strong>Descarga directa:</strong> <br><a id="downloadLink" href="#" target="_blank">Descargar archivo</a></p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('archivo', file);
+
+        const statusEl = document.getElementById('status');
+        const resultEl = document.getElementById('result');
+        
+        statusEl.innerText = 'Subiendo a Google Drive... (puede tomar unos segundos)';
+        resultEl.style.display = 'none';
+
+        try {
+            const response = await fetch('http://localhost:3000/api/drive/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                statusEl.innerText = 'Subida completada.';
+                statusEl.style.color = 'green';
+                
+                document.getElementById('fileId').innerText = data.data.id;
+                document.getElementById('viewLink').href = data.data.webViewLink;
+                document.getElementById('downloadLink').href = data.data.webContentLink;
+                
+                resultEl.style.display = 'block';
+            } else {
+                statusEl.innerText = 'Error: ' + data.message;
+                statusEl.style.color = 'red';
+            }
+        } catch (error) {
+            statusEl.innerText = 'Error de conexión con el servidor.';
+            statusEl.style.color = 'red';
+            console.error(error);
+        }
+    });
+</script>
+
+</body>
+</html>
