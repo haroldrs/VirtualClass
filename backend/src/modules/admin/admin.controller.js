@@ -82,11 +82,23 @@ const createClass = async (req, res) => {
     const { idCurso, nombreClase, periodo, ciclo, seccion, aula } = req.body;
     try {
         let driveFolderId = null;
+        let nombreParaCarpeta = nombreClase;
+
+        // Si el frontend envía nombreClase vacío, buscamos el nombre del curso en la BD
+        if (!nombreParaCarpeta || nombreParaCarpeta.trim() === '') {
+            const pool = require('../../config/db');
+            const cursoResult = await pool.query('SELECT NOMBRE FROM CURSO WHERE ID_CURSO = $1', [idCurso]);
+            if (cursoResult.rows.length > 0) {
+                nombreParaCarpeta = cursoResult.rows[0].nombre;
+            } else {
+                nombreParaCarpeta = 'Clase Desconocida';
+            }
+        }
 
         // Intentar crear la carpeta en Drive, dentro de la carpeta principal configurada
         try {
             const parentFolder = process.env.GOOGLE_DRIVE_FOLDER_ID;
-            const folderName = `${nombreClase} - ${seccion} (${periodo})`;
+            const folderName = `${nombreParaCarpeta} - Sec ${seccion} (${periodo})`;
             const driveResponse = await createFolderInDrive(folderName, parentFolder);
             driveFolderId = driveResponse.id;
         } catch (driveError) {
@@ -94,7 +106,7 @@ const createClass = async (req, res) => {
             // No detenemos la creación de la clase si falla Drive, solo la dejamos en null
         }
 
-        const newClass = await adminModel.createClass(idCurso, nombreClase, periodo, ciclo, seccion, aula, driveFolderId);
+        const newClass = await adminModel.createClass(idCurso, nombreParaCarpeta, periodo, ciclo, seccion, aula, driveFolderId);
         res.status(201).json({ mensaje: 'Clase creada exitosamente', clase: newClass });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al crear clase', error: error.message });
