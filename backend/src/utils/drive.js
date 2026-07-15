@@ -2,8 +2,13 @@ const { google } = require('googleapis');
 const path = require('path');
 const stream = require('stream');
 
-// Ruta al archivo JSON que descargaste
-const KEYFILEPATH = path.join(__dirname, '../config/google-credentials.json');
+const fs = require('fs');
+
+// Intentamos primero la ruta de Render (donde pone los Secret Files), si no existe usamos la local.
+let KEYFILEPATH = path.join(__dirname, '../config/google-credentials.json');
+if (fs.existsSync('/opt/render/project/src/google-credentials.json')) {
+  KEYFILEPATH = '/opt/render/project/src/google-credentials.json';
+}
 
 // Definimos los permisos (scopes) que necesitamos
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
