@@ -1,6 +1,4 @@
 const evaluacionesModel = require('./evaluaciones.model');
-const pool = require('../../config/db');
-const { uploadFileToDrive } = require('../../utils/drive');
 
 const listar = async (req, res) => {
     const { idClase, idUsuario } = req.params;
@@ -32,27 +30,13 @@ const crear = async (req, res) => {
 };
 
 const entregar = async (req, res) => {
-    const { idEvaluacion, idUsuario, archivoUrl, idClase } = req.body;
-    let urlParaGuardar = archivoUrl;
-    let driveFileId = null;
-
+    const { idEvaluacion, idUsuario, archivoUrl } = req.body;
     try {
-        if (req.file) {
-            // Buscamos el folderId de la clase
-            const claseQuery = await pool.query('SELECT DRIVE_FOLDER_ID FROM CLASE WHERE ID_CLASE = $1', [idClase]);
-            const folderId = claseQuery.rows[0]?.drive_folder_id;
-
-            const driveResponse = await uploadFileToDrive(req.file, folderId);
-            
-            urlParaGuardar = driveResponse.webViewLink;
-            driveFileId = driveResponse.id;
-        }
-
-        const entrega = await evaluacionesModel.subirEntrega(idEvaluacion, idUsuario, urlParaGuardar, driveFileId, urlParaGuardar);
+        const entrega = await evaluacionesModel.subirEntrega(idEvaluacion, idUsuario, archivoUrl);
         res.status(201).json(entrega);
     } catch (error) {
-        console.error('Error al subir entrega:', error);
-        res.status(500).json({ mensaje: 'Error al subir entrega', error: error.message });
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al subir entrega' });
     }
 };
 
