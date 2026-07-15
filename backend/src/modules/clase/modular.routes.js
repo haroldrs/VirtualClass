@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mc = require('./modular.controller');
+const upload = require('../recursos/multer.config');
 
 // Estructura completa (Unidades > Semanas > Recursos + Evaluaciones)
 router.get('/:idClase/estructura', mc.getEstructuraCompleta);
@@ -20,7 +21,7 @@ router.delete('/semanas/:idModulo', mc.deleteSemana);
 
 // Recursos dentro de una semana
 router.get('/semanas/:idModulo/recursos', mc.getRecursosSemana);
-router.post('/:idClase/semanas/:idModulo/recursos', mc.createRecursoSemana);
+router.post('/:idClase/semanas/:idModulo/recursos', upload.single('archivo'), mc.createRecursoSemana);
 
 // Evaluaciones dentro de una semana
 router.get('/semanas/:idModulo/evaluaciones', mc.getEvaluacionesSemana);

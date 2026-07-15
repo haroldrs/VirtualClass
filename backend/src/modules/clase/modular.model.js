@@ -92,13 +92,13 @@ const obtenerRecursosPorSemana = async (idModulo) => {
     return rows;
 };
 
-const crearRecursoEnSemana = async (idClase, idModulo, titulo, descripcion, tipoRecurso, urlArchivo) => {
+const crearRecursoEnSemana = async (idClase, idModulo, titulo, descripcion, tipoRecurso, urlArchivo, driveFileId = null, driveUrl = null) => {
     const query = `
-        INSERT INTO RECURSOS (ID_CLASE, ID_MODULO, TITULO, DESCRIPCION, TIPO_RECURSO, URL_ARCHIVO)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO RECURSOS (ID_CLASE, ID_MODULO, TITULO, DESCRIPCION, TIPO_RECURSO, URL_ARCHIVO, DRIVE_FILE_ID, DRIVE_URL)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [idClase, idModulo, titulo, descripcion, tipoRecurso, urlArchivo]);
+    const { rows } = await pool.query(query, [idClase, idModulo, titulo, descripcion, tipoRecurso, urlArchivo, driveFileId, driveUrl]);
     return rows[0];
 };
 

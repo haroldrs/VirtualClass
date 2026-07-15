@@ -1,5 +1,6 @@
 const modularModel = require('./modular.model');
-
+const pool = require('../../config/db');
+const { uploadFileToDrive } = require('../../utils/drive');
 // ===================== UNIDADES =====================
 
 const getUnidades = async (req, res) => {
@@ -75,13 +76,28 @@ const getRecursosSemana = async (req, res) => {
 
 const createRecursoSemana = async (req, res) => {
     const { titulo, descripcion, tipo_recurso, url_archivo } = req.body;
+    const { idClase, idModulo } = req.params;
+    let urlParaGuardar = url_archivo;
+    let driveFileId = null;
+
     try {
+        if (req.file) {
+            const claseQuery = await pool.query('SELECT DRIVE_FOLDER_ID FROM CLASE WHERE ID_CLASE = $1', [idClase]);
+            const folderId = claseQuery.rows[0]?.drive_folder_id;
+
+            const driveResponse = await uploadFileToDrive(req.file, folderId);
+            
+            urlParaGuardar = driveResponse.webViewLink;
+            driveFileId = driveResponse.id;
+        }
+
         const recurso = await modularModel.crearRecursoEnSemana(
-            req.params.idClase, req.params.idModulo,
-            titulo, descripcion, tipo_recurso, url_archivo
+            idClase, idModulo,
+            titulo, descripcion || '', tipo_recurso, urlParaGuardar, driveFileId, urlParaGuardar
         );
         res.status(201).json({ mensaje: 'Recurso creado', recurso });
     } catch (error) {
+        console.error('Error creando recurso semanal:', error);
         res.status(500).json({ mensaje: 'Error al crear recurso', error: error.message });
     }
 };

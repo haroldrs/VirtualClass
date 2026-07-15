@@ -510,19 +510,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         const titulo = document.getElementById('recursoSemanaTitulo').value;
         const tipo = document.getElementById('recursoSemanaTipo').value;
         const url_archivo = document.getElementById('recursoSemanaUrl').value;
-        if (!titulo || !url_archivo) return alert('Título y URL son obligatorios');
+        const archivoInput = document.getElementById('recursoSemanaArchivo');
+        const archivo = archivoInput && archivoInput.files.length > 0 ? archivoInput.files[0] : null;
+
+        if (!titulo || (!url_archivo && !archivo)) return alert('Título y Archivo (o URL) son obligatorios');
+
+        const btnGuardar = document.getElementById('btnGuardarRecursoSemana');
+        const textOriginal = btnGuardar.innerText;
+        btnGuardar.innerText = 'Subiendo...';
+        btnGuardar.disabled = true;
 
         try {
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('descripcion', '');
+            formData.append('tipo_recurso', tipo);
+            formData.append('url_archivo', url_archivo);
+            if (archivo) {
+                formData.append('archivo', archivo);
+            }
+
             const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/recursos`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, descripcion: '', tipo_recurso: tipo, url_archivo })
+                body: formData
             });
+
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalRecursoSemana')).hide();
                 await cargarEstructuraModular();
+                
+                // Limpiar form
+                document.getElementById('recursoSemanaTitulo').value = '';
+                document.getElementById('recursoSemanaUrl').value = '';
+                if(archivoInput) archivoInput.value = '';
+            } else {
+                const data = await res.json();
+                alert(data.mensaje || 'Error al guardar recurso en semana');
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            alert('Error de conexión');
+        } finally {
+            btnGuardar.innerText = textOriginal;
+            btnGuardar.disabled = false;
+        }
     });
 
     // Crear Actividad en Semana
