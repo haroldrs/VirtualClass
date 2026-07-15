@@ -14,6 +14,10 @@ router.post('/upload', upload.single('archivo'), async (req, res) => {
 
     // Usamos el Folder ID guardado en .env
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+    if (!folderId) {
+      return res.status(500).json({ success: false, message: 'Falta configurar GOOGLE_DRIVE_FOLDER_ID en Render' });
+    }
     
     // Subimos a Drive
     const driveResponse = await uploadFileToDrive(req.file, folderId);
