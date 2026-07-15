@@ -1,4 +1,5 @@
 const adminModel = require('./admin.model');
+const { createFolderInDrive } = require('../../utils/drive');
 
 const getDashboardStats = async (req, res) => {
     try {
@@ -80,7 +81,20 @@ const createCourse = async (req, res) => {
 const createClass = async (req, res) => {
     const { idCurso, nombreClase, periodo, ciclo, seccion, aula } = req.body;
     try {
-        const newClass = await adminModel.createClass(idCurso, nombreClase, periodo, ciclo, seccion, aula);
+        let driveFolderId = null;
+
+        // Intentar crear la carpeta en Drive, dentro de la carpeta principal configurada
+        try {
+            const parentFolder = process.env.GOOGLE_DRIVE_FOLDER_ID;
+            const folderName = `${nombreClase} - ${seccion} (${periodo})`;
+            const driveResponse = await createFolderInDrive(folderName, parentFolder);
+            driveFolderId = driveResponse.id;
+        } catch (driveError) {
+            console.error('No se pudo crear la carpeta en Drive. Se creará la clase sin carpeta.', driveError);
+            // No detenemos la creación de la clase si falla Drive, solo la dejamos en null
+        }
+
+        const newClass = await adminModel.createClass(idCurso, nombreClase, periodo, ciclo, seccion, aula, driveFolderId);
         res.status(201).json({ mensaje: 'Clase creada exitosamente', clase: newClass });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al crear clase', error: error.message });

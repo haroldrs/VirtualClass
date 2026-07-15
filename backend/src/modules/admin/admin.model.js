@@ -98,12 +98,12 @@ const createCourse = async (codigo, nombre, descripcion, creditos) => {
     return result.rows[0];
 };
 
-const createClass = async (idCurso, nombreClase, periodo, ciclo, seccion, aula) => {
+const createClass = async (idCurso, nombreClase, periodo, ciclo, seccion, aula, driveFolderId = null) => {
     const query = `
-        INSERT INTO CLASE (ID_CURSO, NOMBRE_CLASE, PERIODO, CICLO, SECCION, AULA) 
-        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+        INSERT INTO CLASE (ID_CURSO, NOMBRE_CLASE, PERIODO, CICLO, SECCION, AULA, DRIVE_FOLDER_ID) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
     `;
-    const result = await pool.query(query, [idCurso, nombreClase, periodo, ciclo, seccion, aula]);
+    const result = await pool.query(query, [idCurso, nombreClase, periodo, ciclo, seccion, aula, driveFolderId]);
     return result.rows[0];
 };
 
