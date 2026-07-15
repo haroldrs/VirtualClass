@@ -1053,6 +1053,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const archivo = archivoInput && archivoInput.files.length > 0 ? archivoInput.files[0] : null;
 
         if (!url && !archivo) return alert('Debes proporcionar un enlace o subir un archivo');
+        if (!idEv) return alert('No se identificó la actividad a entregar. Cierra el modal e inténtalo de nuevo.');
 
         const btnGuardar = document.getElementById('btnGuardarEntrega');
         const textOriginal = btnGuardar.innerText;
@@ -1084,12 +1085,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('entregaUrl').value = '';
                 if(archivoInput) archivoInput.value = '';
             } else {
-                const data = await res.json();
-                alert(data.mensaje || 'Error al guardar entrega');
+                let mensaje = `Error al guardar entrega (código ${res.status})`;
+                try {
+                    const data = await res.json();
+                    if (data && data.mensaje) mensaje = data.mensaje;
+                } catch (parseErr) {
+                    console.error('Respuesta de error no es JSON válido:', parseErr);
+                }
+                console.error('Fallo al entregar. Status:', res.status);
+                alert(mensaje);
             }
         } catch (e) { 
-            console.error(e);
-            alert('Error de conexión');
+            console.error('Error de red/conexión al entregar:', e);
+            alert('Error de conexión. Revisa tu internet o intenta de nuevo en unos segundos (el servidor puede tardar en responder).');
         } finally {
             btnGuardar.innerText = textOriginal;
             btnGuardar.disabled = false;
@@ -1109,6 +1117,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', (e) => {
                 document.getElementById('entregaActividadId').value = e.target.dataset.id;
                 document.getElementById('entregaUrl').value = '';
+                // IMPORTANTE: limpiar también el archivo seleccionado.
+                // Si no se limpia aquí, un archivo elegido para una actividad
+                // queda "pegado" en el input al abrir el modal de OTRA actividad.
+                const archivoInput = document.getElementById('entregaArchivo');
+                if (archivoInput) archivoInput.value = '';
                 modalEntregarActividad.show();
             });
         });
@@ -1555,4 +1568,3 @@ async function guardarAvisoCurso(e) {
         btn.innerHTML = 'Publicar Aviso';
     }
 }
-
