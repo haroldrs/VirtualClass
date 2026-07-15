@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const mc = require('./modular.controller');
-const upload = require('../recursos/multer.config');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Estructura completa (Unidades > Semanas > Recursos + Evaluaciones)
 router.get('/:idClase/estructura', mc.getEstructuraCompleta);
