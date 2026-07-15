@@ -52,6 +52,7 @@ const uploadFileToDrive = async (fileOb, folderId = null) => {
       resource: fileMetadata,
       media: media,
       fields: 'id, webViewLink, webContentLink',
+      supportsAllDrives: true
     });
 
     // Cambiamos los permisos para que cualquiera con el enlace pueda leerlo
