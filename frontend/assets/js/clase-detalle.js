@@ -838,14 +838,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         const titulo = document.getElementById('recursoTitulo').value;
         const tipo = document.getElementById('recursoTipo').value;
         const url_archivo = document.getElementById('recursoUrl').value;
+        const archivoInput = document.getElementById('recursoArchivo');
+        const archivo = archivoInput && archivoInput.files.length > 0 ? archivoInput.files[0] : null;
 
-        if (!titulo || !url_archivo) return alert('Título y URL son requeridos');
+        if (!titulo || (!url_archivo && !archivo)) return alert('Título y Archivo (o URL) son requeridos');
+
+        const btnGuardar = document.getElementById('btnGuardarRecurso');
+        const textOriginal = btnGuardar.innerText;
+        btnGuardar.innerText = 'Subiendo...';
+        btnGuardar.disabled = true;
 
         try {
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('tipo_recurso', tipo);
+            formData.append('url_archivo', url_archivo); // Puede ir vacío si se sube archivo
+            if (archivo) {
+                formData.append('archivo', archivo);
+            }
+
             const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/recursos/${idClase}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, descripcion: '', tipo_recurso: tipo, url_archivo })
+                body: formData
             });
 
             if (res.ok) {
@@ -855,8 +869,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Limpiar form
                 document.getElementById('recursoTitulo').value = '';
                 document.getElementById('recursoUrl').value = '';
+                if(archivoInput) archivoInput.value = '';
+            } else {
+                const data = await res.json();
+                alert(data.mensaje || 'Error al guardar');
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            alert('Error de conexión');
+        } finally {
+            btnGuardar.innerText = textOriginal;
+            btnGuardar.disabled = false;
+        }
     });
 
     // Limpiar modal al añadir nuevo tema

@@ -11,13 +11,13 @@ const obtenerRecursos = async (idClase) => {
     return rows;
 };
 
-const crearRecurso = async (idClase, titulo, descripcion, tipoRecurso, urlArchivo) => {
+const crearRecurso = async (idClase, titulo, descripcion, tipoRecurso, urlArchivo, driveFileId = null) => {
     const query = `
-        INSERT INTO RECURSOS (ID_CLASE, TITULO, DESCRIPCION, TIPO_RECURSO, URL_ARCHIVO)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO RECURSOS (ID_CLASE, TITULO, DESCRIPCION, TIPO_RECURSO, URL_ARCHIVO, DRIVE_FILE_ID, DRIVE_URL)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [idClase, titulo, descripcion, tipoRecurso, urlArchivo]);
+    const { rows } = await pool.query(query, [idClase, titulo, descripcion, tipoRecurso, urlArchivo, driveFileId, urlArchivo]);
     return rows[0];
 };
 
