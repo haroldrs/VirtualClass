@@ -969,7 +969,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Limpiar modal al añadir nuevo tema
-    btnAddTema.addEventListener('click', () => {
+    // (usamos optional chaining porque este botón no existe en el HTML actual;
+    // antes esto lanzaba "btnAddTema is not defined" y detenía TODO el script
+    // que venía después, incluyendo el botón "Enviar Trabajo")
+    document.getElementById('btnAddTema')?.addEventListener('click', () => {
         document.getElementById('modalTemaTitulo').innerText = 'Añadir Tema';
         document.getElementById('temaId').value = '';
         document.getElementById('temaTitulo').value = '';
