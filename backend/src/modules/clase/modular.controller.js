@@ -115,13 +115,28 @@ const getEvaluacionesSemana = async (req, res) => {
 
 const createEvaluacionSemana = async (req, res) => {
     const { nombre_eva, porcentaje, fecha_evaluacion } = req.body;
+    const { idClase, idModulo } = req.params;
+    let urlParaGuardar = null;
+    let driveFileId = null;
+
     try {
+        if (req.file) {
+            const claseQuery = await pool.query('SELECT DRIVE_FOLDER_ID FROM CLASE WHERE ID_CLASE = $1', [idClase]);
+            const folderId = claseQuery.rows[0]?.drive_folder_id;
+
+            const driveResponse = await uploadFileToDrive(req.file, folderId);
+            
+            urlParaGuardar = driveResponse.webViewLink;
+            driveFileId = driveResponse.id;
+        }
+
         const evaluacion = await modularModel.crearEvaluacionEnSemana(
-            req.params.idClase, req.params.idModulo,
-            nombre_eva, porcentaje, fecha_evaluacion
+            idClase, idModulo,
+            nombre_eva, porcentaje, fecha_evaluacion, urlParaGuardar, driveFileId, urlParaGuardar
         );
         res.status(201).json({ mensaje: 'Evaluación creada', evaluacion });
     } catch (error) {
+        console.error('Error creando evaluación:', error);
         res.status(500).json({ mensaje: 'Error al crear evaluación', error: error.message });
     }
 };

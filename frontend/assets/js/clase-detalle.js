@@ -224,14 +224,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 }
                             }
 
+                            let archivoHtml = '';
+                            if (ev.archivo_url_docente) {
+                                archivoHtml = `<a href="${ev.archivo_url_docente}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2" title="Descargar Adjunto"><i class="bi bi-file-earmark-arrow-down"></i></a>`;
+                            }
+
+                            // Botón de entregar para alumnos (o revisar para docentes)
+                            let actionBtn = '';
+                            if (esDocente) {
+                                actionBtn = `<button class="btn btn-sm btn-success ms-2 btn-revisar-entregas" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}">Revisar</button>`;
+                            } else {
+                                if (!ev.id_entrega) {
+                                    actionBtn = `<button class="btn btn-sm btn-primary ms-2 btn-entregar-actividad" data-id="${ev.id_evaluacion}">Entregar</button>`;
+                                } else {
+                                    // El alumno ya entregó
+                                    actionBtn = `<a href="${ev.archivo_url}" target="_blank" class="btn btn-sm btn-outline-primary ms-2" title="Ver mi entrega"><i class="bi bi-eye"></i></a>`;
+                                }
+                            }
+
                             actividadesHtml += `
                                 <div class="d-flex align-items-center bg-success-subtle p-2 rounded-2 mb-1 border border-success-subtle">
                                     <i class="bi bi-journal-text text-success me-2"></i>
-                                    <div class="small">
+                                    <div class="small flex-grow-1">
                                         <span class="fw-semibold d-block">${ev.nombre_eva}</span>
                                         <span class="text-muted">Límite: ${fecha} | Peso: ${ev.porcentaje}%</span>
                                     </div>
                                     ${notaInfo}
+                                    ${archivoHtml}
+                                    ${actionBtn}
                                 </div>`;
                         });
                     }
@@ -315,6 +335,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Asignar eventos del docente
             if (esDocente) asignarEventosModulares();
+            
+            // Asignar eventos de actividades para poder entregar/revisar
+            asignarEventosActividades();
 
         } catch (e) {
             console.error('Error al cargar estructura modular:', e);
@@ -562,19 +585,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         const nombre = document.getElementById('actSemanaNombre').value;
         const peso = document.getElementById('actSemanaPeso').value;
         const fecha = document.getElementById('actSemanaFecha').value;
+        const archivoInput = document.getElementById('actSemanaArchivo');
+        const archivo = archivoInput && archivoInput.files.length > 0 ? archivoInput.files[0] : null;
+
         if (!nombre || !peso || !fecha) return alert('Todos los campos son obligatorios');
 
+        const btnGuardar = document.getElementById('btnGuardarActividadSemana');
+        const textOriginal = btnGuardar.innerText;
+        btnGuardar.innerText = 'Guardando...';
+        btnGuardar.disabled = true;
+
         try {
+            const formData = new FormData();
+            formData.append('nombre_eva', nombre);
+            formData.append('porcentaje', peso);
+            formData.append('fecha_evaluacion', fecha);
+            if (archivo) {
+                formData.append('archivo', archivo);
+            }
+
             const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
+                body: formData
             });
+
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalActividadSemana')).hide();
                 await cargarEstructuraModular();
+                
+                // Limpiar form
+                document.getElementById('actSemanaNombre').value = '';
+                document.getElementById('actSemanaPeso').value = '';
+                document.getElementById('actSemanaFecha').value = '';
+                if(archivoInput) archivoInput.value = '';
+            } else {
+                const data = await res.json();
+                alert(data.mensaje || 'Error al guardar la actividad');
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            alert('Error de conexión');
+        } finally {
+            btnGuardar.innerText = textOriginal;
+            btnGuardar.disabled = false;
+        }
     });
 
     // Mostrar botón de crear unidad si es docente

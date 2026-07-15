@@ -106,7 +106,7 @@ const crearRecursoEnSemana = async (idClase, idModulo, titulo, descripcion, tipo
 
 const obtenerEvaluacionesPorSemana = async (idModulo) => {
     const query = `
-        SELECT ID_EVALUACION, NOMBRE_EVA, PORCENTAJE, FECHA_EVALUACION
+        SELECT ID_EVALUACION, NOMBRE_EVA, PORCENTAJE, FECHA_EVALUACION, ARCHIVO_URL
         FROM EVALUACION
         WHERE ID_MODULO = $1
         ORDER BY FECHA_EVALUACION ASC;
@@ -115,13 +115,13 @@ const obtenerEvaluacionesPorSemana = async (idModulo) => {
     return rows;
 };
 
-const crearEvaluacionEnSemana = async (idClase, idModulo, nombre, porcentaje, fecha) => {
+const crearEvaluacionEnSemana = async (idClase, idModulo, nombre, porcentaje, fecha, urlArchivo = null, driveFileId = null, driveUrl = null) => {
     const query = `
-        INSERT INTO EVALUACION (ID_CLASE, ID_MODULO, NOMBRE_EVA, PORCENTAJE, FECHA_EVALUACION)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO EVALUACION (ID_CLASE, ID_MODULO, NOMBRE_EVA, PORCENTAJE, FECHA_EVALUACION, ARCHIVO_URL, DRIVE_FILE_ID, DRIVE_URL)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [idClase, idModulo, nombre, porcentaje, fecha]);
+    const { rows } = await pool.query(query, [idClase, idModulo, nombre, porcentaje, fecha, urlArchivo, driveFileId, driveUrl]);
     return rows[0];
 };
 
@@ -196,7 +196,7 @@ const obtenerEstructuraCompleta = async (idClase, idUsuario) => {
             let evaluaciones;
             if (idUsuario) {
                 const qEval = `
-                    SELECT E.ID_EVALUACION, E.NOMBRE_EVA, E.PORCENTAJE, E.FECHA_EVALUACION,
+                    SELECT E.ID_EVALUACION, E.NOMBRE_EVA, E.PORCENTAJE, E.FECHA_EVALUACION, E.ARCHIVO_URL as ARCHIVO_URL_DOCENTE,
                            EE.ID_ENTREGA, EE.ARCHIVO_URL,
                            N.CALIFICACION, N.COMENTARIO
                     FROM EVALUACION E

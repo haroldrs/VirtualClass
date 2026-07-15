@@ -26,6 +26,6 @@ router.post('/:idClase/semanas/:idModulo/recursos', upload.single('archivo'), mc
 
 // Evaluaciones dentro de una semana
 router.get('/semanas/:idModulo/evaluaciones', mc.getEvaluacionesSemana);
-router.post('/:idClase/semanas/:idModulo/evaluaciones', mc.createEvaluacionSemana);
+router.post('/:idClase/semanas/:idModulo/evaluaciones', upload.single('archivo'), mc.createEvaluacionSemana);
 
 module.exports = router;
