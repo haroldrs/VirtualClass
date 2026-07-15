@@ -1096,6 +1096,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Limpiar modal al cerrarlo
+    document.getElementById('modalEntregarActividad').addEventListener('hidden.bs.modal', () => {
+        document.getElementById('entregaUrl').value = '';
+        const archivoInput = document.getElementById('entregaArchivo');
+        if (archivoInput) archivoInput.value = '';
+    });
+
     function asignarEventosActividades() {
         // Alumnos: Abrir modal de entrega
         document.querySelectorAll('.btn-entregar-actividad').forEach(btn => {
