@@ -37,19 +37,19 @@ const crearEvaluacion = async (idClase, nombre, porcentaje, fecha) => {
     return rows[0];
 };
 
-const subirEntrega = async (idEvaluacion, idUsuario, archivoUrl) => {
+const subirEntrega = async (idEvaluacion, idUsuario, archivoUrl, driveFileId = null, driveUrl = null) => {
     const checkQuery = `SELECT ID_ENTREGA FROM ENTREGA_EVALUACION WHERE ID_EVALUACION = $1 AND ID_USUARIO = $2`;
     const checkRes = await pool.query(checkQuery, [idEvaluacion, idUsuario]);
 
     if (checkRes.rows.length > 0) {
         // Update
-        const updateQuery = `UPDATE ENTREGA_EVALUACION SET ARCHIVO_URL = $1, FECHA_ENTREGA = CURRENT_TIMESTAMP WHERE ID_EVALUACION = $2 AND ID_USUARIO = $3 RETURNING *`;
-        const { rows } = await pool.query(updateQuery, [archivoUrl, idEvaluacion, idUsuario]);
+        const updateQuery = `UPDATE ENTREGA_EVALUACION SET ARCHIVO_URL = $1, DRIVE_FILE_ID = $4, DRIVE_URL = $5, FECHA_ENTREGA = CURRENT_TIMESTAMP WHERE ID_EVALUACION = $2 AND ID_USUARIO = $3 RETURNING *`;
+        const { rows } = await pool.query(updateQuery, [archivoUrl, idEvaluacion, idUsuario, driveFileId, driveUrl]);
         return rows[0];
     } else {
         // Insert
-        const insertQuery = `INSERT INTO ENTREGA_EVALUACION (ID_EVALUACION, ID_USUARIO, ARCHIVO_URL) VALUES ($1, $2, $3) RETURNING *`;
-        const { rows } = await pool.query(insertQuery, [idEvaluacion, idUsuario, archivoUrl]);
+        const insertQuery = `INSERT INTO ENTREGA_EVALUACION (ID_EVALUACION, ID_USUARIO, ARCHIVO_URL, DRIVE_FILE_ID, DRIVE_URL) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+        const { rows } = await pool.query(insertQuery, [idEvaluacion, idUsuario, archivoUrl, driveFileId, driveUrl]);
         return rows[0];
     }
 };

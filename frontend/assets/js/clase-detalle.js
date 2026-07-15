@@ -1049,21 +1049,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnGuardarEntrega').addEventListener('click', async () => {
         const url = document.getElementById('entregaUrl').value;
         const idEv = document.getElementById('entregaActividadId').value;
+        const archivoInput = document.getElementById('entregaArchivo');
+        const archivo = archivoInput && archivoInput.files.length > 0 ? archivoInput.files[0] : null;
 
-        if (!url) return alert('Debes proporcionar un enlace');
+        if (!url && !archivo) return alert('Debes proporcionar un enlace o subir un archivo');
+
+        const btnGuardar = document.getElementById('btnGuardarEntrega');
+        const textOriginal = btnGuardar.innerText;
+        btnGuardar.innerText = 'Enviando...';
+        btnGuardar.disabled = true;
 
         try {
-            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega`, {
+            const formData = new FormData();
+            formData.append('idEvaluacion', idEv);
+            formData.append('idUsuario', currentUser.id_usuario);
+            formData.append('idClase', idClase);
+            if (url) formData.append('archivoUrl', url);
+            if (archivo) formData.append('archivo', archivo);
+
+            const res = await fetch(`${API_URL}/evaluaciones/entrega`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idEvaluacion: idEv, idUsuario: currentUser.id_usuario, archivoUrl: url })
+                body: formData
             });
 
             if (res.ok) {
                 modalEntregarActividad.hide();
-                await cargarActividades();
+                await cargarEstructuraModular(); // Recargar la estructura para ver el cambio a 'Entregado'
+                
+                // Limpiar
+                document.getElementById('entregaUrl').value = '';
+                if(archivoInput) archivoInput.value = '';
+            } else {
+                const data = await res.json();
+                alert(data.mensaje || 'Error al guardar entrega');
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            alert('Error de conexión');
+        } finally {
+            btnGuardar.innerText = textOriginal;
+            btnGuardar.disabled = false;
+        }
     });
 
     function asignarEventosActividades() {

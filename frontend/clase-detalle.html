@@ -531,9 +531,13 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="entregaActividadId">
-                    <p class="text-muted small mb-3">Sube el enlace de tu documento (Google Drive, OneDrive, Canva, etc.). Asegúrate de que los permisos estén configurados como "Público" para que tu profesor pueda revisarlo.</p>
+                    <p class="text-muted small mb-3">Sube tu archivo (PDF, Word, etc.) o proporciona un enlace externo. Si subes un archivo, se guardará directamente en la carpeta de Google Drive del curso.</p>
                     <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Enlace de tu trabajo</label>
+                        <label class="form-label text-muted small fw-bold">Subir Archivo</label>
+                        <input type="file" class="form-control" id="entregaArchivo">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">O ingresar un enlace externo</label>
                         <input type="url" class="form-control" id="entregaUrl" placeholder="https://...">
                     </div>
                 </div>
