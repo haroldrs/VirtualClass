@@ -2,28 +2,18 @@ const { google } = require('googleapis');
 const path = require('path');
 const stream = require('stream');
 
-// Definimos los permisos (scopes) que necesitamos
-const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'https://developers.google.com/oauthplayground' // URL de redirección usada para sacar el token
+);
 
-let auth;
+// Configuramos las credenciales pasándole el Refresh Token
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+});
 
-if (process.env.GOOGLE_CREDENTIALS) {
-  // Si estamos en Render, usamos la variable de entorno con el JSON pegado
-  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-  auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: SCOPES,
-  });
-} else {
-  // Si estamos en local, usamos el archivo
-  const KEYFILEPATH = path.join(__dirname, '../config/google-credentials.json');
-  auth = new google.auth.GoogleAuth({
-    keyFile: KEYFILEPATH,
-    scopes: SCOPES,
-  });
-}
-
-const drive = google.drive({ version: 'v3', auth });
+const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
 /**
  * Sube un archivo a Google Drive
