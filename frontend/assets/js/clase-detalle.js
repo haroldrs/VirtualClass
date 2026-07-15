@@ -1067,7 +1067,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (url) formData.append('archivoUrl', url);
             if (archivo) formData.append('archivo', archivo);
 
-            const res = await fetch(`${API_URL}/evaluaciones/entrega`, {
+            const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+                ? 'http://localhost:3000/api'
+                : 'https://virtualclass-sm1i.onrender.com/api';
+
+            const res = await fetch(`${baseUrl}/evaluaciones/entrega`, {
                 method: 'POST',
                 body: formData
             });
