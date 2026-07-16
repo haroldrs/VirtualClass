@@ -675,6 +675,37 @@
         </div>
     </div>
 
+    <!-- Modal Editar Semana -->
+    <div class="modal fade" id="modalEditarSemana" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil me-2"></i>Editar Semana</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editSemanaIdModulo">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Título de la Semana</label>
+                        <input type="text" class="form-control" id="editSemanaTitulo">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Descripción (Opcional)</label>
+                        <textarea class="form-control" id="editSemanaDescripcion" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Orden (Número de semana)</label>
+                        <input type="number" class="form-control" id="editSemanaOrden">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary px-4" id="btnGuardarEditSemana">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Crear Recurso en Semana -->
     <div class="modal fade" id="modalRecursoSemana" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">

@@ -196,11 +196,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                             if (rec.tipo_recurso === 'link') iconClass = 'bi-link-45deg text-primary';
                             if (rec.tipo_recurso === 'documento') iconClass = 'bi-file-earmark-word-fill text-info';
 
+                            let delRecursoBtn = '';
+                            if (esDocente) {
+                                delRecursoBtn = `<button class="btn btn-sm text-danger border-0 btn-eliminar-recurso ms-2 p-0" data-id="${rec.id_recurso}" title="Eliminar recurso"><i class="bi bi-trash"></i></button>`;
+                            }
+
                             recursosHtml += `
                                 <div class="d-flex align-items-center bg-white p-2 rounded-2 mb-1 border">
                                     <i class="bi ${iconClass} me-2"></i>
                                     <a href="${rec.url_archivo}" target="_blank" class="text-decoration-none small fw-semibold">${rec.titulo}</a>
                                     <span class="badge bg-light text-muted ms-auto">${rec.tipo_recurso}</span>
+                                    ${delRecursoBtn}
                                 </div>`;
                         });
                     }
@@ -273,7 +279,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <button class="btn btn-sm btn-outline-info btn-tomar-asistencia" data-idmodulo="${semana.id_modulo}" data-tema="${semana.titulo}"><i class="bi bi-clipboard-check"></i> Asistencia</button>
                                 <button class="btn btn-sm btn-outline-warning btn-add-recurso-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-folder-plus"></i> Recurso</button>
                                 <button class="btn btn-sm btn-outline-success btn-add-actividad-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-journal-plus"></i> Actividad</button>
-                                <button class="btn btn-sm btn-outline-danger ms-auto btn-eliminar-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-trash"></i></button>
+                                <button class="btn btn-sm btn-outline-primary ms-auto btn-editar-semana" data-idmodulo="${semana.id_modulo}" data-titulo="${semana.titulo}" data-descripcion="${semana.descripcion || ''}" data-orden="${semana.orden}"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-outline-danger ms-1 btn-eliminar-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-trash"></i></button>
                             </div>`;
                     }
 
@@ -367,6 +374,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
+        // Eliminar semana
+        document.querySelectorAll('.btn-eliminar-semana').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('¿Seguro que deseas eliminar esta semana? Se borrarán sus recursos y actividades.')) return;
+                try {
+                    const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${e.currentTarget.dataset.idmodulo}`, { method: 'DELETE' });
+                    if (res.ok) await cargarEstructuraModular();
+                    else alert('Error al eliminar semana');
+                } catch (e) { console.error(e); }
+            });
+        });
+
+        // Editar semana
+        document.querySelectorAll('.btn-editar-semana').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const b = e.currentTarget;
+                document.getElementById('editSemanaIdModulo').value = b.dataset.idmodulo;
+                document.getElementById('editSemanaTitulo').value = b.dataset.titulo;
+                document.getElementById('editSemanaDescripcion').value = b.dataset.descripcion;
+                document.getElementById('editSemanaOrden').value = b.dataset.orden;
+                new bootstrap.Modal(document.getElementById('modalEditarSemana')).show();
+            });
+        });
+
         // Añadir recurso a semana
         document.querySelectorAll('.btn-add-recurso-semana').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -439,6 +470,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${btn.dataset.id}`, { method: 'DELETE' });
                     await cargarEstructuraModular();
                 } catch (e) { console.error(e); }
+            });
+        });
+
+        // Eliminar recurso de semana
+        document.querySelectorAll('.btn-eliminar-recurso').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('¿Seguro que deseas eliminar este recurso?')) return;
+                try {
+                    const res = await fetch(`${API_URL}/api/recursos/${e.currentTarget.dataset.id}`, { method: 'DELETE' });
+                    if(res.ok) {
+                        await cargarEstructuraModular();
+                    } else {
+                        alert("Error al eliminar el recurso.");
+                    }
+                } catch (err) { console.error(err); }
             });
         });
 
@@ -586,6 +632,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalCrearSemana')).hide();
                 await cargarEstructuraModular();
+            }
+        } catch (e) { console.error(e); }
+    });
+
+    // Guardar Edición de Semana
+    document.getElementById('btnGuardarEditSemana')?.addEventListener('click', async () => {
+        const idModulo = document.getElementById('editSemanaIdModulo').value;
+        const titulo = document.getElementById('editSemanaTitulo').value;
+        const descripcion = document.getElementById('editSemanaDescripcion').value;
+        const orden = document.getElementById('editSemanaOrden').value;
+        if (!titulo || !orden) return alert('Título y orden son obligatorios');
+
+        try {
+            const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, descripcion, orden: parseInt(orden) })
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalEditarSemana')).hide();
+                await cargarEstructuraModular();
+            } else {
+                alert('Error al actualizar semana');
             }
         } catch (e) { console.error(e); }
     });

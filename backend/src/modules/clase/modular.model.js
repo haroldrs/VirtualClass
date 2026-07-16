@@ -79,6 +79,17 @@ const eliminarSemana = async (idModulo) => {
     return rows[0];
 };
 
+const actualizarSemana = async (idModulo, titulo, descripcion, orden) => {
+    const query = `
+        UPDATE MODULO_CLASE
+        SET TITULO = $1, DESCRIPCION = $2, ORDEN = $3
+        WHERE ID_MODULO = $4
+        RETURNING *;
+    `;
+    const { rows } = await pool.query(query, [titulo, descripcion, orden, idModulo]);
+    return rows[0];
+};
+
 // ===================== RECURSOS POR SEMANA =====================
 
 const obtenerRecursosPorSemana = async (idModulo) => {
@@ -254,6 +265,7 @@ module.exports = {
     obtenerSemanasPorUnidad,
     obtenerSemanasPorClase,
     crearSemana,
+    actualizarSemana,
     eliminarSemana,
     obtenerRecursosPorSemana,
     crearRecursoEnSemana,

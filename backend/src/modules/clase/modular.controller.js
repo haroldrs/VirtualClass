@@ -53,6 +53,17 @@ const createSemana = async (req, res) => {
     }
 };
 
+const updateSemana = async (req, res) => {
+    const { titulo, descripcion, orden } = req.body;
+    try {
+        const semana = await modularModel.actualizarSemana(req.params.idModulo, titulo, descripcion, orden);
+        if (!semana) return res.status(404).json({ mensaje: 'Semana no encontrada' });
+        res.status(200).json({ mensaje: 'Semana actualizada', semana });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar semana', error: error.message });
+    }
+};
+
 const deleteSemana = async (req, res) => {
     try {
         const result = await modularModel.eliminarSemana(req.params.idModulo);
@@ -170,6 +181,7 @@ module.exports = {
     deleteUnidad,
     getSemanas,
     createSemana,
+    updateSemana,
     deleteSemana,
     getRecursosSemana,
     createRecursoSemana,

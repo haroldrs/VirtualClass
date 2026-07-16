@@ -18,6 +18,7 @@ router.delete('/unidades/:idUnidad', mc.deleteUnidad);
 // CRUD Semanas
 router.get('/unidades/:idUnidad/semanas', mc.getSemanas);
 router.post('/:idClase/semanas', mc.createSemana);
+router.put('/:idClase/semanas/:idModulo', mc.updateSemana);
 router.delete('/semanas/:idModulo', mc.deleteSemana);
 
 // Recursos dentro de una semana
