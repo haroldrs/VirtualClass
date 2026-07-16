@@ -754,6 +754,7 @@
                                     <th>Sección</th>
                                     <th>Periodo</th>
                                     <th>Aula</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -764,6 +765,51 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Clase -->
+    <div class="modal fade" id="modalEditarClase" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar Clase / Sección</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarClase">
+                        <input type="hidden" id="eIdClase">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sección</label>
+                                <input type="text" class="form-control" id="eClaseSeccion" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Periodo</label>
+                                <input type="text" class="form-control" id="eClasePeriodo" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ciclo</label>
+                                <input type="text" class="form-control" id="eClaseCiclo" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Aula</label>
+                                <input type="text" class="form-control" id="eClaseAula" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Clase (Opcional)</label>
+                            <input type="text" class="form-control" id="eClaseNombreClase">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="actualizarClase()">Guardar Cambios</button>
                 </div>
             </div>
         </div>

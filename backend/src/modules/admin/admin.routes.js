@@ -18,6 +18,7 @@ router.post('/cursos', adminController.createCourse);
 router.put('/cursos/:id', adminController.updateCourse);
 router.put('/cursos/:id/estado', adminController.changeCourseStatus);
 router.post('/clases', adminController.createClass);
+router.put('/clases/:id', adminController.updateClass);
 
 // Clases (Para matrículas)
 router.get('/clases-disponibles', adminController.getAvailableClasses);

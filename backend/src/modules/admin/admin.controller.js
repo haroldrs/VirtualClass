@@ -135,6 +135,17 @@ const createClass = async (req, res) => {
     }
 };
 
+const updateClass = async (req, res) => {
+    const { id } = req.params;
+    const { nombreClase, periodo, ciclo, seccion, aula } = req.body;
+    try {
+        const updated = await adminModel.updateClass(id, nombreClase, periodo, ciclo, seccion, aula);
+        res.status(200).json({ mensaje: 'Clase actualizada', clase: updated });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar clase', error: error.message });
+    }
+};
+
 const getAvailableClasses = async (req, res) => {
     try {
         const classes = await adminModel.getAvailableClasses();
@@ -176,6 +187,7 @@ module.exports = {
     updateCourse,
     changeCourseStatus,
     createClass,
+    updateClass,
     getAvailableClasses,
     enrollStudent,
     getClassParticipants

@@ -126,10 +126,20 @@ const createClass = async (idCurso, nombreClase, periodo, ciclo, seccion, aula, 
     return result.rows[0];
 };
 
+const updateClass = async (idClase, nombreClase, periodo, ciclo, seccion, aula) => {
+    const query = `
+        UPDATE CLASE 
+        SET NOMBRE_CLASE = $1, PERIODO = $2, CICLO = $3, SECCION = $4, AULA = $5
+        WHERE ID_CLASE = $6 RETURNING *
+    `;
+    const result = await pool.query(query, [nombreClase, periodo, ciclo, seccion, aula, idClase]);
+    return result.rows[0];
+};
+
 // Matriculas (Para los selects)
 const getAvailableClasses = async () => {
     const query = `
-        SELECT CL.ID_CLASE, C.NOMBRE, CL.SECCION, CL.PERIODO
+        SELECT CL.ID_CLASE, CL.ID_CURSO, C.NOMBRE, CL.NOMBRE_CLASE, CL.SECCION, CL.PERIODO, CL.CICLO, CL.AULA
         FROM CLASE CL
         JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
         ORDER BY CL.ID_CLASE DESC
@@ -211,6 +221,7 @@ module.exports = {
     updateCourse,
     changeCourseStatus,
     createClass,
+    updateClass,
     getAvailableClasses,
     enrollStudent,
     getClassParticipants

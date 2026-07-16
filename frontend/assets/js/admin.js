@@ -361,7 +361,7 @@ async function verClases(idCurso, nombreCurso) {
         
         tbody.innerHTML = '';
         if(clases.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center">No hay clases activas para este curso</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay clases activas para este curso</td></tr>';
             return;
         }
         clases.forEach(c => {
@@ -369,10 +369,51 @@ async function verClases(idCurso, nombreCurso) {
                 <tr>
                     <td>Sec. ${c.seccion}</td>
                     <td>${c.periodo}</td>
-                    <td>A definir</td>
+                    <td>${c.aula || 'A definir'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick='abrirModalEditarClase(${JSON.stringify(c).replace(/'/g, "&apos;")}, "${nombreCurso}")'><i class="bi bi-pencil"></i> Editar</button>
+                    </td>
                 </tr>
             `;
         });
+    } catch(e) { console.error(e); }
+}
+
+let cursoEditandoClase = '';
+function abrirModalEditarClase(clase, nombreCurso) {
+    cursoEditandoClase = nombreCurso; // Para refrescar la tabla después de guardar
+    document.getElementById('eIdClase').value = clase.id_clase;
+    document.getElementById('eClaseSeccion').value = clase.seccion;
+    document.getElementById('eClasePeriodo').value = clase.periodo;
+    document.getElementById('eClaseCiclo').value = clase.ciclo || '';
+    document.getElementById('eClaseAula').value = clase.aula || '';
+    document.getElementById('eClaseNombreClase').value = clase.nombre_clase || '';
+    
+    // Cerrar el modal de Ver Clases temporalmente o simplemente abrir encima
+    new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
+}
+
+async function actualizarClase() {
+    const id = document.getElementById('eIdClase').value;
+    const seccion = document.getElementById('eClaseSeccion').value;
+    const periodo = document.getElementById('eClasePeriodo').value;
+    const ciclo = document.getElementById('eClaseCiclo').value;
+    const aula = document.getElementById('eClaseAula').value;
+    const nombreClase = document.getElementById('eClaseNombreClase').value;
+
+    try {
+        const res = await fetch(`${getApiUrl()}/clases/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombreClase, periodo, ciclo, seccion, aula })
+        });
+        if(res.ok) {
+            alert('Clase actualizada');
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarClase')).hide();
+            // Refrescar la tabla de clases
+            verClases(null, cursoEditandoClase);
+            agregarLog('Admin', `Clase actualizada: Sec. ${seccion}`, 'Completado', 'bg-success');
+        } else alert('Error al actualizar clase');
     } catch(e) { console.error(e); }
 }
 
