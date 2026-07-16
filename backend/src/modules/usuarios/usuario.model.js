@@ -12,8 +12,8 @@ const crearUsuario = async (nombres, apellidos, correo, contrasena) => {
         const respuesta = await client.query(query, [nombres, apellidos, correo, contrasena]);
         const newUser = respuesta.rows[0];
 
-        // Assign default role "Alumno"
-        const roleRes = await client.query("SELECT ID_ROL FROM ROL WHERE NOMBRE_ROL = 'Alumno'");
+        // Assign default role "Alumno Regular"
+        const roleRes = await client.query("SELECT ID_ROL FROM ROL WHERE NOMBRE_ROL = 'Alumno Regular'");
         if (roleRes.rows.length > 0) {
             await client.query(
                 "INSERT INTO USUARIO_ROL (ID_USUARIO, ID_ROL) VALUES ($1, $2)",
