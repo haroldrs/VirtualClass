@@ -197,6 +197,17 @@ const assignClassTeacher = async (req, res) => {
     }
 };
 
+const changeEnrollmentStatus = async (req, res) => {
+    const { id, idUsuario } = req.params; // id es ID_CLASE
+    const { estado } = req.body;
+    try {
+        const updated = await adminModel.changeEnrollmentStatus(id, idUsuario, estado);
+        res.status(200).json({ mensaje: 'Estado de matrícula actualizado', matricula: updated });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar estado de matrícula', error: error.message });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -214,5 +225,6 @@ module.exports = {
     getAvailableClasses,
     enrollStudent,
     getClassParticipants,
-    assignClassTeacher
+    assignClassTeacher,
+    changeEnrollmentStatus
 };

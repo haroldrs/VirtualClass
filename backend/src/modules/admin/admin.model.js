@@ -225,6 +225,17 @@ const getClassParticipants = async (idClase) => {
     };
 };
 
+const changeEnrollmentStatus = async (idClase, idUsuario, estado) => {
+    const query = `
+        UPDATE MATRICULA 
+        SET ESTADO_MATRICULA = $1 
+        WHERE ID_CLASE = $2 AND ID_USUARIO = $3 
+        RETURNING *
+    `;
+    const result = await pool.query(query, [estado, idClase, idUsuario]);
+    return result.rows[0];
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -242,5 +253,6 @@ module.exports = {
     getAvailableClasses,
     enrollStudent,
     assignClassTeacher,
-    getClassParticipants
+    getClassParticipants,
+    changeEnrollmentStatus
 };

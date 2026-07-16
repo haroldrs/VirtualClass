@@ -549,7 +549,13 @@ async function cargarDatosMatricula() {
                     : '<li class="list-group-item text-muted">No hay docentes asignados.</li>';
                     
                 listA.innerHTML = data.alumnos.length > 0 
-                    ? data.alumnos.map(a => `<li class="list-group-item">${a.nombres} ${a.apellidos}</li>`).join('')
+                    ? data.alumnos.map(a => `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${a.nombres} ${a.apellidos}
+                            <button class="btn btn-sm btn-outline-danger" onclick="cambiarEstadoMatricula(${idC}, ${a.id_usuario}, 'RETIRADO')">
+                                <i class="bi bi-x-circle"></i> Retirar
+                            </button>
+                        </li>`).join('')
                     : '<li class="list-group-item text-muted">No hay alumnos matriculados.</li>';
             } catch(e) {
                 console.error('Error al cargar participantes:', e);
@@ -595,6 +601,30 @@ async function cargarDatosMatricula() {
             } catch(e) { console.error(e); }
         };
     } catch (e) { console.error(e); }
+}
+
+async function cambiarEstadoMatricula(idClase, idUsuario, nuevoEstado) {
+    if(!confirm('¿Estás seguro de que deseas retirar a este alumno de la clase? Perderá acceso a los materiales, pero sus notas se mantendrán.')) return;
+    
+    try {
+        const res = await fetch(`${getApiUrl()}/clases/${idClase}/alumnos/${idUsuario}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        
+        if (res.ok) {
+            alert('Alumno retirado exitosamente.');
+            // Refrescar la lista disparando el change del select
+            document.getElementById('selectClaseMatricula').dispatchEvent(new Event('change'));
+            cargarEstadisticas();
+            agregarLog('Admin', `Alumno ${idUsuario} retirado de clase ${idClase}`, 'Completado', 'bg-danger');
+        } else {
+            alert('Hubo un error al intentar retirar al alumno.');
+        }
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 function renderizarSelectsMatricula() {
