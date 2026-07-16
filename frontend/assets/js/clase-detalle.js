@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 
                                 actionBtn = `
                                     <button class="btn btn-sm btn-success ms-2 btn-revisar-entregas" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}">Revisar</button>
-                                    <button class="btn btn-sm btn-outline-primary ms-1 btn-editar-evaluacion" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}" data-porcentaje="${ev.porcentaje}" data-fecha="${fechaInput}"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-primary ms-1 btn-editar-evaluacion" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}" data-porcentaje="${ev.porcentaje}" data-fecha="${fechaInput}" data-archivo="${ev.archivo_url_docente || ''}"><i class="bi bi-pencil"></i></button>
                                     <button class="btn btn-sm btn-outline-danger ms-1 btn-eliminar-evaluacion" data-id="${ev.id_evaluacion}"><i class="bi bi-trash"></i></button>
                                 `;
                             } else {
@@ -387,6 +387,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.getElementById('actSemanaPeso').value = '';
                     document.getElementById('actSemanaFecha').value = '';
                     document.getElementById('actSemanaArchivo').value = '';
+                    document.getElementById('actSemanaArchivoActualContainer').classList.add('d-none');
+                    document.getElementById('actSemanaEliminarArchivo').value = 'false';
                     modalEl.removeAttribute('data-modo');
                     modalEl.removeAttribute('data-id');
                 }
@@ -407,8 +409,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('actSemanaNombre').value = btn.dataset.nombre;
                 document.getElementById('actSemanaPeso').value = btn.dataset.porcentaje;
                 document.getElementById('actSemanaFecha').value = btn.dataset.fecha;
+                document.getElementById('actSemanaArchivo').value = '';
+                document.getElementById('actSemanaEliminarArchivo').value = 'false';
+                
+                const archivoUrl = btn.dataset.archivo;
+                const containerArchivo = document.getElementById('actSemanaArchivoActualContainer');
+                if (archivoUrl) {
+                    containerArchivo.classList.remove('d-none');
+                    document.getElementById('actSemanaArchivoActualLink').href = archivoUrl;
+                } else {
+                    containerArchivo.classList.add('d-none');
+                }
+
                 new bootstrap.Modal(modalEl).show();
             });
+        });
+
+        // Quitar archivo actual en edición
+        document.getElementById('btnQuitarArchivoActividad')?.addEventListener('click', () => {
+            document.getElementById('actSemanaArchivoActualContainer').classList.add('d-none');
+            document.getElementById('actSemanaEliminarArchivo').value = 'true';
         });
 
         // Eliminar actividad
@@ -641,20 +661,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnGuardar.disabled = true;
 
         try {
+            const formData = new FormData();
+            formData.append('nombre_eva', nombre);
+            formData.append('porcentaje', peso);
+            formData.append('fecha_evaluacion', fecha);
+            if (archivo) formData.append('archivo', archivo);
+            
             if (modo === 'editar') {
-                const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${modalEl.getAttribute('data-id')}`, {
+                formData.append('eliminar_archivo', document.getElementById('actSemanaEliminarArchivo').value);
+                const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${modalEl.getAttribute('data-id')}?idClase=${idClase}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
+                    body: formData
                 });
                 if (!res.ok) throw new Error('Error al actualizar la evaluación');
             } else {
-                const formData = new FormData();
-                formData.append('nombre_eva', nombre);
-                formData.append('porcentaje', peso);
-                formData.append('fecha_evaluacion', fecha);
-                if (archivo) formData.append('archivo', archivo);
-
                 const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
                     method: 'POST',
                     body: formData

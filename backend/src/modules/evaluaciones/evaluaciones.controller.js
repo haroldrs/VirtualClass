@@ -68,9 +68,29 @@ const listarEntregas = async (req, res) => {
 };
 
 const actualizar = async (req, res) => {
-    const { nombre_eva, porcentaje, fecha_evaluacion } = req.body;
+    const { nombre_eva, porcentaje, fecha_evaluacion, eliminar_archivo } = req.body;
+    const { idClase } = req.query; // Lo recibimos del frontend para saber la carpeta
+
+    let urlParaGuardar = undefined;
+    let driveFileId = undefined;
+
     try {
-        const ev = await evaluacionesModel.actualizarEvaluacion(req.params.idEvaluacion, nombre_eva, porcentaje, fecha_evaluacion);
+        if (req.file && idClase) {
+            const claseQuery = await pool.query('SELECT DRIVE_FOLDER_ID FROM CLASE WHERE ID_CLASE = $1', [idClase]);
+            const folderId = claseQuery.rows[0]?.drive_folder_id;
+            const driveResponse = await uploadFileToDrive(req.file, folderId);
+            
+            urlParaGuardar = driveResponse.webViewLink;
+            driveFileId = driveResponse.id;
+        } else if (eliminar_archivo === 'true') {
+            urlParaGuardar = null;
+            driveFileId = null;
+        }
+
+        const ev = await evaluacionesModel.actualizarEvaluacion(
+            req.params.idEvaluacion, nombre_eva, porcentaje, fecha_evaluacion, urlParaGuardar, driveFileId
+        );
+        
         if (!ev) return res.status(404).json({ mensaje: 'Evaluación no encontrada' });
         res.json(ev);
     } catch (error) {

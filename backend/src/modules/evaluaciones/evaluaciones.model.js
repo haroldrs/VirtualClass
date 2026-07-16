@@ -71,14 +71,26 @@ const listarEntregasDocente = async (idEvaluacion, idClase) => {
     return rows;
 };
 
-const actualizarEvaluacion = async (idEvaluacion, nombre_eva, porcentaje, fecha_evaluacion) => {
-    const query = `
+const actualizarEvaluacion = async (idEvaluacion, nombre_eva, porcentaje, fecha_evaluacion, archivo_url = undefined, drive_file_id = undefined) => {
+    let query = `
         UPDATE EVALUACION 
         SET NOMBRE_EVA = $1, PORCENTAJE = $2, FECHA_EVALUACION = $3 
         WHERE ID_EVALUACION = $4 
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [nombre_eva, porcentaje, fecha_evaluacion, idEvaluacion]);
+    let params = [nombre_eva, porcentaje, fecha_evaluacion, idEvaluacion];
+
+    if (archivo_url !== undefined) {
+        query = `
+            UPDATE EVALUACION 
+            SET NOMBRE_EVA = $1, PORCENTAJE = $2, FECHA_EVALUACION = $3, ARCHIVO_URL = $5, DRIVE_FILE_ID = $6 
+            WHERE ID_EVALUACION = $4 
+            RETURNING *;
+        `;
+        params = [nombre_eva, porcentaje, fecha_evaluacion, idEvaluacion, archivo_url, drive_file_id];
+    }
+    
+    const { rows } = await pool.query(query, params);
     return rows[0];
 };
 

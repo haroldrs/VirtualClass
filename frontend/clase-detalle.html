@@ -744,6 +744,18 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-bold">Archivo adjunto (Opcional)</label>
+                        
+                        <div id="actSemanaArchivoActualContainer" class="d-none mb-2 p-2 bg-light rounded border d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                <a href="#" id="actSemanaArchivoActualLink" target="_blank" class="text-decoration-none small">Ver archivo actual</a>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger border-0" id="btnQuitarArchivoActividad" title="Quitar archivo">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" id="actSemanaEliminarArchivo" value="false">
+
                         <input type="file" class="form-control" id="actSemanaArchivo">
                         <small class="text-muted">Instrucciones, plantilla, etc. Se guardará en Google Drive.</small>
                     </div>
