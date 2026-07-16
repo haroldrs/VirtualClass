@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const gruposContainer = document.getElementById('gruposContainer');
 
     if (esDocente) {
-        if(btnAñadirGrupo) btnAñadirGrupo.classList.remove('d-none');
+        if (btnAñadirGrupo) btnAñadirGrupo.classList.remove('d-none');
     }
 
     // Modal elements
@@ -54,24 +54,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const btnEditVideo = document.getElementById('btnEditVideo');
     if (btnEditVideo) {
-        btnEditVideo.addEventListener('click', function() {
+        btnEditVideo.addEventListener('click', function () {
             inputTipoEnlace.value = 'video';
             inputUrlEnlace.value = currentClaseData.enlace_video || '';
-            if(modalEditarEnlace) modalEditarEnlace.show();
+            if (modalEditarEnlace) modalEditarEnlace.show();
         });
     }
 
     const btnEditWhatsapp = document.getElementById('btnEditWhatsapp');
     if (btnEditWhatsapp) {
-        btnEditWhatsapp.addEventListener('click', function() {
+        btnEditWhatsapp.addEventListener('click', function () {
             inputTipoEnlace.value = 'whatsapp';
             inputUrlEnlace.value = currentClaseData.enlace_whatsapp || '';
-            if(modalEditarEnlace) modalEditarEnlace.show();
+            if (modalEditarEnlace) modalEditarEnlace.show();
         });
     }
 
     if (btnGuardarEnlace) {
-        btnGuardarEnlace.addEventListener('click', async function() {
+        btnGuardarEnlace.addEventListener('click', async function () {
             const tipo = inputTipoEnlace.value;
             let url = inputUrlEnlace.value.trim();
 
@@ -97,19 +97,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
+
                 if (res.ok) {
                     if (tipo === 'video') currentClaseData.enlace_video = url || null;
                     if (tipo === 'whatsapp') currentClaseData.enlace_whatsapp = url || null;
 
-                    if(modalEditarEnlace) modalEditarEnlace.hide();
-                    
+                    if (modalEditarEnlace) modalEditarEnlace.hide();
+
                     const alertEl = document.createElement('div');
                     alertEl.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3 shadow-sm';
                     alertEl.style.zIndex = '9999';
                     alertEl.innerText = 'Enlace guardado correctamente';
                     document.body.appendChild(alertEl);
-                    
+
                     setTimeout(() => { alertEl.remove(); }, 3000);
 
                     const btnVideoAct = document.getElementById('btnEnlaceVideo');
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarDetallesClase();
     await cargarCompañeros();
-    
+
     if (!esDocente) {
         await cargarPorcentajeAsistencia();
     }
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!res.ok || !data.estructura || data.estructura.length === 0) {
                 contenedor.innerHTML = '<div class="text-center text-muted p-4">No hay unidades creadas. El docente puede crear la estructura del curso.</div>';
-                
+
                 // Mostrar nota final si hay
                 if (data.notaFinal !== null && data.notaFinal !== undefined) {
                     document.getElementById('cardNotaFinal').style.display = 'block';
@@ -232,7 +232,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                             // Botón de entregar para alumnos (o revisar para docentes)
                             let actionBtn = '';
                             if (esDocente) {
-                                actionBtn = `<button class="btn btn-sm btn-success ms-2 btn-revisar-entregas" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}">Revisar</button>`;
+                                // Parse fecha para el input type date de editar
+                                const isoDate = new Date(ev.fecha_evaluacion);
+                                isoDate.setMinutes(isoDate.getMinutes() + isoDate.getTimezoneOffset());
+                                const fechaInput = isoDate.toISOString().split('T')[0];
+                                
+                                actionBtn = `
+                                    <button class="btn btn-sm btn-success ms-2 btn-revisar-entregas" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}">Revisar</button>
+                                    <button class="btn btn-sm btn-outline-primary ms-1 btn-editar-evaluacion" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}" data-porcentaje="${ev.porcentaje}" data-fecha="${fechaInput}"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1 btn-eliminar-evaluacion" data-id="${ev.id_evaluacion}"><i class="bi bi-trash"></i></button>
+                                `;
                             } else {
                                 if (!ev.id_entrega) {
                                     actionBtn = `<button class="btn btn-sm btn-primary ms-2 btn-entregar-actividad" data-id="${ev.id_evaluacion}">Entregar</button>`;
@@ -335,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Asignar eventos del docente
             if (esDocente) asignarEventosModulares();
-            
+
             // Asignar eventos de actividades para poder entregar/revisar
             asignarEventosActividades();
 
@@ -370,12 +379,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Añadir actividad a semana
         document.querySelectorAll('.btn-add-actividad-semana').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                const form = document.getElementById('formActividadSemana');
+                if (form) {
+                    form.reset();
+                    form.removeAttribute('data-modo');
+                }
                 document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
-                document.getElementById('actSemanaNombre').value = '';
-                document.getElementById('actSemanaPeso').value = '';
-                document.getElementById('actSemanaFecha').value = '';
                 new bootstrap.Modal(document.getElementById('modalActividadSemana')).show();
+            });
+        });
+
+        // Editar actividad
+        document.querySelectorAll('.btn-editar-evaluacion').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const form = document.getElementById('formActividadSemana');
+                if (form) {
+                    form.reset();
+                    form.setAttribute('data-modo', 'editar');
+                    form.setAttribute('data-id', btn.dataset.id);
+                }
+                document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
+                document.getElementById('actSemanaNombre').value = btn.dataset.nombre;
+                document.getElementById('actSemanaPeso').value = btn.dataset.porcentaje;
+                document.getElementById('actSemanaFecha').value = btn.dataset.fecha;
+                new bootstrap.Modal(document.getElementById('modalActividadSemana')).show();
+            });
+        });
+
+        // Eliminar actividad
+        document.querySelectorAll('.btn-eliminar-evaluacion').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('¿Seguro que deseas eliminar esta evaluación?')) return;
+                try {
+                    await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${btn.dataset.id}`, { method: 'DELETE' });
+                    await cargarEstructuraModular();
+                } catch (e) { console.error(e); }
             });
         });
 
@@ -385,18 +424,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const btnElem = e.target.closest('button');
                 const idModulo = btnElem.dataset.idmodulo;
                 const tema = btnElem.dataset.tema;
-                
+
                 document.getElementById('tituloModalAsistencia').innerText = `Asistencia: ${tema}`;
                 const tbody = document.getElementById('tablaAsistenciaCuerpo');
                 tbody.innerHTML = '<tr><td colspan="2" class="text-center">Cargando...</td></tr>';
-                
+
                 const modalAsistencia = new bootstrap.Modal(document.getElementById('modalAsistencia'));
                 modalAsistencia.show();
 
                 try {
                     const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/asistencia/${idClase}/modulo/${idModulo}`);
                     const alumnos = await res.json();
-                    
+
                     tbody.innerHTML = '';
                     if (alumnos.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No hay alumnos.</td></tr>';
@@ -561,16 +600,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalRecursoSemana')).hide();
                 await cargarEstructuraModular();
-                
+
                 // Limpiar form
                 document.getElementById('recursoSemanaTitulo').value = '';
                 document.getElementById('recursoSemanaUrl').value = '';
-                if(archivoInput) archivoInput.value = '';
+                if (archivoInput) archivoInput.value = '';
             } else {
                 const data = await res.json();
                 alert(data.mensaje || 'Error al guardar recurso en semana');
             }
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
             alert('Error de conexión');
         } finally {
@@ -581,6 +620,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Crear Actividad en Semana
     document.getElementById('btnGuardarActividadSemana')?.addEventListener('click', async () => {
+        const form = document.getElementById('formActividadSemana');
+        const btnGuardar = document.getElementById('btnGuardarActividadSemana');
+        const modo = form.getAttribute('data-modo');
         const idModulo = document.getElementById('actSemanaIdModulo').value;
         const nombre = document.getElementById('actSemanaNombre').value;
         const peso = document.getElementById('actSemanaPeso').value;
@@ -590,39 +632,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!nombre || !peso || !fecha) return alert('Todos los campos son obligatorios');
 
-        const btnGuardar = document.getElementById('btnGuardarActividadSemana');
         const textOriginal = btnGuardar.innerText;
         btnGuardar.innerText = 'Guardando...';
         btnGuardar.disabled = true;
 
         try {
-            const formData = new FormData();
-            formData.append('nombre_eva', nombre);
-            formData.append('porcentaje', peso);
-            formData.append('fecha_evaluacion', fecha);
-            if (archivo) {
-                formData.append('archivo', archivo);
-            }
-
-            const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (res.ok) {
-                bootstrap.Modal.getInstance(document.getElementById('modalActividadSemana')).hide();
-                await cargarEstructuraModular();
-                
-                // Limpiar form
-                document.getElementById('actSemanaNombre').value = '';
-                document.getElementById('actSemanaPeso').value = '';
-                document.getElementById('actSemanaFecha').value = '';
-                if(archivoInput) archivoInput.value = '';
+            if (modo === 'editar') {
+                await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${form.getAttribute('data-id')}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
+                });
             } else {
-                const data = await res.json();
-                alert(data.mensaje || 'Error al guardar la actividad');
+                const formData = new FormData();
+                formData.append('nombre_eva', nombre);
+                formData.append('porcentaje', peso);
+                formData.append('fecha_evaluacion', fecha);
+                if (archivo) formData.append('archivo', archivo);
+
+                await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
+                    method: 'POST',
+                    body: formData
+                });
             }
-        } catch (e) { 
+
+            bootstrap.Modal.getInstance(document.getElementById('modalActividadSemana')).hide();
+            await cargarEstructuraModular();
+
+            // Limpiar form
+            document.getElementById('actSemanaNombre').value = '';
+            document.getElementById('actSemanaPeso').value = '';
+            document.getElementById('actSemanaFecha').value = '';
+            if (archivoInput) archivoInput.value = '';
+        } catch (e) {
             console.error(e);
             alert('Error de conexión');
         } finally {
@@ -643,12 +685,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const res = await fetch(`${API_CLASE}/${idClase}`);
             const data = await res.json();
             currentClaseData = data;
-            
+
             if (res.ok) {
                 document.getElementById('cursoBadge').innerText = `${data.codigo} • Sección ${data.seccion}`;
                 document.getElementById('cursoTitulo').innerText = data.nombre_curso;
                 document.getElementById('docenteNombre').innerText = `${data.docente_nombres} ${data.docente_apellidos}`;
-                
+
                 // Actualizar breadcrumb
                 document.querySelector('.breadcrumb-item.active').innerText = `${data.codigo} ${data.nombre_curso}`;
 
@@ -690,7 +732,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/clase/${idClase}/sesiones`);
             const sesiones = await res.json();
-            
+
             if (res.ok) {
                 semanasAcordeon.innerHTML = '';
                 if (sesiones.length === 0) {
@@ -699,7 +741,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 sesiones.forEach((sesion, index) => {
                     const isFirst = index === 0;
-                    
+
                     let botonesEdicion = '';
                     if (esDocente) {
                         botonesEdicion = `
@@ -739,7 +781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/recursos/${idClase}`);
             const recursos = await res.json();
-            
+
             if (res.ok) {
                 recursosContainer.innerHTML = '';
                 if (recursos.length === 0) {
@@ -787,7 +829,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const url = `https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}/${currentUser.id_usuario}?rol=${currentUser.rol}`;
             const res = await fetch(url);
             const actividades = await res.json();
-            
+
             if (res.ok) {
                 actividadesContainer.innerHTML = '';
                 if (actividades.length === 0) {
@@ -854,7 +896,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const alumnos = await res.json();
             const lista = document.getElementById('listaCompañeros');
             lista.innerHTML = '';
-            
+
             if (alumnos.length === 0) {
                 lista.innerHTML = '<li class="list-group-item text-muted">No hay alumnos matriculados.</li>';
                 return;
@@ -887,7 +929,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Manejo de Eventos (Docentes) ---
-    
+
     // Guardar/Editar Tema
     document.getElementById('btnGuardarTema').addEventListener('click', async () => {
         const idTema = document.getElementById('temaId').value;
@@ -897,8 +939,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!temaTitulo) return alert('El título es requerido');
 
         const method = idTema ? 'PUT' : 'POST';
-        const url = idTema 
-            ? `https://virtualclass-sm1i.onrender.com/api/clase/sesiones/${idTema}` 
+        const url = idTema
+            ? `https://virtualclass-sm1i.onrender.com/api/clase/sesiones/${idTema}`
             : `https://virtualclass-sm1i.onrender.com/api/clase/${idClase}/sesiones`;
 
         try {
@@ -950,16 +992,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 modalRecurso.hide();
                 await cargarRecursos();
-                
+
                 // Limpiar form
                 document.getElementById('recursoTitulo').value = '';
                 document.getElementById('recursoUrl').value = '';
-                if(archivoInput) archivoInput.value = '';
+                if (archivoInput) archivoInput.value = '';
             } else {
                 const data = await res.json();
                 alert(data.mensaje || 'Error al guardar');
             }
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
             alert('Error de conexión');
         } finally {
@@ -969,15 +1011,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Limpiar modal al añadir nuevo tema
-    // (usamos optional chaining porque este botón no existe en el HTML actual;
-    // antes esto lanzaba "btnAddTema is not defined" y detenía TODO el script
-    // que venía después, incluyendo el botón "Enviar Trabajo")
-    document.getElementById('btnAddTema')?.addEventListener('click', () => {
-        document.getElementById('modalTemaTitulo').innerText = 'Añadir Tema';
-        document.getElementById('temaId').value = '';
-        document.getElementById('temaTitulo').value = '';
-        document.getElementById('temaDescripcion').value = '';
-    });
+    const btnAddTema = document.getElementById('btnAddTema');
+    if (btnAddTema) {
+        btnAddTema.addEventListener('click', () => {
+            document.getElementById('modalTemaTitulo').innerText = 'Añadir Tema';
+            document.getElementById('temaId').value = '';
+            document.getElementById('temaTitulo').value = '';
+            document.getElementById('temaDescripcion').value = '';
+        });
+    }
 
     // Eventos dinámicos en lista de sesiones
     function asignarEventosSesion() {
@@ -1014,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function asignarEventosRecursos() {
         document.querySelectorAll('.btn-eliminar-recurso').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                e.preventDefault(); 
+                e.preventDefault();
                 const btnElem = e.target.closest('button');
                 if (!confirm("¿Seguro que deseas eliminar este recurso?")) return;
                 try {
@@ -1083,10 +1125,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 modalEntregarActividad.hide();
                 await cargarEstructuraModular(); // Recargar la estructura para ver el cambio a 'Entregado'
-                
+
                 // Limpiar
                 document.getElementById('entregaUrl').value = '';
-                if(archivoInput) archivoInput.value = '';
+                if (archivoInput) archivoInput.value = '';
             } else {
                 let mensaje = `Error al guardar entrega (código ${res.status})`;
                 try {
@@ -1098,7 +1140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error('Fallo al entregar. Status:', res.status);
                 alert(mensaje);
             }
-        } catch (e) { 
+        } catch (e) {
             console.error('Error de red/conexión al entregar:', e);
             alert('Error de conexión. Revisa tu internet o intenta de nuevo en unos segundos (el servidor puede tardar en responder).');
         } finally {
@@ -1134,18 +1176,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async (e) => {
                 const idEv = e.target.dataset.id;
                 const nombre = e.target.dataset.nombre;
-                
+
                 document.getElementById('revisionActividadNombre').innerText = nombre;
                 document.getElementById('revisionCurso').innerText = document.getElementById('cursoTitulo').innerText;
                 const container = document.getElementById('revisionContainer');
                 container.innerHTML = '<div class="text-center text-muted">Cargando entregas...</div>';
-                
+
                 offcanvasRevision.show();
 
                 try {
                     const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entregas/${idEv}/${idClase}`);
                     const alumnos = await res.json();
-                    
+
                     container.innerHTML = '';
                     if (alumnos.length === 0) {
                         container.innerHTML = '<div class="text-center text-muted">No hay alumnos.</div>';
@@ -1230,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}?t=${Date.now()}`, { cache: 'no-store' });
             const grupos = await res.json();
-            
+
             gruposContainer.innerHTML = '';
             if (grupos.length === 0) {
                 gruposContainer.innerHTML = '<div class="text-center text-muted p-3">No hay grupos creados.</div>';
@@ -1293,10 +1335,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const idGrupo = btn.dataset.id;
                 document.getElementById('tituloModalIntegrantes').innerText = `Gestionar: ${btn.dataset.nombre}`;
                 document.getElementById('grupoSeleccionadoId').value = idGrupo;
-                
+
                 await cargarOpcionesSinGrupo();
                 await cargarIntegrantesActuales(idGrupo);
-                
+
                 modalGestionarIntegrantes.show();
             });
         });
@@ -1304,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Crear nuevo grupo
     const btnGuardarGrupo = document.getElementById('btnGuardarGrupo');
-    if(btnGuardarGrupo) {
+    if (btnGuardarGrupo) {
         btnGuardarGrupo.addEventListener('click', async () => {
             const nombre = document.getElementById('grupoNombre').value;
             if (!nombre) return alert('El nombre es obligatorio');
@@ -1330,7 +1372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}/sin-grupo?t=${Date.now()}`, { cache: 'no-store' });
             const alumnos = await res.json();
-            
+
             select.innerHTML = '<option value="">Seleccione un alumno...</option>';
             alumnos.forEach(al => {
                 select.innerHTML += `<option value="${al.id_usuario}">${al.apellidos}, ${al.nombres}</option>`;
@@ -1342,13 +1384,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function cargarIntegrantesActuales(idGrupo) {
         const lista = document.getElementById('listaIntegrantesGrupo');
         lista.innerHTML = '<li class="list-group-item text-muted">Cargando...</li>';
-        
+
         try {
             // Obtenemos los grupos actualizados para extraer los estudiantes del grupo actual
             const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/grupos/clase/${idClase}?t=${Date.now()}`, { cache: 'no-store' });
             const grupos = await res.json();
             const grupoActual = grupos.find(g => g.id_grupo == idGrupo);
-            
+
             lista.innerHTML = '';
             if (!grupoActual || !grupoActual.estudiantes || grupoActual.estudiantes.length === 0) {
                 lista.innerHTML = '<li class="list-group-item text-muted">Aún no hay integrantes.</li>';
@@ -1391,7 +1433,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault(); // Evitar cualquier comportamiento por defecto
             const idGrupo = document.getElementById('grupoSeleccionadoId').value;
             const idUsuario = document.getElementById('selectAlumnoSinGrupo').value;
-            
+
             if (!idUsuario) return alert('Seleccione un alumno');
 
             // Feedback visual
@@ -1418,8 +1460,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const err = await res.json().catch(() => ({ mensaje: 'Error desconocido del servidor' }));
                     alert(err.mensaje || 'Error al asignar');
                 }
-            } catch (err) { 
-                console.error(err); 
+            } catch (err) {
+                console.error(err);
                 alert('Error de red o de sistema: ' + err.message);
             } finally {
                 // Restaurar botón
@@ -1438,7 +1480,7 @@ let idForoClase = null;
 
 async function cargarAvisosCurso() {
     const container = document.getElementById('avisosCursoContainer');
-    
+
     // Obtener idClase desde la URL
     const urlParams = new URLSearchParams(window.location.search);
     const localIdClase = urlParams.get('id');
@@ -1456,7 +1498,7 @@ async function cargarAvisosCurso() {
 
     try {
         const resAvisos = await fetch(`${API_URL}/foros/avisos/${localIdClase}`);
-        if(!resAvisos.ok) throw new Error('Error en API');
+        if (!resAvisos.ok) throw new Error('Error en API');
         const avisos = await resAvisos.json();
 
         container.innerHTML = '';
@@ -1464,14 +1506,14 @@ async function cargarAvisosCurso() {
             container.innerHTML = '<p class="text-muted small text-center mb-0">No hay avisos recientes en este curso.</p>';
             return;
         }
-        
+
         avisos.forEach((aviso, index) => {
             const fecha = new Date(aviso.fecha_creacion).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
             const autor = `${aviso.nombres} ${aviso.apellidos}`;
-            
+
             const colorBorde = index % 2 === 0 ? 'border-danger' : 'border-secondary';
             const colorTitulo = index % 2 === 0 ? 'text-dark' : 'text-secondary';
-            
+
             const div = document.createElement('div');
             div.className = `border-start border-3 ${colorBorde} ps-3 mb-3`;
             div.innerHTML = `
@@ -1491,10 +1533,10 @@ async function cargarAvisosCurso() {
 // Necesitamos el idForo para publicar
 async function obtenerIdForoDeClase() {
     if (idForoClase) return idForoClase;
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const localIdClase = urlParams.get('id');
-    
+
     const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
         ? 'http://localhost:3000/api'
         : 'https://virtualclass-sm1i.onrender.com/api';
@@ -1515,7 +1557,7 @@ async function obtenerIdForoDeClase() {
 
 async function guardarAvisoCurso(e) {
     e.preventDefault();
-    
+
     const titulo = document.getElementById('avisoCursoTitulo').value.trim();
     const contenido = document.getElementById('avisoCursoContenido').value.trim();
     const btn = e.target;
@@ -1556,7 +1598,7 @@ async function guardarAvisoCurso(e) {
             const modalEl = document.getElementById('modalCrearAvisoCurso');
             const modalInst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
             modalInst.hide();
-            
+
             document.getElementById('formCrearAvisoCurso').reset();
             cargarAvisosCurso(); // Recargar
         } else {

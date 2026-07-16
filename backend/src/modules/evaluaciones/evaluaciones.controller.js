@@ -67,9 +67,34 @@ const listarEntregas = async (req, res) => {
     }
 };
 
+const actualizar = async (req, res) => {
+    const { nombre_eva, porcentaje, fecha_evaluacion } = req.body;
+    try {
+        const ev = await evaluacionesModel.actualizarEvaluacion(req.params.idEvaluacion, nombre_eva, porcentaje, fecha_evaluacion);
+        if (!ev) return res.status(404).json({ mensaje: 'Evaluación no encontrada' });
+        res.json(ev);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al actualizar evaluación' });
+    }
+};
+
+const eliminar = async (req, res) => {
+    try {
+        const ev = await evaluacionesModel.eliminarEvaluacion(req.params.idEvaluacion);
+        if (!ev) return res.status(404).json({ mensaje: 'Evaluación no encontrada' });
+        res.json({ mensaje: 'Evaluación eliminada correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al eliminar evaluación' });
+    }
+};
+
 module.exports = {
     listar,
     crear,
     entregar,
-    listarEntregas
+    listarEntregas,
+    actualizar,
+    eliminar
 };
