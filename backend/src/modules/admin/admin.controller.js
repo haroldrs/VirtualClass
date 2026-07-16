@@ -208,6 +208,20 @@ const changeEnrollmentStatus = async (req, res) => {
     }
 };
 
+const generarReporteCSV = async (req, res) => {
+    const { tipo } = req.params;
+    try {
+        const csvData = await adminModel.generarReporteCSV(tipo);
+        // Add BOM for Excel UTF-8 compatibility
+        const bom = "\uFEFF";
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename=reporte_${tipo}.csv`);
+        res.status(200).send(bom + csvData);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al generar reporte', error: error.message });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -226,5 +240,6 @@ module.exports = {
     enrollStudent,
     getClassParticipants,
     assignClassTeacher,
-    changeEnrollmentStatus
+    changeEnrollmentStatus,
+    generarReporteCSV
 };

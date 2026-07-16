@@ -659,6 +659,11 @@ function renderizarSelectsMatricula() {
     });
 }
 
+function descargarReporte(tipo) {
+    window.location.href = `${getApiUrl()}/reportes/${tipo}`;
+    agregarLog('Admin', `Reporte exportado: ${tipo}`, 'Completado', 'bg-info');
+}
+
 // --- EXPORTAR A CSV ---
 function generarReporteUsuariosCSV() {
     if(globalUsuarios.length === 0) return alert('No hay datos para exportar');

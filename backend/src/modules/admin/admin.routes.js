@@ -30,4 +30,7 @@ router.put('/clases/:id/alumnos/:idUsuario/estado', adminController.changeEnroll
 // Matriculación
 router.post('/matricular', adminController.enrollStudent);
 
+// Reportes
+router.get('/reportes/:tipo', adminController.generarReporteCSV);
+
 module.exports = router;

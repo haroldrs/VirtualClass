@@ -236,6 +236,40 @@ const changeEnrollmentStatus = async (idClase, idUsuario, estado) => {
     return result.rows[0];
 };
 
+const generarReporteCSV = async (tipo) => {
+    let csv = '';
+    if (tipo === 'matriculas') {
+        const query = `
+            SELECT C.NOMBRE, CL.SECCION, CL.PERIODO, M.ESTADO_MATRICULA, COUNT(*) as TOTAL 
+            FROM MATRICULA M 
+            JOIN CLASE CL ON M.ID_CLASE = CL.ID_CLASE 
+            JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
+            GROUP BY C.NOMBRE, CL.SECCION, CL.PERIODO, M.ESTADO_MATRICULA
+            ORDER BY CL.PERIODO DESC, C.NOMBRE
+        `;
+        const { rows } = await pool.query(query);
+        csv = 'CURSO,SECCION,PERIODO,ESTADO_MATRICULA,TOTAL_ALUMNOS\n';
+        rows.forEach(r => csv += `"${r.nombre}",${r.seccion},${r.periodo},${r.estado_matricula},${r.total}\n`);
+    } else if (tipo === 'carga_docente') {
+        const query = `
+            SELECT U.NOMBRES, U.APELLIDOS, COUNT(CD.ID_CLASE) as TOTAL_CLASES 
+            FROM USUARIO U 
+            JOIN CLASE_DOCENTE CD ON U.ID_USUARIO = CD.ID_USUARIO 
+            GROUP BY U.NOMBRES, U.APELLIDOS
+            ORDER BY TOTAL_CLASES DESC
+        `;
+        const { rows } = await pool.query(query);
+        csv = 'DOCENTE,TOTAL_CLASES_ASIGNADAS\n';
+        rows.forEach(r => csv += `"${r.nombres} ${r.apellidos}",${r.total_clases}\n`);
+    } else if (tipo === 'usuarios') {
+        const query = `SELECT ESTADO, COUNT(*) as TOTAL FROM USUARIO GROUP BY ESTADO`;
+        const { rows } = await pool.query(query);
+        csv = 'ESTADO_USUARIO,TOTAL_CUENTAS\n';
+        rows.forEach(r => csv += `${r.estado},${r.total}\n`);
+    }
+    return csv;
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -254,5 +288,6 @@ module.exports = {
     enrollStudent,
     assignClassTeacher,
     getClassParticipants,
-    changeEnrollmentStatus
+    changeEnrollmentStatus,
+    generarReporteCSV
 };
