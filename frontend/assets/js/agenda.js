@@ -82,7 +82,15 @@ async function cargarCalendario() {
 
     try {
         const resp = await fetch(`${API_CAL}/eventos/${currentUser.id_usuario}/${currentUser.rol}?mes=${mesActual}&anio=${anioActual}`);
-        eventosDelMes = await resp.json();
+        const rawEventos = await resp.json();
+        
+        // Corregir zona horaria: PostgreSQL devuelve '...Z' (UTC) pero son horas locales
+        eventosDelMes = rawEventos.map(ev => ({
+            ...ev,
+            fecha_inicio: ev.fecha_inicio ? ev.fecha_inicio.replace('Z', '') : ev.fecha_inicio,
+            fecha_fin: ev.fecha_fin ? ev.fecha_fin.replace('Z', '') : ev.fecha_fin
+        }));
+        
         renderizarCalendario();
     } catch (error) {
         console.error('Error cargando eventos:', error);
