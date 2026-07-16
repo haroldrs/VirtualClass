@@ -510,7 +510,6 @@ async function cargarDatosMatricula() {
                 tabDocente.classList.remove('active');
                 document.getElementById('lblSeleccionarUsuario').textContent = 'Seleccionar Alumno';
                 document.getElementById('btnConfirmarMatricula').textContent = 'Confirmar Matrícula';
-                document.getElementById('btnAccionMatricula').innerHTML = '<i class="bi bi-person-lines-fill me-1"></i> Matricular Alumno';
                 renderizarSelectsMatricula();
             };
             
@@ -521,7 +520,6 @@ async function cargarDatosMatricula() {
                 tabAlumno.classList.remove('active');
                 document.getElementById('lblSeleccionarUsuario').textContent = 'Seleccionar Docente';
                 document.getElementById('btnConfirmarMatricula').textContent = 'Asignar Docente a Clase';
-                document.getElementById('btnAccionMatricula').innerHTML = '<i class="bi bi-person-badge me-1"></i> Asignar Docente';
                 renderizarSelectsMatricula();
             };
         }
