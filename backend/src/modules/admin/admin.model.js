@@ -192,6 +192,14 @@ const enrollStudent = async (idUsuario, idClase) => {
     }
 };
 
+const assignClassTeacher = async (idClase, idDocenteNuevo) => {
+    // 1. Borrar todos los docentes actuales de esta clase
+    await pool.query('DELETE FROM CLASE_DOCENTE WHERE ID_CLASE = $1', [idClase]);
+    // 2. Insertar el nuevo docente
+    const result = await pool.query('INSERT INTO CLASE_DOCENTE (ID_CLASE, ID_USUARIO) VALUES ($1, $2) RETURNING *', [idClase, idDocenteNuevo]);
+    return result.rows[0];
+};
+
 const getClassParticipants = async (idClase) => {
     // Traer docentes
     const docentesQuery = `
@@ -233,5 +241,6 @@ module.exports = {
     changeClassStatus,
     getAvailableClasses,
     enrollStudent,
+    assignClassTeacher,
     getClassParticipants
 };

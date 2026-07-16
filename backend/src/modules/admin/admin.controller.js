@@ -186,6 +186,17 @@ const getClassParticipants = async (req, res) => {
     }
 };
 
+const assignClassTeacher = async (req, res) => {
+    const { id } = req.params; // ID_CLASE
+    const { idDocente } = req.body;
+    try {
+        const assigned = await adminModel.assignClassTeacher(id, idDocente);
+        res.status(200).json({ mensaje: 'Docente asignado correctamente', assigned });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al reasignar docente', error: error.message });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -202,5 +213,6 @@ module.exports = {
     changeClassStatus,
     getAvailableClasses,
     enrollStudent,
-    getClassParticipants
+    getClassParticipants,
+    assignClassTeacher
 };

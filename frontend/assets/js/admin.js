@@ -565,18 +565,29 @@ async function cargarDatosMatricula() {
             if(!idU || !idC) return alert('Seleccione ambos campos');
             
             try {
-                const res = await fetch(`${getApiUrl()}/matricular`, {
+                let url = `${getApiUrl()}/matricular`;
+                let options = {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idUsuario: idU, idClase: idC })
-                });
-                
+                };
+
+                if (currentMatriculaMode === 'Docente') {
+                    url = `${getApiUrl()}/clases/${idC}/docente`;
+                    options = {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idDocente: idU })
+                    };
+                }
+
+                const res = await fetch(url, options);
                 const data = await res.json();
                 
                 if(res.ok) {
-                    alert(`${currentMatriculaMode === 'Alumno' ? 'Matrícula' : 'Asignación'} registrada exitosamente`);
+                    alert(`${currentMatriculaMode === 'Alumno' ? 'Matrícula' : 'Reasignación de docente'} registrada exitosamente`);
                     cargarEstadisticas();
-                    agregarLog('Admin', `${currentMatriculaMode === 'Alumno' ? 'Alumno matriculado' : 'Docente asignado'} a clase ${idC}`, 'Completado', 'bg-success');
+                    agregarLog('Admin', `${currentMatriculaMode === 'Alumno' ? 'Alumno matriculado' : 'Docente reasignado'} a clase ${idC}`, 'Completado', 'bg-success');
                     document.getElementById('selectUsuarioMatricula').value = ''; 
                     // Refrescar la lista de participantes de esta clase
                     selectClase.dispatchEvent(new Event('change'));

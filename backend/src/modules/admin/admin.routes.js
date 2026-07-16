@@ -24,6 +24,7 @@ router.put('/clases/:id/estado', adminController.changeClassStatus);
 // Clases (Para matrículas)
 router.get('/clases-disponibles', adminController.getAvailableClasses);
 router.get('/clases-disponibles/:id/participantes', adminController.getClassParticipants);
+router.put('/clases/:id/docente', adminController.assignClassTeacher);
 
 // Matriculación
 router.post('/matricular', adminController.enrollStudent);
