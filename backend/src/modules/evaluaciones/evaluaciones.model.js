@@ -52,6 +52,13 @@ const subirEntrega = async (idEvaluacion, idUsuario, archivoUrl, driveFileId = n
         const { rows } = await pool.query(insertQuery, [idEvaluacion, idUsuario, archivoUrl, driveFileId, driveUrl]);
         return rows[0];
     }
+    
+};
+
+const eliminarEntrega = async (idEvaluacion, idUsuario) => {
+    const query = `DELETE FROM ENTREGA_EVALUACION WHERE ID_EVALUACION = $1 AND ID_USUARIO = $2 RETURNING *;`;
+    const { rows } = await pool.query(query, [idEvaluacion, idUsuario]);
+    return rows[0];
 };
 
 const listarEntregasDocente = async (idEvaluacion, idClase) => {
@@ -110,6 +117,7 @@ module.exports = {
     listarEvaluacionesClase,
     crearEvaluacion,
     subirEntrega,
+    eliminarEntrega,
     listarEntregasDocente,
     actualizarEvaluacion,
     eliminarEvaluacion

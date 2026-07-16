@@ -254,6 +254,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 } else {
                                     // El alumno ya entregó
                                     actionBtn = `<a href="${ev.archivo_url}" target="_blank" class="btn btn-sm btn-outline-primary ms-2" title="Ver mi entrega"><i class="bi bi-eye"></i></a>`;
+                                    
+                                    // Si aún no está calificado, puede editar o eliminar su entrega
+                                    if (ev.calificacion === null || ev.calificacion === undefined) {
+                                        actionBtn += `
+                                        <button class="btn btn-sm btn-outline-warning ms-1 btn-entregar-actividad" data-id="${ev.id_evaluacion}" title="Reemplazar archivo"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger ms-1 btn-eliminar-entrega" data-id="${ev.id_evaluacion}" title="Anular entrega"><i class="bi bi-x-circle"></i></button>
+                                        `;
+                                    }
                                 }
                             }
 
@@ -485,6 +493,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                         alert("Error al eliminar el recurso.");
                     }
                 } catch (err) { console.error(err); }
+            });
+        });
+
+        // Eliminar entrega del alumno
+        document.querySelectorAll('.btn-eliminar-entrega').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('¿Seguro que deseas anular y borrar tu entrega actual?')) return;
+                try {
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${btn.dataset.id}/${idUsuario}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        alert('Entrega anulada correctamente');
+                        await cargarEstructuraModular();
+                    } else {
+                        alert('Error al anular la entrega');
+                    }
+                } catch (e) { console.error(e); }
             });
         });
 

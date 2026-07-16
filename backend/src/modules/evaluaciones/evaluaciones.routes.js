@@ -6,6 +6,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/:idClase/:idUsuario', evaluacionesController.listar);
 router.post('/entrega', upload.single('archivo'), evaluacionesController.entregar);
+router.delete('/entrega/:idEvaluacion/:idUsuario', evaluacionesController.eliminarEntrega);
 router.post('/:idClase', evaluacionesController.crear);
 router.put('/:idEvaluacion', upload.single('archivo'), evaluacionesController.actualizar);
 router.delete('/:idEvaluacion', evaluacionesController.eliminar);

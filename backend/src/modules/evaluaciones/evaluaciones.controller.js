@@ -56,6 +56,18 @@ const entregar = async (req, res) => {
     }
 };
 
+const eliminarEntrega = async (req, res) => {
+    const { idEvaluacion, idUsuario } = req.params;
+    try {
+        const result = await evaluacionesModel.eliminarEntrega(idEvaluacion, idUsuario);
+        if (!result) return res.status(404).json({ mensaje: 'Entrega no encontrada' });
+        res.json({ mensaje: 'Entrega eliminada exitosamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al eliminar entrega' });
+    }
+};
+
 const listarEntregas = async (req, res) => {
     const { idEvaluacion, idClase } = req.params;
     try {
@@ -114,6 +126,7 @@ module.exports = {
     listar,
     crear,
     entregar,
+    eliminarEntrega,
     listarEntregas,
     actualizar,
     eliminar
