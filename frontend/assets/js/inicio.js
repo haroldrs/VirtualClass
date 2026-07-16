@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // CARGAR ESTADÍSTICAS RÁPIDAS
     // ==========================================
     try {
-        const resCursos = await fetch(`${API_BASE}/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const resCursos = await fetch(`${API_BASE}/cursos/mis-cursos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const cursos = await resCursos.json();
         const statCursos = document.getElementById('statCursos');
         if (statCursos && Array.isArray(cursos)) statCursos.innerText = cursos.length;
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const resAsesorias = await fetch(`${API_BASE}/asesorias/${currentUser.id_usuario}/${currentUser.rol}`);
+        const resAsesorias = await fetch(`${API_BASE}/asesorias/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const asesorias = await resAsesorias.json();
         const statAsesorias = document.getElementById('statAsesorias');
         if (statAsesorias && Array.isArray(asesorias)) {
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const resForos = await fetch(`${API_BASE}/foros/${currentUser.id_usuario}/${currentUser.rol}`);
+        const resForos = await fetch(`${API_BASE}/foros/mis-foros/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const foros = await resForos.json();
         const statForos = document.getElementById('statForos');
         if (statForos && Array.isArray(foros)) {
