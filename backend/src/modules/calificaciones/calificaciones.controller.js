@@ -133,6 +133,7 @@ const notasAlumnoPorUnidad = async (req, res) => {
                     porcentaje: row.porcentaje,
                     fecha_evaluacion: row.fecha_evaluacion,
                     semana_titulo: row.semana_titulo,
+                    semana_orden: row.semana_orden,
                     calificacion: row.calificacion,
                     comentario: row.comentario,
                     id_entrega: row.id_entrega,
@@ -196,13 +197,14 @@ const notasDocentePorUnidad = async (req, res) => {
                 };
             }
 
-            // Registrar evaluación meta (nombre, porcentaje)
+            // Registrar evaluación meta (nombre, porcentaje, semana_orden)
             if (row.id_evaluacion && !unidadesMap[idU].evaluaciones_meta[row.id_evaluacion]) {
                 unidadesMap[idU].evaluaciones_meta[row.id_evaluacion] = {
                     id_evaluacion: row.id_evaluacion,
                     nombre_eva: row.nombre_eva,
                     porcentaje: row.porcentaje,
-                    fecha_evaluacion: row.fecha_evaluacion
+                    fecha_evaluacion: row.fecha_evaluacion,
+                    semana_orden: row.semana_orden
                 };
             }
 

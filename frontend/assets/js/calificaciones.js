@@ -113,8 +113,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const riesgo = unidad.promedio !== null && unidad.promedio < 13 ? '<span class="badge bg-danger-subtle text-danger ms-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>En riesgo</span>' : '';
 
                 let evasHtml = '';
-                // Ordenar cronológicamente
-                unidad.evaluaciones.sort((a, b) => new Date(a.fecha_evaluacion) - new Date(b.fecha_evaluacion));
+                // Ordenar cronológicamente (primero por orden de semana, luego por fecha)
+                unidad.evaluaciones.sort((a, b) => {
+                    const ordenA = parseInt(a.semana_orden) || 0;
+                    const ordenB = parseInt(b.semana_orden) || 0;
+                    if (ordenA !== ordenB) return ordenA - ordenB;
+                    
+                    const dateA = new Date(a.fecha_evaluacion);
+                    const dateB = new Date(b.fecha_evaluacion);
+                    if (isNaN(dateA) || isNaN(dateB)) return a.id_evaluacion - b.id_evaluacion;
+                    return dateA - dateB;
+                });
                 
                 unidad.evaluaciones.forEach(ev => {
                     if (ev.calificacion !== null) totalCalificadas++;
@@ -248,8 +257,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const show = uIdx === 0 ? 'show active' : '';
                 tabsNav += `<li class="nav-item"><a class="nav-link ${active} fw-semibold" data-bs-toggle="tab" href="#tabUnidad_${unidad.id_unidad}" role="tab">${unidad.titulo}</a></li>`;
 
-                // Ordenar cronológicamente
-                unidad.evaluaciones.sort((a, b) => new Date(a.fecha_evaluacion) - new Date(b.fecha_evaluacion));
+                // Ordenar cronológicamente (primero por orden de semana, luego por fecha)
+                unidad.evaluaciones.sort((a, b) => {
+                    const ordenA = parseInt(a.semana_orden) || 0;
+                    const ordenB = parseInt(b.semana_orden) || 0;
+                    if (ordenA !== ordenB) return ordenA - ordenB;
+                    
+                    const dateA = new Date(a.fecha_evaluacion);
+                    const dateB = new Date(b.fecha_evaluacion);
+                    if (isNaN(dateA) || isNaN(dateB)) return a.id_evaluacion - b.id_evaluacion;
+                    return dateA - dateB;
+                });
 
                 // Construir tabla de alumnos x evaluaciones
                 let thEvals = '';
