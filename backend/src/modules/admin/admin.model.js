@@ -289,12 +289,10 @@ const getConfig = async () => {
 const updateConfig = async (config) => {
     // config es un objeto { clave: valor, clave2: valor2 }
     const queries = [];
-    const values = [];
-    let i = 1;
+    const queryValues = [];
     for (const [clave, valor] of Object.entries(config)) {
-        queries.push(`UPDATE CONFIGURACION_GLOBAL SET VALOR = $${i + 1} WHERE CLAVE = $${i}`);
-        values.push(clave, String(valor));
-        i += 2;
+        queries.push(`UPDATE CONFIGURACION_GLOBAL SET VALOR = $1 WHERE CLAVE = $2`);
+        queryValues.push([String(valor), clave]);
     }
     
     // Execute transactions
@@ -302,7 +300,7 @@ const updateConfig = async (config) => {
     try {
         await client.query('BEGIN');
         for (let j = 0; j < queries.length; j++) {
-            await client.query(queries[j], [values[j * 2], values[j * 2 + 1]]);
+            await client.query(queries[j], queryValues[j]);
         }
         await client.query('COMMIT');
         return true;
