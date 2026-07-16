@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const resForos = await fetch(`${API_BASE}/foros/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
+        const resForos = await fetch(`${API_BASE}/foros/mis-foros/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const foros = await resForos.json();
         const statForos = document.getElementById('statForos');
         if (statForos && Array.isArray(foros)) {
