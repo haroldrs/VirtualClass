@@ -265,11 +265,41 @@ const obtenerEstructuraCompleta = async (idClase, idUsuario) => {
     }
 
     const unidadesConNota = estructura.filter(u => u.promedio !== null);
-    const notaFinal = unidadesConNota.length > 0
+    let notaFinal = unidadesConNota.length > 0
         ? Math.round((unidadesConNota.reduce((acc, u) => acc + u.promedio, 0) / unidadesConNota.length) * 100) / 100
         : null;
 
-    return { estructura, notaFinal };
+    let desaprobadoPorFaltas = false;
+    let porcentajeAsistenciaReal = 100;
+
+    // Lógica de Desaprobado Por Inasistencia (DPI)
+    if (idUsuario) {
+        // Obtener total de semanas de la clase
+        const totalSesionesQuery = `SELECT COUNT(*) FROM MODULO_CLASE WHERE ID_CLASE = $1`;
+        const totalRes = await pool.query(totalSesionesQuery, [idClase]);
+        const totalSesiones = parseInt(totalRes.rows[0].count) || 0;
+
+        if (totalSesiones > 0) {
+            const asistidasQuery = `
+                SELECT COUNT(*) 
+                FROM ASISTENCIA A 
+                JOIN MODULO_CLASE S ON A.ID_MODULO = S.ID_MODULO
+                WHERE S.ID_CLASE = $1 AND A.ID_USUARIO = $2 AND A.ESTADO IN ('presente', 'tardanza')
+            `;
+            const asisRes = await pool.query(asistidasQuery, [idClase, idUsuario]);
+            const asistidas = parseInt(asisRes.rows[0].count) || 0;
+
+            porcentajeAsistenciaReal = Math.round((asistidas / totalSesiones) * 100);
+            
+            // Si el alumno tiene menos del 70% de asistencia (más de 30% de faltas), desaprueba.
+            if (porcentajeAsistenciaReal < 70) {
+                desaprobadoPorFaltas = true;
+                notaFinal = 'DPI'; // Desaprobado Por Inasistencia
+            }
+        }
+    }
+
+    return { estructura, notaFinal, desaprobadoPorFaltas, porcentajeAsistenciaReal };
 };
 
 module.exports = {

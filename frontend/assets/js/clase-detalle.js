@@ -174,8 +174,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Mostrar nota final si hay
                 if (data.notaFinal !== null && data.notaFinal !== undefined) {
-                    document.getElementById('cardNotaFinal').style.display = 'block';
-                    document.getElementById('notaFinalValor').textContent = `${data.notaFinal} / 20`;
+                    const cardNota = document.getElementById('cardNotaFinal');
+                    const notaValor = document.getElementById('notaFinalValor');
+                    cardNota.style.display = 'block';
+                    
+                    if (data.desaprobadoPorFaltas) {
+                        cardNota.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+                        notaValor.innerHTML = `<span class="text-white">${data.notaFinal}</span><br><small class="fs-6 fw-normal d-block mt-2">Desaprobado por Inasistencia (<70%)</small>`;
+                    } else {
+                        cardNota.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        notaValor.textContent = `${data.notaFinal} / 20`;
+                    }
                 }
                 return;
             }
@@ -378,8 +387,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Nota final
             if (data.notaFinal !== null && data.notaFinal !== undefined) {
-                document.getElementById('cardNotaFinal').style.display = 'block';
-                document.getElementById('notaFinalValor').textContent = `${data.notaFinal} / 20`;
+                const cardNota = document.getElementById('cardNotaFinal');
+                const notaValor = document.getElementById('notaFinalValor');
+                cardNota.style.display = 'block';
+                
+                if (data.desaprobadoPorFaltas) {
+                    cardNota.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+                    notaValor.innerHTML = `<span class="text-white">${data.notaFinal}</span><br><small class="fs-6 fw-normal d-block mt-2">Desaprobado por Inasistencia (<70%)</small>`;
+                } else {
+                    cardNota.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    notaValor.textContent = `${data.notaFinal} / 20`;
+                }
             }
 
             // Asignar eventos del docente
