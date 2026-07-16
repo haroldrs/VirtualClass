@@ -1,20 +1,34 @@
 const pool = require('../../config/db');
 
 const crearUsuario = async (nombres, apellidos, correo, contrasena) => {
-    const query = `
-        INSERT INTO USUARIO (nombres, apellidos, correo, contrasena)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id_usuario, nombres, apellidos, correo;
-    `;
-
-    const values = [nombres, apellidos, correo, contrasena];
-
+    const client = await pool.connect();
     try {
-        const respuesta = await pool.query(query, values);
-        return respuesta.rows[0];
+        await client.query('BEGIN');
+        const query = `
+            INSERT INTO USUARIO (nombres, apellidos, correo, contrasena)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id_usuario, nombres, apellidos, correo;
+        `;
+        const respuesta = await client.query(query, [nombres, apellidos, correo, contrasena]);
+        const newUser = respuesta.rows[0];
+
+        // Assign default role "Alumno"
+        const roleRes = await client.query("SELECT ID_ROL FROM ROL WHERE NOMBRE_ROL = 'Alumno'");
+        if (roleRes.rows.length > 0) {
+            await client.query(
+                "INSERT INTO USUARIO_ROL (ID_USUARIO, ID_ROL) VALUES ($1, $2)",
+                [newUser.id_usuario, roleRes.rows[0].id_rol]
+            );
+        }
+
+        await client.query('COMMIT');
+        return newUser;
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error en el modelo de usuario:', error);
         throw error;
+    } finally {
+        client.release();
     }
 };
 
