@@ -380,30 +380,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Añadir actividad a semana
         document.querySelectorAll('.btn-add-actividad-semana').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const form = document.getElementById('formActividadSemana');
-                if (form) {
-                    form.reset();
-                    form.removeAttribute('data-modo');
+                const modalEl = document.getElementById('modalActividadSemana');
+                if (modalEl) {
+                    // Resetear inputs manualmente ya que no hay form
+                    document.getElementById('actSemanaNombre').value = '';
+                    document.getElementById('actSemanaPeso').value = '';
+                    document.getElementById('actSemanaFecha').value = '';
+                    document.getElementById('actSemanaArchivo').value = '';
+                    modalEl.removeAttribute('data-modo');
+                    modalEl.removeAttribute('data-id');
                 }
                 document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
-                new bootstrap.Modal(document.getElementById('modalActividadSemana')).show();
+                new bootstrap.Modal(modalEl).show();
             });
         });
 
         // Editar actividad
         document.querySelectorAll('.btn-editar-evaluacion').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const form = document.getElementById('formActividadSemana');
-                if (form) {
-                    form.reset();
-                    form.setAttribute('data-modo', 'editar');
-                    form.setAttribute('data-id', btn.dataset.id);
+                const modalEl = document.getElementById('modalActividadSemana');
+                if (modalEl) {
+                    modalEl.setAttribute('data-modo', 'editar');
+                    modalEl.setAttribute('data-id', btn.dataset.id);
                 }
                 document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
                 document.getElementById('actSemanaNombre').value = btn.dataset.nombre;
                 document.getElementById('actSemanaPeso').value = btn.dataset.porcentaje;
                 document.getElementById('actSemanaFecha').value = btn.dataset.fecha;
-                new bootstrap.Modal(document.getElementById('modalActividadSemana')).show();
+                new bootstrap.Modal(modalEl).show();
             });
         });
 
@@ -620,9 +624,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Crear Actividad en Semana
     document.getElementById('btnGuardarActividadSemana')?.addEventListener('click', async () => {
-        const form = document.getElementById('formActividadSemana');
+        const modalEl = document.getElementById('modalActividadSemana');
         const btnGuardar = document.getElementById('btnGuardarActividadSemana');
-        const modo = form.getAttribute('data-modo');
+        const modo = modalEl.getAttribute('data-modo');
         const idModulo = document.getElementById('actSemanaIdModulo').value;
         const nombre = document.getElementById('actSemanaNombre').value;
         const peso = document.getElementById('actSemanaPeso').value;
@@ -638,7 +642,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             if (modo === 'editar') {
-                await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${form.getAttribute('data-id')}`, {
+                await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${modalEl.getAttribute('data-id')}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
