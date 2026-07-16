@@ -34,7 +34,17 @@ const crearEvaluacion = async (idClase, nombre, porcentaje, fecha) => {
         RETURNING *;
     `;
     const { rows } = await pool.query(query, [idClase, nombre, porcentaje, fecha]);
-    return rows[0];
+    const nuevaEva = rows[0];
+
+    if (nuevaEva) {
+        const calQuery = `
+            INSERT INTO CALENDARIO_ACADEMICO (ID_CLASE, TITULO_EVENTO, DESCRIPCION, FECHA_INICIO, FECHA_FIN, TIPO_EVENTO, ID_EVALUACION)
+            VALUES ($1, $2, $3, $4, $4, 'Evaluación', $5)
+        `;
+        await pool.query(calQuery, [idClase, `Evaluación: ${nombre}`, `Evaluación con peso de ${porcentaje}%`, fecha, nuevaEva.id_evaluacion]);
+    }
+
+    return nuevaEva;
 };
 
 const subirEntrega = async (idEvaluacion, idUsuario, archivoUrl, driveFileId = null, driveUrl = null) => {
@@ -52,7 +62,7 @@ const subirEntrega = async (idEvaluacion, idUsuario, archivoUrl, driveFileId = n
         const { rows } = await pool.query(insertQuery, [idEvaluacion, idUsuario, archivoUrl, driveFileId, driveUrl]);
         return rows[0];
     }
-    
+
 };
 
 const eliminarEntrega = async (idEvaluacion, idUsuario) => {
@@ -96,16 +106,27 @@ const actualizarEvaluacion = async (idEvaluacion, nombre_eva, porcentaje, fecha_
         `;
         params = [nombre_eva, porcentaje, fecha_evaluacion, idEvaluacion, archivo_url, drive_file_id];
     }
-    
+
     const { rows } = await pool.query(query, params);
-    return rows[0];
+    const evaActualizada = rows[0];
+
+    if (evaActualizada) {
+        const calQuery = `
+            UPDATE CALENDARIO_ACADEMICO
+            SET TITULO_EVENTO = $1, DESCRIPCION = $2, FECHA_INICIO = $3, FECHA_FIN = $3
+            WHERE ID_EVALUACION = $4
+        `;
+        await pool.query(calQuery, [`Evaluación: ${nombre_eva}`, `Evaluación con peso de ${porcentaje}%`, fecha_evaluacion, idEvaluacion]);
+    }
+
+    return evaActualizada;
 };
 
 const eliminarEvaluacion = async (idEvaluacion) => {
     // Primero eliminar las notas y entregas asociadas a la evaluación
     await pool.query('DELETE FROM NOTA WHERE ID_EVALUACION = $1', [idEvaluacion]);
     await pool.query('DELETE FROM ENTREGA_EVALUACION WHERE ID_EVALUACION = $1', [idEvaluacion]);
-    
+
     // Luego eliminar la evaluación
     const query = 'DELETE FROM EVALUACION WHERE ID_EVALUACION = $1 RETURNING *';
     const { rows } = await pool.query(query, [idEvaluacion]);

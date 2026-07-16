@@ -8,6 +8,7 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
+    ssl: { rejectUnauthorized: false },
 });
 
 // Probamos la conexión inmediatamente e inyectamos columnas faltantes si es necesario
@@ -19,6 +20,9 @@ pool.connect()
             await client.query('ALTER TABLE CLASE ADD COLUMN IF NOT EXISTS ENLACE_VIDEO VARCHAR(255);');
             await client.query('ALTER TABLE CLASE ADD COLUMN IF NOT EXISTS ENLACE_WHATSAPP VARCHAR(255);');
             await client.query('ALTER TABLE TEMA_FORO ADD COLUMN IF NOT EXISTS ES_AVISO BOOLEAN DEFAULT FALSE;');
+            await client.query('ALTER TABLE ENTREGA_EVALUACION ADD COLUMN IF NOT EXISTS DRIVE_FILE_ID VARCHAR(255);');
+            await client.query('ALTER TABLE ENTREGA_EVALUACION ADD COLUMN IF NOT EXISTS DRIVE_URL VARCHAR(255);');
+            await client.query('ALTER TABLE CALENDARIO_ACADEMICO ADD COLUMN IF NOT EXISTS ID_EVALUACION INT REFERENCES EVALUACION(ID_EVALUACION) ON DELETE CASCADE;');
             await client.query(`
                 CREATE TABLE IF NOT EXISTS ANUNCIO (
                     ID_ANUNCIO SERIAL PRIMARY KEY,
