@@ -22,10 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         agregarLog('Sistema', 'Backup BD Iniciado', 'En Proceso', 'bg-warning text-dark');
     };
     
-    // Botones de Reportes
-    const btnReporteUsuarios = document.querySelector('#reportes .col-md-4:nth-child(1) button');
-    if(btnReporteUsuarios) btnReporteUsuarios.onclick = generarReporteUsuariosCSV;
-    
+
     // Configuracion
     const btnConfig = document.querySelector('#configuracion button.btn-primary');
     if(btnConfig) btnConfig.onclick = () => {
