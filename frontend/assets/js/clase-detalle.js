@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async (e) => {
                 if (!confirm('¿Seguro que deseas anular y borrar tu entrega actual?')) return;
                 try {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${e.currentTarget.dataset.id}/${idUsuario}`, { method: 'DELETE' });
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${e.currentTarget.dataset.id}/${currentUser.id_usuario}`, { method: 'DELETE' });
                     if (res.ok) {
                         alert('Entrega anulada correctamente');
                         await cargarEstructuraModular();
