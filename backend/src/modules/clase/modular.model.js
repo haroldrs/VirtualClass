@@ -133,7 +133,17 @@ const crearEvaluacionEnSemana = async (idClase, idModulo, nombre, porcentaje, fe
         RETURNING *;
     `;
     const { rows } = await pool.query(query, [idClase, idModulo, nombre, porcentaje, fecha, urlArchivo, driveFileId, driveUrl]);
-    return rows[0];
+    const nuevaEva = rows[0];
+
+    if (nuevaEva) {
+        const calQuery = `
+            INSERT INTO CALENDARIO_ACADEMICO (ID_CLASE, TITULO_EVENTO, DESCRIPCION, FECHA_INICIO, FECHA_FIN, TIPO_EVENTO, ID_EVALUACION)
+            VALUES ($1, $2, $3, $4, $4, 'entrega', $5)
+        `;
+        await pool.query(calQuery, [idClase, `Evaluación: ${nombre}`, `Evaluación con peso de ${porcentaje}%`, fecha, nuevaEva.id_evaluacion]);
+    }
+
+    return nuevaEva;
 };
 
 // ===================== CALCULO DE NOTAS =====================
