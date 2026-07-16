@@ -13,6 +13,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (esDocente) {
         headerTitle.innerText = "Mis Asignaturas a Cargo";
         headerSubtitle.innerText = "Selecciona un curso para ver alumnos y gestionar sesiones.";
+    } else {
+        // Mostrar botón de automatrícula
+        const btnContainer = document.getElementById('btnMatriculaContainer');
+        if (btnContainer) {
+            btnContainer.style.display = 'block';
+            const modalEl = document.getElementById('modalMatricula');
+            if (modalEl) {
+                modalEl.addEventListener('show.bs.modal', cargarCursosDisponibles);
+            }
+        }
     }
 
     try {
@@ -57,3 +67,107 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error fetching cursos:', error);
     }
 });
+
+async function cargarCursosDisponibles() {
+    const contenedor = document.getElementById('listaCursosDisponibles');
+    const statsInfo = document.getElementById('matriculaStats');
+    
+    contenedor.innerHTML = `
+        <div class="text-center py-5 w-100">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2 small">Buscando cursos disponibles...</p>
+        </div>`;
+    
+    try {
+        const response = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/disponibles/${currentUser.id_usuario}`);
+        
+        if (response.status === 403) {
+            contenedor.innerHTML = `
+                <div class="text-center py-5 w-100">
+                    <i class="bi bi-x-circle text-danger mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold">Matrícula Cerrada</h5>
+                    <p class="text-muted">La institución ha deshabilitado la auto-matrícula temporalmente.</p>
+                </div>`;
+            statsInfo.innerText = "Proceso no disponible";
+            return;
+        }
+
+        const cursos = await response.json();
+        
+        if (!response.ok) throw new Error('Error al cargar cursos');
+
+        if (cursos.length === 0) {
+            contenedor.innerHTML = '<div class="col-12 text-center py-4 text-muted">No hay cursos disponibles para el periodo activo.</div>';
+            return;
+        }
+
+        contenedor.innerHTML = '';
+        let totalCreditosMatriculados = 0;
+
+        cursos.forEach(c => {
+            if(c.esta_matriculado) totalCreditosMatriculados += parseInt(c.creditos) || 0;
+            
+            const btnMatricular = c.esta_matriculado 
+                ? `<button class="btn btn-sm btn-outline-success fw-bold w-100" disabled><i class="bi bi-check-circle"></i> Matriculado</button>`
+                : `<button class="btn btn-sm btn-primary fw-bold w-100" onclick="matricularse(${c.id_clase}, ${c.creditos}, ${totalCreditosMatriculados})">Matricularse</button>`;
+
+            const html = `
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm" style="border-radius:12px">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-primary-subtle text-primary">${c.codigo}</span>
+                            <span class="badge bg-light text-dark border">Sección ${c.seccion}</span>
+                        </div>
+                        <h6 class="fw-bold mb-1">${c.nombre}</h6>
+                        <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.8rem;">${c.descripcion.substring(0, 100)}...</p>
+                        
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span><i class="bi bi-award"></i> ${c.creditos} Crds.</span>
+                            <span><i class="bi bi-person"></i> ${c.docente_nombres ? c.docente_apellidos : 'Sin Asignar'}</span>
+                        </div>
+                        
+                        ${btnMatricular}
+                    </div>
+                </div>
+            </div>`;
+            contenedor.insertAdjacentHTML('beforeend', html);
+        });
+
+        statsInfo.innerHTML = `Llevas <strong>${totalCreditosMatriculados} créditos</strong> inscritos. Límite: <strong>22</strong>.`;
+
+    } catch (e) {
+        console.error(e);
+        contenedor.innerHTML = '<div class="col-12 text-center py-4 text-danger">Ocurrió un error al cargar la información.</div>';
+    }
+}
+
+window.matricularse = async function(idClase, creditosCurso, creditosActuales) {
+    if (creditosActuales + creditosCurso > 22) {
+        alert(`No puedes matricularte. Este curso tiene ${creditosCurso} créditos y excederías tu límite de 22 créditos.`);
+        return;
+    }
+    
+    if(!confirm("¿Estás seguro de que deseas matricularte en esta asignatura?")) return;
+    
+    try {
+        const response = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/matricular`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idUsuario: currentUser.id_usuario, idClase })
+        });
+        
+        const resData = await response.json();
+        
+        if(response.ok) {
+            alert('¡Matrícula exitosa!');
+            cargarCursosDisponibles(); // Recargar modal
+            // Recargar página para actualizar dashboard principal
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            alert(resData.mensaje || 'Error al procesar la matrícula.');
+        }
+    } catch (e) {
+        alert('Error de red al intentar matricularse.');
+    }
+};

@@ -18,6 +18,34 @@ const obtenerMisCursos = async (req, res) => {
     }
 };
 
+const obtenerCursosDisponibles = async (req, res) => {
+    const { idUsuario } = req.params;
+    try {
+        const cursos = await cursoModel.obtenerCursosDisponibles(idUsuario);
+        res.status(200).json(cursos);
+    } catch (error) {
+        if (error.message.includes('auto-matrícula no está habilitada')) {
+            return res.status(403).json({ mensaje: error.message });
+        }
+        res.status(500).json({ mensaje: 'Error al obtener cursos disponibles', error: error.message });
+    }
+};
+
+const matricularEnClase = async (req, res) => {
+    const { idUsuario, idClase } = req.body;
+    try {
+        const matricula = await cursoModel.matricularEnClase(idUsuario, idClase);
+        res.status(200).json({ mensaje: 'Matricula exitosa', matricula });
+    } catch (error) {
+        if (error.message.includes('Límite de créditos') || error.message.includes('Ya estás matriculado') || error.message.includes('auto-matrícula no está habilitada')) {
+            return res.status(400).json({ mensaje: error.message });
+        }
+        res.status(500).json({ mensaje: 'Error al matricular', error: error.message });
+    }
+};
+
 module.exports = {
-    obtenerMisCursos
+    obtenerMisCursos,
+    obtenerCursosDisponibles,
+    matricularEnClase
 };
