@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // Fetch cursos
-        const response = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const response = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const cursos = await response.json();
 
         if (response.ok) {
