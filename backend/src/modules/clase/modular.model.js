@@ -106,7 +106,7 @@ const crearRecursoEnSemana = async (idClase, idModulo, titulo, descripcion, tipo
 
 const obtenerEvaluacionesPorSemana = async (idModulo) => {
     const query = `
-        SELECT ID_EVALUACION, NOMBRE_EVA, PORCENTAJE, FECHA_EVALUACION, ARCHIVO_URL
+        SELECT ID_EVALUACION, NOMBRE_EVA, PORCENTAJE, FECHA_EVALUACION, ARCHIVO_URL as ARCHIVO_URL_DOCENTE
         FROM EVALUACION
         WHERE ID_MODULO = $1
         ORDER BY FECHA_EVALUACION ASC;
