@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Cargar cursos en el select
     try {
-        const responseCursos = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const responseCursos = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const cursos = await responseCursos.json();
 
         if (responseCursos.ok) {
@@ -204,17 +204,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Nota final
             if (data.notaFinal !== null) {
-                const nfColor = data.notaFinal >= 13 ? 'bg-success' : 'bg-danger';
+                let nfColor = 'bg-primary';
+                let notaMostrada = '- -';
+                let desc = 'Nota Final del Curso';
+                
+                if (data.desaprobadoPorFaltas) {
+                    nfColor = 'bg-danger';
+                    notaMostrada = data.notaFinal;
+                    desc = 'Desaprobado por Inasistencia (<70%)';
+                } else {
+                    nfColor = data.notaFinal >= 13 ? 'bg-success' : 'bg-danger';
+                    notaMostrada = data.notaFinal.toFixed(2);
+                }
+
                 contenedor.innerHTML += `
                     <div class="card border-0 ${nfColor} text-white shadow mb-3" style="border-radius:16px">
                         <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                            <div><i class="bi bi-mortarboard-fill fs-4 me-2"></i><span class="fw-bold fs-5">Nota Final del Curso</span></div>
-                            <span class="fw-bold fs-2">${data.notaFinal.toFixed(2)}</span>
+                            <div><i class="bi bi-mortarboard-fill fs-4 me-2"></i><span class="fw-bold fs-5">${desc}</span></div>
+                            <span class="fw-bold fs-2">${notaMostrada}</span>
                         </div>
                     </div>`;
             }
 
-            document.getElementById('resumenPromedio').innerText = data.notaFinal !== null ? data.notaFinal.toFixed(2) : '- -';
+            document.getElementById('resumenPromedio').innerText = data.notaFinal !== null ? (typeof data.notaFinal === 'number' ? data.notaFinal.toFixed(2) : data.notaFinal) : '- -';
             document.getElementById('resumenRevisadas').innerText = totalCalificadas;
             document.getElementById('resumenPendientes').innerText = totalPendientes;
 
