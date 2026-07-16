@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-require('dotenv').config(); // Carga las variables del archivo .env
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') }); // Carga las variables del archivo .env
 
 // Creamos la conexión usando tus credenciales
 const pool = new Pool({
@@ -8,7 +8,7 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-    ssl: { rejectUnauthorized: false },
+    ssl: (process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1' || !process.env.DB_HOST) ? false : { rejectUnauthorized: false },
 });
 
 // Probamos la conexión inmediatamente e inyectamos columnas faltantes si es necesario

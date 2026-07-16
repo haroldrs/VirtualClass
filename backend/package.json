@@ -1,9 +1,7 @@
 {
   "scripts": {
-  "start": "node src/config/sync_eval_to_calendar.js && node src/index.js",
-  "dev": "nodemon src/index.js"
-}
-,
+    "start": "node src/index.js"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
