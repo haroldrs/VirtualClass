@@ -269,9 +269,11 @@ function abrirModalEditarCurso(curso) {
     document.getElementById('eCodigoCurso').value = curso.codigo;
     document.getElementById('eNombreCurso').value = curso.nombre;
     document.getElementById('eCreditosCurso').value = curso.creditos;
+    document.getElementById('eCreditosCurso').value = curso.creditos;
     document.getElementById('eDescripcionCurso').value = curso.descripcion || '';
     
-    new bootstrap.Modal(document.getElementById('modalEditarCurso')).show();
+    const modalEl = document.getElementById('modalEditarCurso');
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 async function actualizarCurso() {
@@ -289,7 +291,8 @@ async function actualizarCurso() {
         });
         if(res.ok) {
             alert('Curso actualizado');
-            bootstrap.Modal.getInstance(document.getElementById('modalEditarCurso')).hide();
+            const modalEl = document.getElementById('modalEditarCurso');
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
             cargarCursos();
             agregarLog('Admin', `Curso actualizado: ${codigo}`, 'Completado', 'bg-success');
         } else alert('Error al actualizar curso');
@@ -350,7 +353,8 @@ async function verClases(idCurso, nombreCurso) {
     tbody.innerHTML = '<tr><td colspan="3" class="text-center">Cargando...</td></tr>';
     
     document.getElementById('nombreCursoModal').textContent = nombreCurso;
-    const modal = new bootstrap.Modal(document.getElementById('modalVerClases'));
+    const modalEl = document.getElementById('modalVerClases');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 
     try {
@@ -388,9 +392,10 @@ function abrirModalEditarClase(clase, nombreCurso) {
     document.getElementById('eClaseCiclo').value = clase.ciclo || '';
     document.getElementById('eClaseAula').value = clase.aula || '';
     document.getElementById('eClaseNombreClase').value = clase.nombre_clase || '';
-    
     // Cerrar el modal de Ver Clases temporalmente o simplemente abrir encima
-    new bootstrap.Modal(document.getElementById('modalEditarClase')).show();
+    const modalEl = document.getElementById('modalEditarClase');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
 }
 
 async function actualizarClase() {
@@ -409,7 +414,8 @@ async function actualizarClase() {
         });
         if(res.ok) {
             alert('Clase actualizada');
-            bootstrap.Modal.getInstance(document.getElementById('modalEditarClase')).hide();
+            const modalEl = document.getElementById('modalEditarClase');
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
             // Refrescar la tabla de clases
             verClases(null, cursoEditandoClase);
             agregarLog('Admin', `Clase actualizada: Sec. ${seccion}`, 'Completado', 'bg-success');
@@ -420,7 +426,8 @@ async function actualizarClase() {
 function abrirModalCrearClase(idCurso, nombreCurso) {
     document.getElementById('claseIdCurso').value = idCurso;
     document.getElementById('claseNombreCurso').value = nombreCurso;
-    new bootstrap.Modal(document.getElementById('modalCrearClase')).show();
+    const modalEl = document.getElementById('modalCrearClase');
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 async function guardarClase() {
@@ -441,7 +448,8 @@ async function guardarClase() {
         });
         if(res.ok) {
             alert('Clase creada exitosamente');
-            bootstrap.Modal.getInstance(document.getElementById('modalCrearClase')).hide();
+            const modalEl = document.getElementById('modalCrearClase');
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
             document.getElementById('formCrearClase').reset();
             cargarCursos(); // Refrescar la tabla
             agregarLog('Admin', `Nueva clase creada en curso`, 'Completado', 'bg-success');
