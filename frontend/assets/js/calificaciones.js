@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const riesgo = unidad.promedio !== null && unidad.promedio < 13 ? '<span class="badge bg-danger-subtle text-danger ms-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>En riesgo</span>' : '';
 
                 let evasHtml = '';
+                // Ordenar cronológicamente
+                unidad.evaluaciones.sort((a, b) => new Date(a.fecha_evaluacion) - new Date(b.fecha_evaluacion));
+                
                 unidad.evaluaciones.forEach(ev => {
                     if (ev.calificacion !== null) totalCalificadas++;
                     else totalPendientes++;
@@ -244,6 +247,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const active = uIdx === 0 ? 'active' : '';
                 const show = uIdx === 0 ? 'show active' : '';
                 tabsNav += `<li class="nav-item"><a class="nav-link ${active} fw-semibold" data-bs-toggle="tab" href="#tabUnidad_${unidad.id_unidad}" role="tab">${unidad.titulo}</a></li>`;
+
+                // Ordenar cronológicamente
+                unidad.evaluaciones.sort((a, b) => new Date(a.fecha_evaluacion) - new Date(b.fecha_evaluacion));
 
                 // Construir tabla de alumnos x evaluaciones
                 let thEvals = '';
