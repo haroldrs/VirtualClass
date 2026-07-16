@@ -369,13 +369,20 @@ async function verClases(idCurso, nombreCurso) {
             return;
         }
         clases.forEach(c => {
+            const estadoLabel = c.estado === 'Inactivo' ? '<span class="badge bg-danger">Inactivo</span>' : '<span class="badge bg-success">Activo</span>';
+            const btnEstadoClass = c.estado === 'Inactivo' ? 'btn-outline-success' : 'btn-outline-danger';
+            const iconEstado = c.estado === 'Inactivo' ? 'bi-check-circle' : 'bi-x-circle';
+            const textEstado = c.estado === 'Inactivo' ? 'Habilitar' : 'Inhabilitar';
+            const nuevoEstado = c.estado === 'Inactivo' ? 'Activo' : 'Inactivo';
+
             tbody.innerHTML += `
                 <tr>
-                    <td>Sec. ${c.seccion}</td>
+                    <td>Sec. ${c.seccion} <br> ${estadoLabel}</td>
                     <td>${c.periodo}</td>
                     <td>${c.aula || 'A definir'}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" onclick='abrirModalEditarClase(${JSON.stringify(c).replace(/'/g, "&apos;")}, "${nombreCurso}")'><i class="bi bi-pencil"></i> Editar</button>
+                        <button class="btn btn-sm ${btnEstadoClass}" onclick="cambiarEstadoClase(${c.id_clase}, '${nuevoEstado}', '${nombreCurso}')"><i class="bi ${iconEstado}"></i> ${textEstado}</button>
                     </td>
                 </tr>
             `;
@@ -421,6 +428,23 @@ async function actualizarClase() {
             agregarLog('Admin', `Clase actualizada: Sec. ${seccion}`, 'Completado', 'bg-success');
         } else alert('Error al actualizar clase');
     } catch(e) { console.error(e); }
+}
+
+async function cambiarEstadoClase(idClase, nuevoEstado, nombreCurso) {
+    if(!confirm(`¿Estás seguro de cambiar el estado de la clase a ${nuevoEstado}?`)) return;
+    try {
+        const response = await fetch(`${getApiUrl()}/clases/${idClase}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        if(response.ok) { 
+            verClases(null, nombreCurso); 
+            agregarLog('Admin', `Estado de clase ${idClase} a ${nuevoEstado}`, 'Completado', 'bg-warning text-dark');
+        } else {
+            alert('Error al cambiar el estado de la clase');
+        }
+    } catch (error) { console.error(error); }
 }
 
 function abrirModalCrearClase(idCurso, nombreCurso) {
