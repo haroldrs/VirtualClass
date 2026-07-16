@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Configuraciones globales guardadas correctamente.');
                 agregarLog('Admin', 'Actualización de Configuración', 'Completado', 'bg-success');
                 // Actualizar la vista local sin recargar (opcional)
-                document.querySelector('.brand-text').textContent = config.institucion_nombre;
+                const brand = document.querySelector('.brand-text');
+                if (brand) brand.textContent = config.institucion_nombre;
             } else {
                 alert('Error al guardar la configuración');
             }
