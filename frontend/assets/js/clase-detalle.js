@@ -183,6 +183,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             contenedor.innerHTML = '';
 
             data.estructura.forEach((unidad, uIdx) => {
+                let totalPesoUnidad = 0;
+                unidad.semanas.forEach(s => {
+                    s.evaluaciones.forEach(ev => {
+                        totalPesoUnidad += parseFloat(ev.porcentaje) || 0;
+                    });
+                });
+
                 let semanasHtml = '';
 
                 unidad.semanas.forEach((semana, sIdx) => {
@@ -243,9 +250,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 isoDate.setMinutes(isoDate.getMinutes() + isoDate.getTimezoneOffset());
                                 const fechaInput = isoDate.toISOString().split('T')[0];
                                 
+                                const pesoDispParaEdicion = 100 - totalPesoUnidad + (parseFloat(ev.porcentaje) || 0);
+
                                 actionBtn = `
                                     <button class="btn btn-sm btn-success ms-2 btn-revisar-entregas" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}">Revisar</button>
-                                    <button class="btn btn-sm btn-outline-primary ms-1 btn-editar-evaluacion" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}" data-porcentaje="${ev.porcentaje}" data-fecha="${fechaInput}" data-archivo="${ev.archivo_url_docente || ''}"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-primary ms-1 btn-editar-evaluacion" data-id="${ev.id_evaluacion}" data-nombre="${ev.nombre_eva}" data-porcentaje="${ev.porcentaje}" data-fecha="${fechaInput}" data-archivo="${ev.archivo_url_docente || ''}" data-peso-disponible="${pesoDispParaEdicion}"><i class="bi bi-pencil"></i></button>
                                     <button class="btn btn-sm btn-outline-danger ms-1 btn-eliminar-evaluacion" data-id="${ev.id_evaluacion}"><i class="bi bi-trash"></i></button>
                                 `;
                             } else {
@@ -254,7 +263,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 } else {
                                     // El alumno ya entregó
                                     actionBtn = `<a href="${ev.archivo_url}" target="_blank" class="btn btn-sm btn-outline-primary ms-2" title="Ver mi entrega"><i class="bi bi-eye"></i></a>`;
-                                    
+
                                     // Si aún no está calificado, puede editar o eliminar su entrega
                                     if (ev.calificacion === null || ev.calificacion === undefined) {
                                         actionBtn += `
@@ -286,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
                                 <button class="btn btn-sm btn-outline-info btn-tomar-asistencia" data-idmodulo="${semana.id_modulo}" data-tema="${semana.titulo}"><i class="bi bi-clipboard-check"></i> Asistencia</button>
                                 <button class="btn btn-sm btn-outline-warning btn-add-recurso-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-folder-plus"></i> Recurso</button>
-                                <button class="btn btn-sm btn-outline-success btn-add-actividad-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-journal-plus"></i> Actividad</button>
+                                <button class="btn btn-sm btn-outline-success btn-add-actividad-semana" data-idmodulo="${semana.id_modulo}" data-peso-disponible="${100 - totalPesoUnidad}"><i class="bi bi-journal-plus"></i> Actividad</button>
                                 <button class="btn btn-sm btn-outline-primary ms-auto btn-editar-semana" data-idmodulo="${semana.id_modulo}" data-titulo="${semana.titulo}" data-descripcion="${semana.descripcion || ''}" data-orden="${semana.orden}"><i class="bi bi-pencil"></i></button>
                                 <button class="btn btn-sm btn-outline-danger ms-1 btn-eliminar-semana" data-idmodulo="${semana.id_modulo}"><i class="bi bi-trash"></i></button>
                             </div>`;
@@ -331,12 +340,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     btnDeleteUnidad = `<button class="btn btn-sm btn-outline-danger ms-2 btn-eliminar-unidad" data-idunidad="${unidad.id_unidad}"><i class="bi bi-trash"></i></button>`;
                 }
 
+                let badgeColor = totalPesoUnidad === 100 ? 'success' : (totalPesoUnidad > 100 ? 'danger' : 'warning text-dark');
+                let badgeText = esDocente ? `Peso Asignado: ${totalPesoUnidad}% / 100%` : `Peso Total: 100%`;
+
                 const unidadHtml = `
                     <div class="card border-start border-4 border-primary mb-4 shadow-sm">
                         <div class="card-header bg-white d-flex align-items-center py-3" 
                              data-bs-toggle="collapse" data-bs-target="#unidad_${unidad.id_unidad}" role="button">
                             <i class="bi bi-book-half text-primary me-2 fs-5"></i>
                             <h6 class="fw-bold mb-0">${unidad.titulo}</h6>
+                            <span class="badge bg-${badgeColor} ms-3">${badgeText}</span>
                             ${btnAddSemana}
                             ${btnDeleteUnidad}
                             <i class="bi bi-chevron-down ms-2 text-muted"></i>
@@ -443,19 +456,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Añadir actividad a semana
         document.querySelectorAll('.btn-add-actividad-semana').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget;
                 const modalEl = document.getElementById('modalActividadSemana');
+                const pesoDisponible = targetBtn.getAttribute('data-peso-disponible') || 0;
+                
                 if (modalEl) {
-                    // Resetear inputs manualmente ya que no hay form
+                    // Resetear inputs
                     document.getElementById('actSemanaNombre').value = '';
                     document.getElementById('actSemanaPeso').value = '';
                     document.getElementById('actSemanaFecha').value = '';
                     document.getElementById('actSemanaArchivo').value = '';
                     document.getElementById('actSemanaArchivoActualContainer').classList.add('d-none');
                     document.getElementById('actSemanaEliminarArchivo').value = 'false';
-                    modalEl.removeAttribute('data-modo');
+                    modalEl.setAttribute('data-modo', 'crear');
+                    modalEl.setAttribute('data-peso-disponible', pesoDisponible);
                     modalEl.removeAttribute('data-id');
+                    document.getElementById('modalActividadSemanaLabel').textContent = `Añadir Actividad (Max: ${pesoDisponible}%)`;
                 }
-                document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
+                document.getElementById('actSemanaIdModulo').value = targetBtn.dataset.idmodulo;
                 new bootstrap.Modal(modalEl).show();
             });
         });
@@ -463,19 +481,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Editar actividad
         document.querySelectorAll('.btn-editar-evaluacion').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget;
                 const modalEl = document.getElementById('modalActividadSemana');
+                const pesoDisponible = parseFloat(targetBtn.getAttribute('data-peso-disponible')) || 0;
+
                 if (modalEl) {
                     modalEl.setAttribute('data-modo', 'editar');
-                    modalEl.setAttribute('data-id', btn.dataset.id);
+                    modalEl.setAttribute('data-id', targetBtn.dataset.id);
+                    modalEl.setAttribute('data-peso-disponible', pesoDisponible);
+                    document.getElementById('modalActividadSemanaLabel').textContent = `Editar Actividad (Max Permitido: ${pesoDisponible}%)`;
                 }
-                document.getElementById('actSemanaIdModulo').value = btn.dataset.idmodulo;
-                document.getElementById('actSemanaNombre').value = btn.dataset.nombre;
-                document.getElementById('actSemanaPeso').value = btn.dataset.porcentaje;
-                document.getElementById('actSemanaFecha').value = btn.dataset.fecha;
+                document.getElementById('actSemanaIdModulo').value = targetBtn.dataset.idmodulo;
+                document.getElementById('actSemanaNombre').value = targetBtn.dataset.nombre;
+                document.getElementById('actSemanaPeso').value = targetBtn.dataset.porcentaje;
+                document.getElementById('actSemanaFecha').value = targetBtn.dataset.fecha;
                 document.getElementById('actSemanaArchivo').value = '';
                 document.getElementById('actSemanaEliminarArchivo').value = 'false';
-                
-                const archivoUrl = btn.dataset.archivo;
+
+                const archivoUrl = targetBtn.dataset.archivo;
                 const containerArchivo = document.getElementById('actSemanaArchivoActualContainer');
                 if (archivoUrl) {
                     containerArchivo.classList.remove('d-none');
@@ -511,7 +534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!confirm('¿Seguro que deseas eliminar este recurso?')) return;
                 try {
                     const res = await fetch(`${API_URL}/api/recursos/${e.currentTarget.dataset.id}`, { method: 'DELETE' });
-                    if(res.ok) {
+                    if (res.ok) {
                         await cargarEstructuraModular();
                     } else {
                         alert("Error al eliminar el recurso.");
@@ -754,8 +777,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const fecha = document.getElementById('actSemanaFecha').value;
         const archivoInput = document.getElementById('actSemanaArchivo');
         const archivo = archivoInput && archivoInput.files.length > 0 ? archivoInput.files[0] : null;
+        const pesoDisponible = parseFloat(modalEl.getAttribute('data-peso-disponible')) || 0;
 
         if (!nombre || !peso || !fecha) return alert('Todos los campos son obligatorios');
+        
+        if (parseFloat(peso) > pesoDisponible) {
+            return alert(`El peso (${peso}%) excede el límite permitido para esta unidad (${pesoDisponible}%).`);
+        }
 
         const textOriginal = btnGuardar.innerText;
         btnGuardar.innerText = 'Guardando...';
@@ -767,7 +795,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             formData.append('porcentaje', peso);
             formData.append('fecha_evaluacion', fecha);
             if (archivo) formData.append('archivo', archivo);
-            
+
             if (modo === 'editar') {
                 formData.append('eliminar_archivo', document.getElementById('actSemanaEliminarArchivo').value);
                 const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${modalEl.getAttribute('data-id')}?idClase=${idClase}`, {
