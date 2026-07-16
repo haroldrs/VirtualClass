@@ -277,6 +277,43 @@ const generarReporteCSV = async (tipo) => {
     return csv;
 };
 
+const getConfig = async () => {
+    const { rows } = await pool.query('SELECT CLAVE, VALOR FROM CONFIGURACION_GLOBAL');
+    const config = {};
+    rows.forEach(r => {
+        config[r.clave] = r.valor;
+    });
+    return config;
+};
+
+const updateConfig = async (config) => {
+    // config es un objeto { clave: valor, clave2: valor2 }
+    const queries = [];
+    const values = [];
+    let i = 1;
+    for (const [clave, valor] of Object.entries(config)) {
+        queries.push(`UPDATE CONFIGURACION_GLOBAL SET VALOR = $${i + 1} WHERE CLAVE = $${i}`);
+        values.push(clave, String(valor));
+        i += 2;
+    }
+    
+    // Execute transactions
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        for (let j = 0; j < queries.length; j++) {
+            await client.query(queries[j], [values[j * 2], values[j * 2 + 1]]);
+        }
+        await client.query('COMMIT');
+        return true;
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -296,5 +333,7 @@ module.exports = {
     assignClassTeacher,
     getClassParticipants,
     changeEnrollmentStatus,
-    generarReporteCSV
+    generarReporteCSV,
+    getConfig,
+    updateConfig
 };

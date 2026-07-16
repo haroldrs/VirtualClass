@@ -222,6 +222,24 @@ const generarReporteCSV = async (req, res) => {
     }
 };
 
+const getConfig = async (req, res) => {
+    try {
+        const config = await adminModel.getConfig();
+        res.status(200).json(config);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener config', error: error.message });
+    }
+};
+
+const updateConfig = async (req, res) => {
+    try {
+        await adminModel.updateConfig(req.body);
+        res.status(200).json({ mensaje: 'Configuración actualizada' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar config', error: error.message });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -241,5 +259,7 @@ module.exports = {
     getClassParticipants,
     assignClassTeacher,
     changeEnrollmentStatus,
-    generarReporteCSV
+    generarReporteCSV,
+    getConfig,
+    updateConfig
 };

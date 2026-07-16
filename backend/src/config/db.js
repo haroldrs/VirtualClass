@@ -37,7 +37,22 @@ pool.connect()
                     FOREIGN KEY(ID_AUTOR) REFERENCES USUARIO(ID_USUARIO)
                 );
             `);
-            console.log('🔄 Migración automática: Columnas de enlaces y tabla ANUNCIO verificadas.');
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS CONFIGURACION_GLOBAL (
+                    CLAVE VARCHAR(50) PRIMARY KEY,
+                    VALOR VARCHAR(255) NOT NULL
+                );
+            `);
+            await client.query(`
+                INSERT INTO CONFIGURACION_GLOBAL (CLAVE, VALOR) 
+                VALUES 
+                ('institucion_nombre', 'VirtuClass Academy'),
+                ('periodo_activo', '2026-I'),
+                ('mantenimiento', 'false'),
+                ('auto_matricula', 'true')
+                ON CONFLICT DO NOTHING;
+            `);
+            console.log('🔄 Migración automática: Columnas de enlaces, tabla ANUNCIO y CONFIGURACION_GLOBAL verificadas.');
         } catch (migErr) {
             console.error('⚠️ Advertencia: Error en auto-migración de columnas:', migErr.message);
         } finally {

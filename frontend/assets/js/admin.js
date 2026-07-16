@@ -7,6 +7,7 @@ let logsActividad = [
 document.addEventListener('DOMContentLoaded', () => {
     cargarEstadisticas();
     cargarRoles();
+    cargarConfiguracion();
     renderLogs();
 
     document.querySelector('a[href="#usuarios"]').addEventListener('click', cargarUsuarios);
@@ -25,9 +26,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configuracion
     const btnConfig = document.querySelector('#configuracion button.btn-primary');
-    if(btnConfig) btnConfig.onclick = () => {
-        alert('Configuraciones globales guardadas correctamente.');
-        agregarLog('Admin', 'Actualización de Configuración', 'Completado', 'bg-success');
+    if(btnConfig) btnConfig.onclick = async () => {
+        const config = {
+            institucion_nombre: document.getElementById('configInstitucion').value,
+            periodo_activo: document.getElementById('configPeriodo').value,
+            mantenimiento: document.getElementById('mantenimiento').checked,
+            auto_matricula: document.getElementById('autoMatricula').checked
+        };
+        try {
+            const res = await fetch(`${getApiUrl()}/config`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            if(res.ok) {
+                alert('Configuraciones globales guardadas correctamente.');
+                agregarLog('Admin', 'Actualización de Configuración', 'Completado', 'bg-success');
+                // Actualizar la vista local sin recargar (opcional)
+                document.querySelector('.brand-text').textContent = config.institucion_nombre;
+            } else {
+                alert('Error al guardar la configuración');
+            }
+        } catch(e) { console.error(e); }
     };
 });
 
@@ -35,6 +55,29 @@ function agregarLog(usr, act, estado, badge) {
     logsActividad.unshift({ usr, act, fecha: new Date(), estado, badge });
     if(logsActividad.length > 6) logsActividad.pop();
     renderLogs();
+}
+
+async function cargarConfiguracion() {
+    try {
+        const res = await fetch(`${getApiUrl()}/config`);
+        const config = await res.json();
+        
+        const instInput = document.getElementById('configInstitucion');
+        const perInput = document.getElementById('configPeriodo');
+        const mantInput = document.getElementById('mantenimiento');
+        const autoMatInput = document.getElementById('autoMatricula');
+        
+        if(instInput) instInput.value = config.institucion_nombre || '';
+        if(perInput) perInput.value = config.periodo_activo || '';
+        if(mantInput) mantInput.checked = config.mantenimiento === 'true';
+        if(autoMatInput) autoMatInput.checked = config.auto_matricula === 'true';
+        
+        // Reflejar globalmente en esta pantalla de inmediato
+        const brand = document.querySelector('.brand-text');
+        if(brand && config.institucion_nombre) {
+            brand.textContent = config.institucion_nombre;
+        }
+    } catch(e) { console.error('Error cargando config:', e); }
 }
 
 function renderLogs() {

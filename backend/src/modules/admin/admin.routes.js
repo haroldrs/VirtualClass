@@ -33,4 +33,8 @@ router.post('/matricular', adminController.enrollStudent);
 // Reportes
 router.get('/reportes/:tipo', adminController.generarReporteCSV);
 
+// Configuración Global
+router.get('/config', adminController.getConfig);
+router.put('/config', adminController.updateConfig);
+
 module.exports = router;
