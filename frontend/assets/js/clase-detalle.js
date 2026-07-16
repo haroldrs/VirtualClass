@@ -642,11 +642,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             if (modo === 'editar') {
-                await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${modalEl.getAttribute('data-id')}`, {
+                const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/${modalEl.getAttribute('data-id')}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre_eva: nombre, porcentaje: peso, fecha_evaluacion: fecha })
                 });
+                if (!res.ok) throw new Error('Error al actualizar la evaluación');
             } else {
                 const formData = new FormData();
                 formData.append('nombre_eva', nombre);
@@ -654,13 +655,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 formData.append('fecha_evaluacion', fecha);
                 if (archivo) formData.append('archivo', archivo);
 
-                await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
+                const res = await fetch(`${API_MODULAR}/${idClase}/semanas/${idModulo}/evaluaciones`, {
                     method: 'POST',
                     body: formData
                 });
+                if (!res.ok) throw new Error('Error al crear la evaluación');
             }
 
-            bootstrap.Modal.getInstance(document.getElementById('modalActividadSemana')).hide();
+            bootstrap.Modal.getInstance(modalEl).hide();
             await cargarEstructuraModular();
 
             // Limpiar form

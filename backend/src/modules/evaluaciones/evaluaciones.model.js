@@ -71,10 +71,34 @@ const listarEntregasDocente = async (idEvaluacion, idClase) => {
     return rows;
 };
 
+const actualizarEvaluacion = async (idEvaluacion, nombre_eva, porcentaje, fecha_evaluacion) => {
+    const query = `
+        UPDATE EVALUACION 
+        SET NOMBRE_EVA = $1, PORCENTAJE = $2, FECHA_EVALUACION = $3 
+        WHERE ID_EVALUACION = $4 
+        RETURNING *;
+    `;
+    const { rows } = await pool.query(query, [nombre_eva, porcentaje, fecha_evaluacion, idEvaluacion]);
+    return rows[0];
+};
+
+const eliminarEvaluacion = async (idEvaluacion) => {
+    // Primero eliminar las notas y entregas asociadas a la evaluación
+    await pool.query('DELETE FROM NOTA WHERE ID_EVALUACION = $1', [idEvaluacion]);
+    await pool.query('DELETE FROM ENTREGA_EVALUACION WHERE ID_EVALUACION = $1', [idEvaluacion]);
+    
+    // Luego eliminar la evaluación
+    const query = 'DELETE FROM EVALUACION WHERE ID_EVALUACION = $1 RETURNING *';
+    const { rows } = await pool.query(query, [idEvaluacion]);
+    return rows[0];
+};
+
 module.exports = {
     listarEvaluacionesAlumno,
     listarEvaluacionesClase,
     crearEvaluacion,
     subirEntrega,
-    listarEntregasDocente
+    listarEntregasDocente,
+    actualizarEvaluacion,
+    eliminarEvaluacion
 };
