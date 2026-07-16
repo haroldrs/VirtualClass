@@ -240,32 +240,39 @@ const generarReporteCSV = async (tipo) => {
     let csv = '';
     if (tipo === 'matriculas') {
         const query = `
-            SELECT C.NOMBRE, CL.SECCION, CL.PERIODO, M.ESTADO_MATRICULA, COUNT(*) as TOTAL 
+            SELECT C.NOMBRE, CL.SECCION, CL.PERIODO, U.NOMBRES, U.APELLIDOS, U.CORREO, M.ESTADO_MATRICULA
             FROM MATRICULA M 
             JOIN CLASE CL ON M.ID_CLASE = CL.ID_CLASE 
             JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
-            GROUP BY C.NOMBRE, CL.SECCION, CL.PERIODO, M.ESTADO_MATRICULA
-            ORDER BY CL.PERIODO DESC, C.NOMBRE
+            JOIN USUARIO U ON M.ID_USUARIO = U.ID_USUARIO
+            ORDER BY CL.PERIODO DESC, C.NOMBRE, U.APELLIDOS
         `;
         const { rows } = await pool.query(query);
-        csv = 'CURSO,SECCION,PERIODO,ESTADO_MATRICULA,TOTAL_ALUMNOS\n';
-        rows.forEach(r => csv += `"${r.nombre}",${r.seccion},${r.periodo},${r.estado_matricula},${r.total}\n`);
+        csv = 'CURSO,SECCION,PERIODO,ALUMNO_NOMBRES,ALUMNO_APELLIDOS,CORREO,ESTADO_MATRICULA\n';
+        rows.forEach(r => csv += `"${r.nombre}","${r.seccion}","${r.periodo}","${r.nombres}","${r.apellidos}","${r.correo}","${r.estado_matricula}"\n`);
     } else if (tipo === 'carga_docente') {
         const query = `
-            SELECT U.NOMBRES, U.APELLIDOS, COUNT(CD.ID_CLASE) as TOTAL_CLASES 
-            FROM USUARIO U 
-            JOIN CLASE_DOCENTE CD ON U.ID_USUARIO = CD.ID_USUARIO 
-            GROUP BY U.NOMBRES, U.APELLIDOS
-            ORDER BY TOTAL_CLASES DESC
+            SELECT U.NOMBRES, U.APELLIDOS, U.CORREO, C.NOMBRE as CURSO, CL.SECCION, CL.PERIODO
+            FROM CLASE_DOCENTE CD
+            JOIN USUARIO U ON CD.ID_USUARIO = U.ID_USUARIO
+            JOIN CLASE CL ON CD.ID_CLASE = CL.ID_CLASE
+            JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
+            ORDER BY U.APELLIDOS, CL.PERIODO DESC
         `;
         const { rows } = await pool.query(query);
-        csv = 'DOCENTE,TOTAL_CLASES_ASIGNADAS\n';
-        rows.forEach(r => csv += `"${r.nombres} ${r.apellidos}",${r.total_clases}\n`);
+        csv = 'DOCENTE_NOMBRES,DOCENTE_APELLIDOS,CORREO,CURSO_ASIGNADO,SECCION,PERIODO\n';
+        rows.forEach(r => csv += `"${r.nombres}","${r.apellidos}","${r.correo}","${r.curso}","${r.seccion}","${r.periodo}"\n`);
     } else if (tipo === 'usuarios') {
-        const query = `SELECT ESTADO, COUNT(*) as TOTAL FROM USUARIO GROUP BY ESTADO`;
+        const query = `
+            SELECT U.NOMBRES, U.APELLIDOS, U.CORREO, R.NOMBRE_ROL, U.ESTADO
+            FROM USUARIO U
+            LEFT JOIN USUARIO_ROL UR ON U.ID_USUARIO = UR.ID_USUARIO
+            LEFT JOIN ROL R ON UR.ID_ROL = R.ID_ROL
+            ORDER BY R.NOMBRE_ROL, U.APELLIDOS
+        `;
         const { rows } = await pool.query(query);
-        csv = 'ESTADO_USUARIO,TOTAL_CUENTAS\n';
-        rows.forEach(r => csv += `${r.estado},${r.total}\n`);
+        csv = 'NOMBRES,APELLIDOS,CORREO,ROL,ESTADO_CUENTA\n';
+        rows.forEach(r => csv += `"${r.nombres}","${r.apellidos}","${r.correo}","${r.nombre_rol || 'Sin Rol'}","${r.estado}"\n`);
     }
     return csv;
 };
