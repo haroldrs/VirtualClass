@@ -301,6 +301,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </div>`;
                     }
 
+                    // Badge de Asistencia para alumnos
+                    let badgeAsistenciaAlumno = '';
+                    if (!esDocente && semana.estado_asistencia) {
+                        let badgeClass = 'bg-secondary';
+                        let asisText = 'Sin Marcar';
+                        if (semana.estado_asistencia === 'presente') { badgeClass = 'bg-success'; asisText = 'P'; }
+                        else if (semana.estado_asistencia === 'ausente') { badgeClass = 'bg-danger'; asisText = 'F'; }
+                        else if (semana.estado_asistencia === 'tardanza') { badgeClass = 'bg-warning text-dark'; asisText = 'T'; }
+                        badgeAsistenciaAlumno = `<span class="badge ${badgeClass} ms-2 rounded-circle" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;" title="Asistencia: ${semana.estado_asistencia}">${asisText}</span>`;
+                    }
+
                     semanasHtml += `
                         <div class="ms-3 mb-2">
                             <div class="card border-0 shadow-sm">
@@ -308,6 +319,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                      data-bs-toggle="collapse" data-bs-target="#semana_${semana.id_modulo}" role="button">
                                     <i class="bi bi-calendar-week text-info me-2"></i>
                                     <span class="fw-semibold small">${semana.titulo}</span>
+                                    ${badgeAsistenciaAlumno}
                                     <i class="bi bi-chevron-down ms-auto small text-muted"></i>
                                 </div>
                                 <div class="collapse ${sIdx === 0 && uIdx === 0 ? 'show' : ''}" id="semana_${semana.id_modulo}">
@@ -981,7 +993,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function cargarActividades() {
         try {
-            const url = `https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}/${currentUser.id_usuario}?rol=${currentUser.rol}`;
+            const url = `https://virtualclass-sm1i.onrender.com/api/evaluaciones/${idClase}/${currentUser.id_usuario}?rol=${encodeURIComponent(currentUser.rol)}`;
             const res = await fetch(url);
             const actividades = await res.json();
 
@@ -1078,7 +1090,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await res.json();
             if (res.ok) {
                 document.getElementById('asistenciaAlumnoContenedor').classList.remove('d-none');
-                document.getElementById('porcentajeAsistencia').innerText = data.porcentaje;
+                const spanPorc = document.getElementById('porcentajeAsistencia');
+                const badge = spanPorc.closest('.badge');
+                spanPorc.innerText = data.porcentaje;
+                
+                // Colores dinámicos
+                badge.className = 'badge rounded-pill px-3 py-2 border';
+                if (data.porcentaje < 70) {
+                    badge.classList.add('bg-danger-subtle', 'text-danger', 'border-danger');
+                    badge.title = "Peligro: Asistencia debajo del 70%";
+                } else if (data.porcentaje < 85) {
+                    badge.classList.add('bg-warning-subtle', 'text-warning', 'border-warning');
+                    badge.title = "Asistencia Regular";
+                } else {
+                    badge.classList.add('bg-success-subtle', 'text-success', 'border-success');
+                    badge.title = "Excelente Asistencia";
+                }
             }
         } catch (e) { console.error(e); }
     }
@@ -1697,7 +1724,7 @@ async function obtenerIdForoDeClase() {
         : 'https://virtualclass-sm1i.onrender.com/api';
 
     try {
-        const res = await fetch(`${API_URL}/foros/mis-foros/${currentUser.id_usuario}/${currentUser.rol}`);
+        const res = await fetch(`${API_URL}/foros/mis-foros/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const foros = await res.json();
         const foroClase = foros.find(f => parseInt(f.id_clase) === parseInt(localIdClase));
         if (foroClase) {

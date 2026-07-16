@@ -228,6 +228,10 @@ const obtenerEstructuraCompleta = async (idClase, idUsuario) => {
                 `;
                 const { rows } = await pool.query(qEval, [semana.id_modulo, idUsuario]);
                 evaluaciones = rows;
+                
+                // Fetch Asistencia para esta semana
+                const asisRes = await pool.query("SELECT ESTADO FROM ASISTENCIA WHERE ID_MODULO = $1 AND ID_USUARIO = $2", [semana.id_modulo, idUsuario]);
+                semana.estado_asistencia = asisRes.rows.length > 0 ? asisRes.rows[0].estado : null;
             } else {
                 evaluaciones = await obtenerEvaluacionesPorSemana(semana.id_modulo);
             }
