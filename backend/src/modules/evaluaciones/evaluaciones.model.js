@@ -39,7 +39,7 @@ const crearEvaluacion = async (idClase, nombre, porcentaje, fecha) => {
     if (nuevaEva) {
         const calQuery = `
             INSERT INTO CALENDARIO_ACADEMICO (ID_CLASE, TITULO_EVENTO, DESCRIPCION, FECHA_INICIO, FECHA_FIN, TIPO_EVENTO, ID_EVALUACION)
-            VALUES ($1, $2, $3, $4, $4, 'Evaluación', $5)
+            VALUES ($1, $2, $3, $4, $4, 'entrega', $5)
         `;
         await pool.query(calQuery, [idClase, `Evaluación: ${nombre}`, `Evaluación con peso de ${porcentaje}%`, fecha, nuevaEva.id_evaluacion]);
     }
