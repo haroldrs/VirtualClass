@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) return;
 
-    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:3000/api'
         : 'https://virtualclass-sm1i.onrender.com/api';
 
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // CARGAR ESTADÍSTICAS RÁPIDAS
     // ==========================================
     try {
-        const resCursos = await fetch(`${API_BASE}/cursos/mis-cursos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
+        const resCursos = await fetch(`${API_BASE}/cursos/mis-cursos/${currentUser.id_usuario}/${currentUser.rol}`);
         const cursos = await resCursos.json();
         const statCursos = document.getElementById('statCursos');
         if (statCursos && Array.isArray(cursos)) statCursos.innerText = cursos.length;
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const resAsesorias = await fetch(`${API_BASE}/asesorias/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
+        const resAsesorias = await fetch(`${API_BASE}/asesorias/${currentUser.id_usuario}/${currentUser.rol}`);
         const asesorias = await resAsesorias.json();
         const statAsesorias = document.getElementById('statAsesorias');
         if (statAsesorias && Array.isArray(asesorias)) {
@@ -118,15 +118,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-        const resForos = await fetch(`${API_BASE}/foros/mis-foros/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
+        const resForos = await fetch(`${API_BASE}/foros/${currentUser.id_usuario}/${currentUser.rol}`);
         const foros = await resForos.json();
         const statForos = document.getElementById('statForos');
         if (statForos && Array.isArray(foros)) {
             let totalTemas = 0;
-            foros.forEach(f => { totalTemas += parseInt(f.total_temas) || 0; });
+            foros.forEach(f => { totalTemas += f.temas ? f.temas.length : 0; });
             statForos.innerText = totalTemas;
         }
     } catch (e) {
         console.error('Error stats foros:', e);
+    }
+
+    // ==========================================
+    // CARGAR CONFIGURACIÓN GLOBAL
+    // ==========================================
+    try {
+        const resConfig = await fetch(`${API_BASE}/admin/config`);
+        if(resConfig.ok) {
+            const config = await resConfig.json();
+            
+            const infoNombre = document.getElementById('infoInstitucionNombre');
+            const infoDesc = document.getElementById('infoInstitucionDescripcion');
+            const infoCorreo = document.getElementById('infoInstitucionCorreo');
+            const infoTelf = document.getElementById('infoInstitucionTelefono');
+            const infoDir = document.getElementById('infoInstitucionDireccion');
+            
+            if(infoNombre && config.institucion_nombre) infoNombre.innerText = config.institucion_nombre;
+            if(infoDesc && config.institucion_descripcion) infoDesc.innerText = config.institucion_descripcion;
+            if(infoCorreo && config.institucion_correo) infoCorreo.innerText = config.institucion_correo;
+            if(infoTelf && config.institucion_telefono) infoTelf.innerText = config.institucion_telefono;
+            if(infoDir && config.institucion_direccion) infoDir.innerText = config.institucion_direccion;
+            
+            // Si quieres actualizar el brand-text global (logo arriba a la izquierda si lo hay en inicio.html)
+            const brandText = document.querySelector('.brand-text');
+            if(brandText && config.institucion_nombre) brandText.innerText = config.institucion_nombre;
+        }
+    } catch(e) {
+        console.error('Error cargando configuracion global:', e);
     }
 });

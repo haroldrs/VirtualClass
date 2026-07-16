@@ -47,6 +47,10 @@ pool.connect()
                 INSERT INTO CONFIGURACION_GLOBAL (CLAVE, VALOR) 
                 VALUES 
                 ('institucion_nombre', 'VirtuClass Academy'),
+                ('institucion_descripcion', 'Plataforma de educación virtual diseñada para facilitar la gestión académica.'),
+                ('institucion_correo', 'soporte@virtuclass.edu.pe'),
+                ('institucion_telefono', '(01) 555-0100'),
+                ('institucion_direccion', 'Lima, Perú'),
                 ('periodo_activo', '2026-I'),
                 ('mantenimiento', 'false'),
                 ('auto_matricula', 'true')

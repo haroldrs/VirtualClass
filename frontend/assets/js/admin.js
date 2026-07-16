@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if(btnConfig) btnConfig.onclick = async () => {
         const config = {
             institucion_nombre: document.getElementById('configInstitucion').value,
+            institucion_descripcion: document.getElementById('configDescripcion')?.value || '',
+            institucion_correo: document.getElementById('configCorreo')?.value || '',
+            institucion_telefono: document.getElementById('configTelefono')?.value || '',
+            institucion_direccion: document.getElementById('configDireccion')?.value || '',
             periodo_activo: document.getElementById('configPeriodo').value,
             mantenimiento: document.getElementById('mantenimiento').checked,
             auto_matricula: document.getElementById('autoMatricula').checked
@@ -64,11 +68,21 @@ async function cargarConfiguracion() {
         const config = await res.json();
         
         const instInput = document.getElementById('configInstitucion');
+        const descInput = document.getElementById('configDescripcion');
+        const correoInput = document.getElementById('configCorreo');
+        const telfInput = document.getElementById('configTelefono');
+        const dirInput = document.getElementById('configDireccion');
+        
         const perInput = document.getElementById('configPeriodo');
         const mantInput = document.getElementById('mantenimiento');
         const autoMatInput = document.getElementById('autoMatricula');
         
         if(instInput) instInput.value = config.institucion_nombre || '';
+        if(descInput) descInput.value = config.institucion_descripcion || '';
+        if(correoInput) correoInput.value = config.institucion_correo || '';
+        if(telfInput) telfInput.value = config.institucion_telefono || '';
+        if(dirInput) dirInput.value = config.institucion_direccion || '';
+        
         if(perInput) perInput.value = config.periodo_activo || '';
         if(mantInput) mantInput.checked = config.mantenimiento === 'true';
         if(autoMatInput) autoMatInput.checked = config.auto_matricula === 'true';
