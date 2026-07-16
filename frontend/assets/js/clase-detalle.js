@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async (e) => {
                 if (!confirm('¿Seguro que deseas anular y borrar tu entrega actual?')) return;
                 try {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${btn.dataset.id}/${idUsuario}`, { method: 'DELETE' });
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${e.currentTarget.dataset.id}/${idUsuario}`, { method: 'DELETE' });
                     if (res.ok) {
                         alert('Entrega anulada correctamente');
                         await cargarEstructuraModular();
@@ -1279,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Alumnos: Abrir modal de entrega
         document.querySelectorAll('.btn-entregar-actividad').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                document.getElementById('entregaActividadId').value = e.target.dataset.id;
+                document.getElementById('entregaActividadId').value = e.currentTarget.dataset.id;
                 document.getElementById('entregaUrl').value = '';
                 // IMPORTANTE: limpiar también el archivo seleccionado.
                 // Si no se limpia aquí, un archivo elegido para una actividad
