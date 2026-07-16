@@ -236,19 +236,79 @@ function renderizarCursos(cursos) {
     if(!tbody) return;
     tbody.innerHTML = '';
     cursos.forEach(curso => {
+        const estadoLabel = curso.estado === 'Inactivo' ? '<span class="badge bg-danger">Inactivo</span>' : '<span class="badge bg-success">Activo</span>';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${curso.codigo}</td>
-            <td>${curso.nombre}</td>
+            <td>${curso.nombre} ${estadoLabel}</td>
             <td>${curso.creditos}</td>
             <td>${curso.total_clases || 0}</td>
             <td>
-                <button class="btn btn-sm btn-outline-success" onclick="abrirModalCrearClase(${curso.id_curso}, '${curso.nombre}')">Añadir Clase</button>
-                <button class="btn btn-sm btn-outline-primary" onclick="verClases(${curso.id_curso}, '${curso.nombre}')">Ver Clases</button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-custom" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear"></i> Acciones
+                    </button>
+                    <ul class="dropdown-menu shadow border-0">
+                        <li><a class="dropdown-item" href="#" onclick="abrirModalCrearClase(${curso.id_curso}, '${curso.nombre}')"><i class="bi bi-plus-circle me-2"></i> Añadir Clase</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="verClases(${curso.id_curso}, '${curso.nombre}')"><i class="bi bi-eye me-2"></i> Ver Clases</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick='abrirModalEditarCurso(${JSON.stringify(curso).replace(/'/g, "&apos;")})'><i class="bi bi-pencil me-2"></i> Editar Curso</a></li>
+                        <li><a class="dropdown-item text-${curso.estado === 'Inactivo' ? 'success' : 'danger'}" href="#" onclick="cambiarEstadoCurso(${curso.id_curso}, '${curso.estado === 'Inactivo' ? 'Activo' : 'Inactivo'}')">
+                            <i class="bi ${curso.estado === 'Inactivo' ? 'bi-check-circle' : 'bi-x-circle'} me-2"></i> ${curso.estado === 'Inactivo' ? 'Habilitar' : 'Inhabilitar'}
+                        </a></li>
+                    </ul>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
+}
+
+function abrirModalEditarCurso(curso) {
+    document.getElementById('eIdCurso').value = curso.id_curso;
+    document.getElementById('eCodigoCurso').value = curso.codigo;
+    document.getElementById('eNombreCurso').value = curso.nombre;
+    document.getElementById('eCreditosCurso').value = curso.creditos;
+    document.getElementById('eDescripcionCurso').value = curso.descripcion || '';
+    
+    new bootstrap.Modal(document.getElementById('modalEditarCurso')).show();
+}
+
+async function actualizarCurso() {
+    const id = document.getElementById('eIdCurso').value;
+    const codigo = document.getElementById('eCodigoCurso').value;
+    const nombre = document.getElementById('eNombreCurso').value;
+    const creditos = document.getElementById('eCreditosCurso').value;
+    const descripcion = document.getElementById('eDescripcionCurso').value;
+
+    try {
+        const res = await fetch(`${getApiUrl()}/cursos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigo, nombre, descripcion, creditos })
+        });
+        if(res.ok) {
+            alert('Curso actualizado');
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarCurso')).hide();
+            cargarCursos();
+            agregarLog('Admin', `Curso actualizado: ${codigo}`, 'Completado', 'bg-success');
+        } else alert('Error al actualizar curso');
+    } catch(e) { console.error(e); }
+}
+
+async function cambiarEstadoCurso(idCurso, nuevoEstado) {
+    if(!confirm(`¿Estás seguro de cambiar el estado del curso a ${nuevoEstado}?`)) return;
+    try {
+        const response = await fetch(`${getApiUrl()}/cursos/${idCurso}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        if(response.ok) { 
+            cargarCursos(); 
+            agregarLog('Admin', `Estado de curso ${idCurso} a ${nuevoEstado}`, 'Completado', 'bg-warning text-dark');
+        }
+    } catch (error) { console.error(error); }
 }
 
 function filtrarCursos() {

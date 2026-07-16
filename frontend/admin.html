@@ -667,6 +667,43 @@
         </div>
     </div>
 
+    <!-- Modal Editar Curso -->
+    <div class="modal fade" id="modalEditarCurso" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarCurso">
+                        <input type="hidden" id="eIdCurso">
+                        <div class="mb-3">
+                            <label class="form-label">Código</label>
+                            <input type="text" class="form-control" id="eCodigoCurso" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del Curso</label>
+                            <input type="text" class="form-control" id="eNombreCurso" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Créditos</label>
+                            <input type="number" class="form-control" id="eCreditosCurso" min="1" max="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" id="eDescripcionCurso" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="actualizarCurso()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Editar Usuario -->
     <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">

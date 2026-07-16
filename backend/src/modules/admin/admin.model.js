@@ -79,10 +79,10 @@ const deleteUser = async (idUsuario) => {
 // Cursos
 const getAllCourses = async () => {
     const query = `
-        SELECT C.ID_CURSO, C.CODIGO, C.NOMBRE, C.CREDITOS, COUNT(CL.ID_CLASE) AS TOTAL_CLASES
+        SELECT C.ID_CURSO, C.CODIGO, C.NOMBRE, C.CREDITOS, C.DESCRIPCION, C.ESTADO, COUNT(CL.ID_CLASE) AS TOTAL_CLASES
         FROM CURSO C
         LEFT JOIN CLASE CL ON C.ID_CURSO = CL.ID_CURSO
-        GROUP BY C.ID_CURSO, C.CODIGO, C.NOMBRE, C.CREDITOS
+        GROUP BY C.ID_CURSO, C.CODIGO, C.NOMBRE, C.CREDITOS, C.DESCRIPCION, C.ESTADO
         ORDER BY C.ID_CURSO ASC
     `;
     const result = await pool.query(query);
@@ -91,10 +91,29 @@ const getAllCourses = async () => {
 
 const createCourse = async (codigo, nombre, descripcion, creditos) => {
     const query = `
-        INSERT INTO CURSO (CODIGO, NOMBRE, DESCRIPCION, CREDITOS) 
-        VALUES ($1, $2, $3, $4) RETURNING *
+        INSERT INTO CURSO (CODIGO, NOMBRE, DESCRIPCION, CREDITOS, ESTADO) 
+        VALUES ($1, $2, $3, $4, 'Activo') RETURNING *
     `;
     const result = await pool.query(query, [codigo, nombre, descripcion, creditos]);
+    return result.rows[0];
+};
+
+const updateCourse = async (idCurso, codigo, nombre, descripcion, creditos) => {
+    const query = `
+        UPDATE CURSO 
+        SET CODIGO = $1, NOMBRE = $2, DESCRIPCION = $3, CREDITOS = $4
+        WHERE ID_CURSO = $5
+        RETURNING *
+    `;
+    const result = await pool.query(query, [codigo, nombre, descripcion, creditos, idCurso]);
+    return result.rows[0];
+};
+
+const changeCourseStatus = async (idCurso, estado) => {
+    const query = `
+        UPDATE CURSO SET ESTADO = $1 WHERE ID_CURSO = $2 RETURNING *
+    `;
+    const result = await pool.query(query, [estado, idCurso]);
     return result.rows[0];
 };
 
@@ -189,6 +208,8 @@ module.exports = {
     deleteUser,
     getAllCourses,
     createCourse,
+    updateCourse,
+    changeCourseStatus,
     createClass,
     getAvailableClasses,
     enrollStudent,

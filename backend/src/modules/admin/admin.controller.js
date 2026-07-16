@@ -78,6 +78,28 @@ const createCourse = async (req, res) => {
     }
 };
 
+const updateCourse = async (req, res) => {
+    const { id } = req.params;
+    const { codigo, nombre, descripcion, creditos } = req.body;
+    try {
+        const updatedCourse = await adminModel.updateCourse(id, codigo, nombre, descripcion, creditos);
+        res.status(200).json({ mensaje: 'Curso actualizado', curso: updatedCourse });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al actualizar curso', error: error.message });
+    }
+};
+
+const changeCourseStatus = async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body;
+    try {
+        const updated = await adminModel.changeCourseStatus(id, estado);
+        res.status(200).json({ mensaje: 'Estado de curso actualizado', curso: updated });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al cambiar estado', error: error.message });
+    }
+};
+
 const createClass = async (req, res) => {
     const { idCurso, nombreClase, periodo, ciclo, seccion, aula } = req.body;
     try {
@@ -151,6 +173,8 @@ module.exports = {
     deleteUser,
     getAllCourses,
     createCourse,
+    updateCourse,
+    changeCourseStatus,
     createClass,
     getAvailableClasses,
     enrollStudent,
