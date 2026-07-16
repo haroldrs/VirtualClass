@@ -363,10 +363,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Asignar eventos de actividades para poder entregar/revisar
             asignarEventosActividades();
 
+            // Asignar evento de eliminar entrega (para alumnos, sin importar el rol de quien vea la vista)
+            asignarEventoEliminarEntrega();
+
         } catch (e) {
             console.error('Error al cargar estructura modular:', e);
             contenedor.innerHTML = '<div class="text-center text-muted p-4">Error al cargar la estructura. El servidor podría estar iniciando.</div>';
         }
+    }
+
+    // Eliminar entrega del alumno (se llama siempre, sea docente o alumno,
+    // ya que este botón solo se renderiza para el alumno pero antes su
+    // listener solo se registraba dentro de asignarEventosModulares(),
+    // función que únicamente se ejecuta cuando esDocente es true)
+    function asignarEventoEliminarEntrega() {
+        document.querySelectorAll('.btn-eliminar-entrega').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (!confirm('¿Seguro que deseas anular y borrar tu entrega actual?')) return;
+                try {
+                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${e.currentTarget.dataset.id}/${currentUser.id_usuario}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        alert('Entrega anulada correctamente');
+                        await cargarEstructuraModular();
+                    } else {
+                        alert('Error al anular la entrega');
+                    }
+                } catch (e) { console.error(e); }
+            });
+        });
     }
 
     function asignarEventosModulares() {
@@ -493,22 +517,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         alert("Error al eliminar el recurso.");
                     }
                 } catch (err) { console.error(err); }
-            });
-        });
-
-        // Eliminar entrega del alumno
-        document.querySelectorAll('.btn-eliminar-entrega').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if (!confirm('¿Seguro que deseas anular y borrar tu entrega actual?')) return;
-                try {
-                    const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/evaluaciones/entrega/${e.currentTarget.dataset.id}/${currentUser.id_usuario}`, { method: 'DELETE' });
-                    if (res.ok) {
-                        alert('Entrega anulada correctamente');
-                        await cargarEstructuraModular();
-                    } else {
-                        alert('Error al anular la entrega');
-                    }
-                } catch (e) { console.error(e); }
             });
         });
 
