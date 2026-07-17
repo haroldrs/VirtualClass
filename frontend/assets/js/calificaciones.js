@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         titleElement.innerText = "Gestión de Calificaciones";
         subtitleElement.innerText = "Ingresa o modifica las notas de tus alumnos";
         if (promedioArea) promedioArea.style.display = 'none'; // No mostrar promedio general para docentes
+    } else {
+        const btnPdf = document.getElementById('btnExportarPdf');
+        if(btnPdf) {
+            btnPdf.classList.remove('d-none');
+            btnPdf.addEventListener('click', generarPDFRecordAcademico);
+        }
     }
 
     // Cargar cursos en el select
@@ -802,6 +808,141 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             console.error(e);
             tableContainer.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar resumen global</td></tr>';
+        }
+    }
+
+    // ===================== GENERACIÓN DE PDF =====================
+    async function generarPDFRecordAcademico() {
+        const btnPdf = document.getElementById('btnExportarPdf');
+        const originalText = btnPdf.innerHTML;
+        btnPdf.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...';
+        btnPdf.disabled = true;
+
+        try {
+            // Obtener todos los datos globales del alumno
+            const res = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/alumno/${currentUser.id_usuario}`);
+            const data = await res.json();
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+
+            // Header
+            doc.setFillColor(74, 108, 247); // primary color
+            doc.rect(0, 0, pageWidth, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("VIRTUALCLASS", 14, 20);
+            
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text("RÉCORD ACADÉMICO OFICIAL", 14, 28);
+            
+            // Info del Estudiante
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Estudiante: ${currentUser.nombres} ${currentUser.apellidos}`, 14, 55);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Correo Institucional: ${currentUser.correo}`, 14, 62);
+            doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 14, 69);
+
+            // Preparar tabla
+            let tableData = [];
+            let sumaFinales = 0;
+            let cursosCalificados = 0;
+            
+            // Agrupar evaluaciones por curso, similar a cargarGlobalAlumno()
+            const cursosMap = {};
+            data.forEach(row => {
+                if (!cursosMap[row.id_clase]) {
+                    cursosMap[row.id_clase] = {
+                        curso: row.curso,
+                        seccion: row.seccion,
+                        sumaPonderada: 0,
+                        sumaPesos: 0,
+                        tieneNotas: false
+                    };
+                }
+                if (row.id_evaluacion && row.calificacion !== null) {
+                    cursosMap[row.id_clase].sumaPonderada += parseFloat(row.calificacion) * parseFloat(row.porcentaje);
+                    cursosMap[row.id_clase].sumaPesos += parseFloat(row.porcentaje);
+                    cursosMap[row.id_clase].tieneNotas = true;
+                }
+            });
+
+            Object.values(cursosMap).forEach((c, index) => {
+                const promedio = c.sumaPesos > 0 ? (c.sumaPonderada / c.sumaPesos).toFixed(2) : 'Sin calificar';
+                let estado = '-';
+                if (promedio !== 'Sin calificar') {
+                    sumaFinales += parseFloat(promedio);
+                    cursosCalificados++;
+                    estado = parseFloat(promedio) >= 13 ? 'APROBADO' : 'DESAPROBADO';
+                }
+                tableData.push([
+                    (index + 1).toString(),
+                    c.curso,
+                    c.seccion,
+                    promedio,
+                    estado
+                ]);
+            });
+
+            if (tableData.length === 0) {
+                tableData = [['-', 'No se encontraron matrículas o notas', '-', '-', '-']];
+            }
+
+            // Generar Tabla
+            doc.autoTable({
+                startY: 80,
+                head: [['Nº', 'Asignatura', 'Sección', 'Promedio', 'Estado']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: [74, 108, 247] },
+                alternateRowStyles: { fillColor: [248, 250, 255] },
+                styles: { fontSize: 10, cellPadding: 6 },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 15 },
+                    2: { halign: 'center' },
+                    3: { halign: 'center', fontStyle: 'bold' },
+                    4: { halign: 'center', fontStyle: 'bold' }
+                }
+            });
+
+            // Resumen Final
+            const finalY = doc.lastAutoTable.finalY || 80;
+            const promGlobal = cursosCalificados > 0 ? (sumaFinales / cursosCalificados).toFixed(2) : '0.00';
+            
+            doc.setFillColor(241, 245, 249);
+            doc.rect(14, finalY + 10, pageWidth - 28, 25, 'F');
+            
+            doc.setFontSize(12);
+            doc.setTextColor(70, 70, 70);
+            doc.text("Promedio Ponderado Acumulado (PPA):", 20, finalY + 20);
+            
+            doc.setFontSize(14);
+            doc.setTextColor(40, 40, 40);
+            doc.setFont("helvetica", "bold");
+            doc.text(promGlobal.toString(), 110, finalY + 20);
+
+            // Pie de página
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(150, 150, 150);
+            doc.text("Este documento es generado automáticamente por el sistema VirtuClass y tiene validez informativa.", pageWidth / 2, 280, { align: 'center' });
+
+            // Guardar
+            doc.save(`Record_Academico_${currentUser.nombres.split(' ')[0]}_${currentUser.apellidos.split(' ')[0]}.pdf`);
+
+        } catch (error) {
+            console.error("Error al generar PDF:", error);
+            alert("Ocurrió un error al generar el PDF. Intente nuevamente.");
+        } finally {
+            btnPdf.innerHTML = originalText;
+            btnPdf.disabled = false;
         }
     }
 
