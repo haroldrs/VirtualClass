@@ -60,7 +60,7 @@ async function cargarAsesorias() {
         </div>`;
 
     try {
-        const resp = await fetch(`${API_ASESORIAS}/${currentUser.id_usuario}/${currentUser.rol}`);
+        const resp = await fetch(`${API_ASESORIAS}/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         let asesorias = await resp.json();
 
         // Filtrar por estado si aplica

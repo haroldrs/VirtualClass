@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         semana.evaluaciones.forEach(ev => {
                             const dateObj = new Date(ev.fecha_evaluacion);
                             dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
-                            const fecha = dateObj.toLocaleDateString('es-ES');
+                            const fecha = dateObj.toLocaleDateString('es-PE');
 
                             let notaInfo = '';
                             if (!esDocente) {
@@ -1026,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const dateObj = new Date(act.fecha_evaluacion);
                     // Añadir zona horaria para que no se atrase un día
                     dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
-                    const date = dateObj.toLocaleDateString('es-ES');
+                    const date = dateObj.toLocaleDateString('es-PE');
 
                     let actionHtml = '';
                     let statusBadge = '';
@@ -1504,7 +1504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="card border-0 bg-white shadow-sm rounded-3">
                     <div class="card-body p-3">
                         <h6 class="fw-bold mb-1"><i class="bi bi-people text-info me-2"></i>${g.nombre_grupo}</h6>
-                        <span class="text-muted extra-small">Creado: ${new Date(g.fecha_creacion).toLocaleDateString()}</span>
+                        <span class="text-muted extra-small">Creado: ${new Date(g.fecha_creacion).toLocaleDateString('es-PE')}</span>
                         ${estHtml}
                         ${btnGestion}
                     </div>

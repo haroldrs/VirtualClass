@@ -57,7 +57,7 @@ async function cargarForos() {
     const subtitulo = document.getElementById('foroSubtitulo');
 
     try {
-        const response = await fetch(`${API_BASE}/mis-foros/${currentUser.id_usuario}/${currentUser.rol}`);
+        const response = await fetch(`${API_BASE}/mis-foros/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         forosDelUsuario = await response.json();
 
         if (forosDelUsuario.length === 0) {

@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             anunciosContainer.innerHTML = '';
             anuncios.forEach((anuncio, index) => {
                 const fecha = new Date(anuncio.fecha_publicacion);
+                // Corregir zona horaria para campos DATE que vienen como UTC
+                fecha.setMinutes(fecha.getMinutes() + fecha.getTimezoneOffset());
+                
                 const fechaStr = fecha.toLocaleDateString('es-PE', {
                     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                 });
@@ -135,26 +138,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
     try {
         const resConfig = await fetch(`${API_BASE}/admin/config`);
-        if(resConfig.ok) {
+        if (resConfig.ok) {
             const config = await resConfig.json();
-            
+
             const infoNombre = document.getElementById('infoInstitucionNombre');
             const infoDesc = document.getElementById('infoInstitucionDescripcion');
             const infoCorreo = document.getElementById('infoInstitucionCorreo');
             const infoTelf = document.getElementById('infoInstitucionTelefono');
             const infoDir = document.getElementById('infoInstitucionDireccion');
-            
-            if(infoNombre && config.institucion_nombre) infoNombre.innerText = config.institucion_nombre;
-            if(infoDesc && config.institucion_descripcion) infoDesc.innerText = config.institucion_descripcion;
-            if(infoCorreo && config.institucion_correo) infoCorreo.innerText = config.institucion_correo;
-            if(infoTelf && config.institucion_telefono) infoTelf.innerText = config.institucion_telefono;
-            if(infoDir && config.institucion_direccion) infoDir.innerText = config.institucion_direccion;
-            
+
+            if (infoNombre && config.institucion_nombre) infoNombre.innerText = config.institucion_nombre;
+            if (infoDesc && config.institucion_descripcion) infoDesc.innerText = config.institucion_descripcion;
+            if (infoCorreo && config.institucion_correo) infoCorreo.innerText = config.institucion_correo;
+            if (infoTelf && config.institucion_telefono) infoTelf.innerText = config.institucion_telefono;
+            if (infoDir && config.institucion_direccion) infoDir.innerText = config.institucion_direccion;
+
             // Si quieres actualizar el brand-text global (logo arriba a la izquierda si lo hay en inicio.html)
             const brandText = document.querySelector('.brand-text');
-            if(brandText && config.institucion_nombre) brandText.innerText = config.institucion_nombre;
+            if (brandText && config.institucion_nombre) brandText.innerText = config.institucion_nombre;
         }
-    } catch(e) {
+    } catch (e) {
         console.error('Error cargando configuracion global:', e);
     }
 });

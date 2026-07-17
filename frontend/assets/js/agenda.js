@@ -81,7 +81,7 @@ async function cargarCalendario() {
     document.getElementById('tituloMes').textContent = `${MESES[mesActual - 1]} ${anioActual}`;
 
     try {
-        const resp = await fetch(`${API_CAL}/eventos/${currentUser.id_usuario}/${currentUser.rol}?mes=${mesActual}&anio=${anioActual}`);
+        const resp = await fetch(`${API_CAL}/eventos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}?mes=${mesActual}&anio=${anioActual}`);
         const rawEventos = await resp.json();
         
         // Corregir zona horaria: PostgreSQL devuelve '...Z' (UTC) pero son horas locales
@@ -217,7 +217,7 @@ async function cargarProximosEventos() {
     const container = document.getElementById('proximosEventos');
 
     try {
-        const resp = await fetch(`${API_CAL}/proximos/${currentUser.id_usuario}/${currentUser.rol}`);
+        const resp = await fetch(`${API_CAL}/proximos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
         const eventos = await resp.json();
 
         if (eventos.length === 0) {

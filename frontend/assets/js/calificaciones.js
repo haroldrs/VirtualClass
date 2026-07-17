@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const dateObj = new Date(ev.fecha_evaluacion);
                     dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
-                    const fecha = dateObj.toLocaleDateString('es-ES');
+                    const fecha = dateObj.toLocaleDateString('es-PE');
 
                     let notaBadge = '<span class="badge bg-light text-muted">- -</span>';
                     let estadoHtml = '';
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         notas.forEach(nota => {
             const dateObj = new Date(nota.fecha_evaluacion);
             dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
-            const date = dateObj.toLocaleDateString('es-ES');
+            const date = dateObj.toLocaleDateString('es-PE');
             
             let badgeClass = 'bg-light text-muted';
             let notaText = '- -';
@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let entregaInfo = '<span class="text-warning small italic"><i class="bi bi-exclamation-circle me-1"></i>Sin entrega</span>';
                 if (ev.id_entrega) {
                     const fechaObj = new Date(ev.fecha_entrega);
-                    const fechaStr = fechaObj.toLocaleDateString('es-ES') + ' ' + fechaObj.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+                    const fechaStr = fechaObj.toLocaleDateString('es-PE') + ' ' + fechaObj.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
                     if (ev.calificacion !== null) {
                         entregaInfo = `<span class="text-success small italic"><i class="bi bi-check2-circle me-1"></i>Entregado el ${fechaStr} <a href="${ev.archivo_url}" target="_blank" class="ms-1 text-decoration-none">(Ver archivo)</a></span>`;
                     } else {
@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             doc.setFontSize(11);
             doc.setFont("helvetica", "normal");
             doc.text(`Correo Institucional: ${currentUser.correo}`, 14, 62);
-            doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-ES')}`, 14, 69);
+            doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString('es-PE')}`, 14, 69);
 
             // Preparar tabla
             let tableData = [];
