@@ -88,12 +88,49 @@ function resaltarMenuActivo() {
 // =============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (currentUser && document.querySelector('.bi-bell')) {
+    if (currentUser) {
+        inyectarCampanita();
         cargarNotificaciones();
         // Polling cada 60 segundos
         setInterval(cargarNotificaciones, 60000);
     }
 });
+
+function inyectarCampanita() {
+    if (document.getElementById('notifDropdownContainer')) return;
+    
+    const topNavbar = document.querySelector('.top-navbar');
+    if (!topNavbar) return;
+    
+    const bellHTML = `
+        <div class="dropdown me-3" id="notifDropdownContainer">
+            <div class="position-relative" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 8px;">
+                <i class="bi bi-bell text-muted" style="font-size: 1.4rem;"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifBadge" style="display: none; font-size: 0.65rem; padding: 0.25em 0.5em;">0</span>
+            </div>
+            <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 p-0 rounded-3" style="width: 320px; overflow: hidden; z-index: 1050;">
+                <div class="bg-primary text-white px-3 py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold small">Notificaciones</h6>
+                    <span class="badge bg-light text-primary" style="cursor:pointer;" onclick="marcarTodasLeidas()">Marcar leídas</span>
+                </div>
+                <div id="notifList" class="list-group list-group-flush" style="max-height: 350px; overflow-y: auto;">
+                    <div class="text-center py-4 text-muted small">Cargando...</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const lastChild = topNavbar.lastElementChild;
+    if (lastChild.classList.contains('d-flex') && lastChild.classList.contains('align-items-center') && !lastChild.classList.contains('dropdown-toggle-custom')) {
+        lastChild.insertAdjacentHTML('afterbegin', bellHTML);
+    } else {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'd-flex align-items-center';
+        topNavbar.insertBefore(wrapper, lastChild);
+        wrapper.innerHTML = bellHTML;
+        wrapper.appendChild(lastChild);
+    }
+}
 
 async function cargarNotificaciones() {
     try {
