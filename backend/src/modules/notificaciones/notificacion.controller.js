@@ -35,8 +35,20 @@ const marcarUnaComoLeida = async (req, res) => {
     }
 };
 
+const eliminar = async (req, res) => {
+    try {
+        const idNotificacion = req.params.idNotificacion;
+        await notificacionModel.eliminarNotificacion(idNotificacion);
+        res.status(200).json({ message: 'Notificación eliminada' });
+    } catch (error) {
+        console.error('Error al eliminar notificación:', error);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+};
+
 module.exports = {
     obtenerMisNotificaciones,
     marcarTodasComoLeidas,
-    marcarUnaComoLeida
+    marcarUnaComoLeida,
+    eliminar
 };

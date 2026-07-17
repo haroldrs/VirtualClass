@@ -203,8 +203,8 @@ async function cargarNotificaciones() {
             const fechaTexto = formatearFechaRelativa(n.fecha_creacion);
             
             return `
-                <div class="list-group-item list-group-item-action p-3 ${bgClass}" style="${borderStyle}; cursor: pointer;" onclick="marcarUnaLeida(${n.id_notificacion}, '${enlaceSafe}')">
-                    <div class="d-flex align-items-start">
+                <div class="list-group-item list-group-item-action p-3 position-relative ${bgClass}" style="${borderStyle}; cursor: pointer;" onclick="marcarUnaLeida(${n.id_notificacion}, '${enlaceSafe}')" onmouseover="this.querySelector('.btn-eliminar-notif').style.display='block'" onmouseout="this.querySelector('.btn-eliminar-notif').style.display='none'">
+                    <div class="d-flex align-items-start pe-3">
                         <div class="me-3 mt-1"><i class="bi ${icon} fs-5"></i></div>
                         <div class="flex-grow-1">
                             <div class="fw-semibold small text-dark mb-1">${titulo}</div>
@@ -213,6 +213,9 @@ async function cargarNotificaciones() {
                         </div>
                         ${!n.leida ? '<span class="ms-2 mt-1 bg-primary rounded-circle" style="width:8px;height:8px;display:inline-block;flex-shrink:0;"></span>' : ''}
                     </div>
+                    <button class="btn btn-sm btn-link text-danger position-absolute top-50 end-0 translate-middle-y btn-eliminar-notif" style="display:none; padding: 0.25rem 0.5rem;" onclick="eliminarNotificacion(event, ${n.id_notificacion})" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             `;
         }).join('');
@@ -260,4 +263,14 @@ async function marcarUnaLeida(id, enlace) {
             cargarNotificaciones();
         }
     } catch(e) { console.warn('No se pudo marcar como leída:', e.message); }
+}
+
+async function eliminarNotificacion(event, id) {
+    event.stopPropagation(); // Evita que se dispare marcarUnaLeida() o se abra el enlace
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/notificaciones/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            cargarNotificaciones(); // Recargar la lista
+        }
+    } catch(e) { console.warn('No se pudo eliminar la notificación:', e.message); }
 }

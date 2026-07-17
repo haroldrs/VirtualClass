@@ -51,10 +51,20 @@ const marcarUnaComoLeida = async (idNotificacion) => {
     return true;
 };
 
+const eliminarNotificacion = async (idNotificacion) => {
+    const query = `
+        DELETE FROM NOTIFICACION
+        WHERE id_notificacion = $1;
+    `;
+    await pool.query(query, [idNotificacion]);
+    return true;
+};
+
 module.exports = {
     crearNotificacion,
     obtenerNotificacionesPorUsuario,
     obtenerNoLeidas,
     marcarComoLeidas,
-    marcarUnaComoLeida
+    marcarUnaComoLeida,
+    eliminarNotificacion
 };
