@@ -55,15 +55,22 @@ const registrarNota = async (req, res) => {
     try {
         const nota = await calificacionesModel.registrarOActualizarNota(idEvaluacion, idUsuario, calificacion, comentario);
         
-        // Obtener el nombre de la evaluación
-        const query = 'SELECT nombre_eva, id_clase FROM EVALUACION WHERE id_evaluacion = $1';
+        // Obtener el nombre de la evaluación y el curso
+        const query = `
+            SELECT E.nombre_eva, CU.nombre as nombre_curso 
+            FROM EVALUACION E 
+            JOIN CLASE C ON E.id_clase = C.id_clase 
+            JOIN CURSO CU ON C.id_curso = CU.id_curso 
+            WHERE E.id_evaluacion = $1
+        `;
         const evaRes = await pool.query(query, [idEvaluacion]);
         const evaName = evaRes.rows.length > 0 ? evaRes.rows[0].nombre_eva : 'una evaluación';
+        const cursoName = evaRes.rows.length > 0 ? evaRes.rows[0].nombre_curso : '';
         
         await notificacionModel.crearNotificacion(
             idUsuario, 
             'Nueva Calificación', 
-            `El profesor ha calificado tu entrega para: ${evaName}. Tienes: ${calificacion}.`,
+            `Tu profesor ha calificado "${evaName}" en ${cursoName}. Nota: ${calificacion}.`,
             'calificaciones.html'
         );
         

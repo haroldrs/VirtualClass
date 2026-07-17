@@ -28,6 +28,12 @@ const crear = async (req, res) => {
         
         // Notificar a todos los alumnos matriculados en esta clase
         try {
+            const claseQuery = await pool.query(
+                `SELECT CU.NOMBRE FROM CLASE C JOIN CURSO CU ON C.ID_CURSO = CU.ID_CURSO WHERE C.ID_CLASE = $1`,
+                [req.params.idClase]
+            );
+            const nombreCurso = claseQuery.rows.length > 0 ? claseQuery.rows[0].nombre : 'tu curso';
+
             const alumnosQuery = await pool.query(
                 `SELECT M.ID_USUARIO FROM MATRICULA M WHERE M.ID_CLASE = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'`,
                 [req.params.idClase]
@@ -36,7 +42,7 @@ const crear = async (req, res) => {
                 await notificacionModel.crearNotificacion(
                     alumno.id_usuario,
                     'Nueva Actividad Publicada',
-                    `Se ha publicado una nueva actividad: "${nombre_eva}". Revisa los detalles en tu curso.`,
+                    `Se ha publicado la actividad "${nombre_eva}" en ${nombreCurso}.`,
                     'dashboard.html'
                 );
             }

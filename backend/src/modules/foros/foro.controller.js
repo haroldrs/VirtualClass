@@ -98,18 +98,22 @@ const responderTema = async (req, res) => {
         // Notificar al autor del tema (si no es el mismo que responde)
         try {
             const temaQuery = await pool.query(
-                `SELECT TF.ID_USUARIO, TF.TITULO_TEMA, U.NOMBRES 
-                 FROM TEMA_FORO TF JOIN USUARIO U ON U.ID_USUARIO = $1 
+                `SELECT TF.ID_USUARIO as autor_id, TF.TITULO_TEMA, U.NOMBRES as responder_nombre, U.APELLIDOS as responder_apellido, CU.NOMBRE as curso_nombre
+                 FROM TEMA_FORO TF 
+                 JOIN USUARIO U ON U.ID_USUARIO = $1 
+                 JOIN FORO F ON TF.ID_FORO = F.ID_FORO
+                 JOIN CLASE C ON F.ID_CLASE = C.ID_CLASE
+                 JOIN CURSO CU ON C.ID_CURSO = CU.ID_CURSO
                  WHERE TF.ID_TEMA = $2`,
                 [id_usuario, idTema]
             );
             if (temaQuery.rows.length > 0) {
                 const tema = temaQuery.rows[0];
-                if (tema.id_usuario !== parseInt(id_usuario)) {
+                if (tema.autor_id !== parseInt(id_usuario)) {
                     await notificacionModel.crearNotificacion(
-                        tema.id_usuario,
+                        tema.autor_id,
                         'Nueva Respuesta en Foro',
-                        `${tema.nombres} ha respondido a tu tema: "${tema.titulo_tema}".`,
+                        `${tema.responder_nombre} ${tema.responder_apellido} ha respondido a tu tema "${tema.titulo_tema}" en el curso ${tema.curso_nombre}.`,
                         'foro.html'
                     );
                 }

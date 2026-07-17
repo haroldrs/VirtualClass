@@ -44,6 +44,7 @@ const obtenerDocentes = async (req, res) => {
 };
 
 const notificacionModel = require('../notificaciones/notificacion.model');
+const pool = require('../../config/db');
 
 // Crear nueva asesoría (alumno solicita)
 const crearAsesoria = async (req, res) => {
@@ -61,11 +62,15 @@ const crearAsesoria = async (req, res) => {
         // El solicitante se agrega automáticamente como participante
         await asesoriaModel.unirseAsesoria(asesoria.id_asesoria, id_solicitante);
 
+        // Obtener datos del alumno para personalizar el mensaje
+        const alumnoRes = await pool.query('SELECT NOMBRES, APELLIDOS FROM USUARIO WHERE ID_USUARIO = $1', [id_solicitante]);
+        const nombreAlumno = alumnoRes.rows.length > 0 ? `${alumnoRes.rows[0].nombres} ${alumnoRes.rows[0].apellidos}` : 'Un alumno';
+
         // Notificar al docente
         await notificacionModel.crearNotificacion(
             id_docente,
             'Nueva Solicitud de Asesoría',
-            `Un alumno ha solicitado una asesoría para el tema: ${motivo}.`,
+            `El alumno ${nombreAlumno} ha solicitado una asesoría para el tema: "${motivo}".`,
             'asesorias.html'
         );
 
@@ -91,10 +96,14 @@ const actualizarEstado = async (req, res) => {
 
         // Notificar al estudiante
         if (estado === 'confirmada' || estado === 'rechazada') {
+            const docenteRes = await pool.query('SELECT NOMBRES, APELLIDOS FROM USUARIO WHERE ID_USUARIO = $1', [asesoria.id_docente]);
+            const nombreDocente = docenteRes.rows.length > 0 ? `${docenteRes.rows[0].nombres} ${docenteRes.rows[0].apellidos}` : 'El profesor';
+            
+            const estadoTxt = estado === 'confirmada' ? 'APROBADA' : 'RECHAZADA';
             await notificacionModel.crearNotificacion(
                 asesoria.id_solicitante,
                 'Actualización de Asesoría',
-                `El profesor ha ${estado.toUpperCase()} tu solicitud de asesoría para: ${asesoria.motivo}.`,
+                `${nombreDocente} ha ${estadoTxt} tu solicitud de asesoría para: "${asesoria.motivo}".`,
                 'asesorias.html'
             );
         }
