@@ -9,7 +9,7 @@ async function sync() {
                 await pool.query(`
                     INSERT INTO CALENDARIO_ACADEMICO (ID_CLASE, TITULO_EVENTO, DESCRIPCION, FECHA_INICIO, FECHA_FIN, TIPO_EVENTO, ID_EVALUACION)
                     VALUES ($1, $2, $3, $4, $4, 'entrega', $5)
-                `, [eva.id_clase, `Evaluación: ${eva.nombre_eva}`, `Evaluación con peso de ${eva.porcentaje}%`, eva.fecha_evaluacion, eva.id_evaluacion]);
+                `, [eva.id_clase, eva.nombre_eva, `Evaluación con peso de ${eva.porcentaje}%`, eva.fecha_evaluacion, eva.id_evaluacion]);
             }
         }
         console.log("Sincronización completa");
