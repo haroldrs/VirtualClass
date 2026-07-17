@@ -43,8 +43,11 @@ const loginUsuario = async (req, res) => {
             return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
         }
 
-        // Si está inactivo
-        if (usuario.estado !== 'Activo') {
+        // Si está inactivo o pendiente
+        if (usuario.estado === 'PENDIENTE') {
+            return res.status(403).json({ mensaje: 'Tu cuenta está pendiente de aprobación por un administrador.' });
+        }
+        if (usuario.estado !== 'Activo' && usuario.estado !== 'ACTIVO') {
             return res.status(403).json({ mensaje: 'Usuario inactivo. Contacte al administrador.' });
         }
 

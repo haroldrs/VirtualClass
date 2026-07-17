@@ -5,9 +5,9 @@ const crearUsuario = async (nombres, apellidos, correo, contrasena) => {
     try {
         await client.query('BEGIN');
         const query = `
-            INSERT INTO USUARIO (nombres, apellidos, correo, contrasena)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id_usuario, nombres, apellidos, correo;
+            INSERT INTO USUARIO (nombres, apellidos, correo, contrasena, estado)
+            VALUES ($1, $2, $3, $4, 'PENDIENTE')
+            RETURNING id_usuario, nombres, apellidos, correo, estado;
         `;
         const respuesta = await client.query(query, [nombres, apellidos, correo, contrasena]);
         const newUser = respuesta.rows[0];

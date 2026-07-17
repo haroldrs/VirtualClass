@@ -154,7 +154,10 @@ function renderTablaUsuarios(usuarios) {
     const tbody = document.querySelector('#usuarios tbody');
     tbody.innerHTML = '';
     usuarios.forEach(user => {
-        const estadoBadge = user.estado === 'Activo' ? 'bg-success' : 'bg-danger';
+        let estadoBadge = 'bg-danger';
+        if (user.estado === 'Activo' || user.estado === 'ACTIVO') estadoBadge = 'bg-success';
+        if (user.estado === 'PENDIENTE') estadoBadge = 'bg-warning text-dark';
+        
         let rolBadge = 'bg-secondary';
         if (user.nombre_rol?.includes('Admin')) rolBadge = 'bg-danger';
         else if (user.nombre_rol?.includes('Docente')) rolBadge = 'bg-primary';
@@ -169,8 +172,8 @@ function renderTablaUsuarios(usuarios) {
             <td><span class="badge ${estadoBadge}">${user.estado}</span></td>
             <td>
                 <button class="btn btn-sm btn-outline-secondary" onclick="abrirModalEditarUsuario(${user.id_usuario})"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-outline-${user.estado === 'Activo' ? 'danger' : 'success'}" onclick="cambiarEstadoUsuario(${user.id_usuario}, '${user.estado === 'Activo' ? 'Inactivo' : 'Activo'}')">
-                    <i class="bi bi-${user.estado === 'Activo' ? 'trash' : 'check-circle'}"></i>
+                <button class="btn btn-sm btn-outline-${(user.estado === 'Activo' || user.estado === 'ACTIVO') ? 'danger' : 'success'}" title="${(user.estado === 'Activo' || user.estado === 'ACTIVO') ? 'Desactivar usuario' : 'Activar usuario'}" onclick="cambiarEstadoUsuario(${user.id_usuario}, '${(user.estado === 'Activo' || user.estado === 'ACTIVO') ? 'Inactivo' : 'Activo'}')">
+                    <i class="bi bi-${(user.estado === 'Activo' || user.estado === 'ACTIVO') ? 'trash' : 'check-circle'}"></i>
                 </button>
             </td>
         `;
