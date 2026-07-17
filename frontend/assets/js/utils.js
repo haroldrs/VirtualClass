@@ -11,7 +11,7 @@ const currentUser = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
 // URL base de la API (centralizada para evitar repetición)
 const API_BASE_URL = window.location.origin.includes('localhost') 
     ? 'http://localhost:3000' 
-    : 'https://virtualclass-backend.onrender.com';
+    : 'https://virtualclass-sm1i.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!currentUser) return;
