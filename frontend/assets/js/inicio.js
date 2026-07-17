@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const statForos = document.getElementById('statForos');
         if (statForos && Array.isArray(foros)) {
             let totalTemas = 0;
-            foros.forEach(f => { totalTemas += f.temas ? f.temas.length : 0; });
+            foros.forEach(f => { totalTemas += parseInt(f.total_temas) || 0; });
             statForos.innerText = totalTemas;
         }
     } catch (e) {
