@@ -47,10 +47,26 @@ const obtenerAlumnosDocente = async (req, res) => {
     }
 };
 
+const notificacionModel = require('../notificaciones/notificacion.model');
+const pool = require('../../config/db');
+
 const registrarNota = async (req, res) => {
     const { idEvaluacion, idUsuario, calificacion, comentario } = req.body;
     try {
         const nota = await calificacionesModel.registrarOActualizarNota(idEvaluacion, idUsuario, calificacion, comentario);
+        
+        // Obtener el nombre de la evaluación
+        const query = 'SELECT nombre_eva, id_clase FROM EVALUACION WHERE id_evaluacion = $1';
+        const evaRes = await pool.query(query, [idEvaluacion]);
+        const evaName = evaRes.rows.length > 0 ? evaRes.rows[0].nombre_eva : 'una evaluación';
+        
+        await notificacionModel.crearNotificacion(
+            idUsuario, 
+            'Nueva Calificación', 
+            `El profesor ha calificado tu entrega para: ${evaName}. Tienes: ${calificacion}.`,
+            'calificaciones.html'
+        );
+        
         res.json(nota);
     } catch (error) {
         console.error(error);

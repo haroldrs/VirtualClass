@@ -82,3 +82,81 @@ function resaltarMenuActivo() {
         }
     });
 }
+
+// =============================================
+// SISTEMA DE NOTIFICACIONES
+// =============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (currentUser && document.querySelector('.bi-bell')) {
+        cargarNotificaciones();
+        // Polling cada 60 segundos
+        setInterval(cargarNotificaciones, 60000);
+    }
+});
+
+async function cargarNotificaciones() {
+    try {
+        const apiUrl = window.location.origin.includes('localhost') ? 'http://localhost:3000' : 'https://virtualclass-backend.onrender.com';
+        const res = await fetch(`${apiUrl}/api/notificaciones/${currentUser.id_usuario}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        if(!badge || !list) return;
+        
+        if (data.unread > 0) {
+            badge.style.display = 'block';
+            badge.innerText = data.unread > 9 ? '+9' : data.unread;
+        } else {
+            badge.style.display = 'none';
+        }
+        
+        if (data.notificaciones.length === 0) {
+            list.innerHTML = '<div class="text-center py-4 text-muted small">No tienes notificaciones recientes.</div>';
+            return;
+        }
+        
+        list.innerHTML = data.notificaciones.map(n => {
+            const bgClass = n.leida ? 'bg-white' : 'bg-light';
+            const icon = n.titulo.toLowerCase().includes('evaluación') || n.titulo.toLowerCase().includes('calific') ? 'bi-journal-check text-success' : 
+                         n.titulo.toLowerCase().includes('asesoría') ? 'bi-headset text-primary' : 
+                         n.titulo.toLowerCase().includes('anuncio') ? 'bi-megaphone text-warning' : 'bi-info-circle text-info';
+            return `
+                <div class="list-group-item list-group-item-action p-3 ${bgClass}" style="border-left: ${n.leida ? '0' : '4px solid var(--bs-primary)'}; cursor: pointer;" onclick="marcarUnaLeida(${n.id_notificacion}, '${n.enlace_opcional || ''}')">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 mt-1"><i class="bi ${icon} fs-5"></i></div>
+                        <div>
+                            <div class="fw-semibold small text-dark mb-1">${n.titulo}</div>
+                            <div class="small text-muted mb-1" style="line-height: 1.2;">${n.mensaje}</div>
+                            <div class="extra-small text-muted" style="font-size: 0.65rem;">${new Date(n.fecha_creacion).toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch(e) {
+        console.error('Error cargando notificaciones:', e);
+    }
+}
+
+async function marcarTodasLeidas() {
+    try {
+        const apiUrl = window.location.origin.includes('localhost') ? 'http://localhost:3000' : 'https://virtualclass-backend.onrender.com';
+        await fetch(`${apiUrl}/api/notificaciones/${currentUser.id_usuario}/leer-todas`, { method: 'PUT' });
+        cargarNotificaciones();
+    } catch(e) { console.error(e); }
+}
+
+async function marcarUnaLeida(id, enlace) {
+    try {
+        const apiUrl = window.location.origin.includes('localhost') ? 'http://localhost:3000' : 'https://virtualclass-backend.onrender.com';
+        await fetch(`${apiUrl}/api/notificaciones/leida/${id}`, { method: 'PUT' });
+        if (enlace && enlace.trim() !== '' && enlace !== 'null') {
+            window.location.href = enlace;
+        } else {
+            cargarNotificaciones();
+        }
+    } catch(e) { console.error(e); }
+}

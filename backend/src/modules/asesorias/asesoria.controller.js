@@ -43,6 +43,8 @@ const obtenerDocentes = async (req, res) => {
     }
 };
 
+const notificacionModel = require('../notificaciones/notificacion.model');
+
 // Crear nueva asesoría (alumno solicita)
 const crearAsesoria = async (req, res) => {
     const { id_docente, id_solicitante, id_grupo, motivo, descripcion, fecha_hora, enlace_reunion } = req.body;
@@ -58,6 +60,14 @@ const crearAsesoria = async (req, res) => {
 
         // El solicitante se agrega automáticamente como participante
         await asesoriaModel.unirseAsesoria(asesoria.id_asesoria, id_solicitante);
+
+        // Notificar al docente
+        await notificacionModel.crearNotificacion(
+            id_docente,
+            'Nueva Solicitud de Asesoría',
+            `Un alumno ha solicitado una asesoría para el tema: ${motivo}.`,
+            'asesorias.html'
+        );
 
         res.status(201).json({ mensaje: 'Asesoría solicitada exitosamente', asesoria });
     } catch (error) {
@@ -78,6 +88,16 @@ const actualizarEstado = async (req, res) => {
     try {
         const asesoria = await asesoriaModel.actualizarEstado(idAsesoria, estado, enlace_reunion);
         if (!asesoria) return res.status(404).json({ mensaje: 'Asesoría no encontrada' });
+
+        // Notificar al estudiante
+        if (estado === 'confirmada' || estado === 'rechazada') {
+            await notificacionModel.crearNotificacion(
+                asesoria.id_solicitante,
+                'Actualización de Asesoría',
+                `El profesor ha ${estado.toUpperCase()} tu solicitud de asesoría para: ${asesoria.motivo}.`,
+                'asesorias.html'
+            );
+        }
 
         res.status(200).json({ mensaje: `Asesoría ${estado}`, asesoria });
     } catch (error) {
