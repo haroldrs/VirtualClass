@@ -855,38 +855,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             let sumaFinales = 0;
             let cursosCalificados = 0;
             
-            // Agrupar evaluaciones por curso, similar a cargarGlobalAlumno()
-            const cursosMap = {};
-            data.forEach(row => {
-                if (!cursosMap[row.id_clase]) {
-                    cursosMap[row.id_clase] = {
-                        curso: row.curso,
-                        seccion: row.seccion,
-                        sumaPonderada: 0,
-                        sumaPesos: 0,
-                        tieneNotas: false
-                    };
-                }
-                if (row.id_evaluacion && row.calificacion !== null) {
-                    cursosMap[row.id_clase].sumaPonderada += parseFloat(row.calificacion) * parseFloat(row.porcentaje);
-                    cursosMap[row.id_clase].sumaPesos += parseFloat(row.porcentaje);
-                    cursosMap[row.id_clase].tieneNotas = true;
-                }
-            });
-
-            Object.values(cursosMap).forEach((c, index) => {
-                const promedio = c.sumaPesos > 0 ? (c.sumaPonderada / c.sumaPesos).toFixed(2) : 'Sin calificar';
+            data.forEach((c, index) => {
+                let promedioMostrado = c.promedio;
                 let estado = '-';
-                if (promedio !== 'Sin calificar') {
-                    sumaFinales += parseFloat(promedio);
+                
+                if (c.promedio === null) {
+                    promedioMostrado = 'Sin calificar';
+                } else if (c.desaprobadoPorFaltas || c.promedio === 'DPI') {
+                    promedioMostrado = 'DPI';
+                    estado = 'DESAPROBADO (FALTAS)';
+                } else {
+                    const numProm = parseFloat(c.promedio);
+                    sumaFinales += numProm;
                     cursosCalificados++;
-                    estado = parseFloat(promedio) >= 13 ? 'APROBADO' : 'DESAPROBADO';
+                    estado = numProm >= 13 ? 'APROBADO' : 'DESAPROBADO';
                 }
+
                 tableData.push([
                     (index + 1).toString(),
                     c.curso,
                     c.seccion,
-                    promedio,
+                    promedioMostrado,
                     estado
                 ]);
             });

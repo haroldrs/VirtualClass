@@ -80,15 +80,45 @@ const resumenGlobalAlumno = async (req, res) => {
             }
         });
 
-        const resumen = Object.values(cursosMap).map(c => {
-            const promedio = c.porcentajeTotal > 0 ? (c.sumaPonderada / (c.porcentajeTotal/100)).toFixed(2) : null;
-            return {
-                ...c,
-                promedio
-            };
-        });
+        // Evaluamos DPI por cada clase
+        const pool = require('../../config/db');
+        const resumenFinal = [];
 
-        res.json(resumen);
+        for (const c of Object.values(cursosMap)) {
+            let promedio = c.porcentajeTotal > 0 ? (c.sumaPonderada / (c.porcentajeTotal / 100)).toFixed(2) : null;
+            let desaprobadoPorFaltas = false;
+
+            // Verificar asistencia (DPI)
+            const totalSesionesQuery = `SELECT COUNT(*) FROM MODULO_CLASE WHERE ID_CLASE = $1`;
+            const totalRes = await pool.query(totalSesionesQuery, [c.id_clase]);
+            const totalSesiones = parseInt(totalRes.rows[0].count) || 0;
+
+            if (totalSesiones > 0) {
+                const asistidasQuery = `
+                    SELECT COUNT(*) 
+                    FROM ASISTENCIA A 
+                    JOIN MODULO_CLASE S ON A.ID_MODULO = S.ID_MODULO
+                    WHERE S.ID_CLASE = $1 AND A.ID_USUARIO = $2 AND A.ESTADO IN ('presente', 'tardanza')
+                `;
+                const asisRes = await pool.query(asistidasQuery, [c.id_clase, req.params.idUsuario]);
+                const asistidas = parseInt(asisRes.rows[0].count) || 0;
+
+                const porcentajeAsistenciaReal = Math.round((asistidas / totalSesiones) * 100);
+                
+                if (porcentajeAsistenciaReal < 70) {
+                    desaprobadoPorFaltas = true;
+                    promedio = 'DPI';
+                }
+            }
+
+            resumenFinal.push({
+                ...c,
+                promedio,
+                desaprobadoPorFaltas
+            });
+        }
+
+        res.json(resumenFinal);
     } catch (error) {
         console.error(error);
         res.status(500).json({ mensaje: 'Error al obtener resumen global' });
