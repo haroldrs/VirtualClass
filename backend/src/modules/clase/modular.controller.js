@@ -1,6 +1,7 @@
 const modularModel = require('./modular.model');
 const pool = require('../../config/db');
 const { uploadFileToDrive } = require('../../utils/drive');
+const notificacionModel = require('../notificaciones/notificacion.model');
 // ===================== UNIDADES =====================
 
 const getUnidades = async (req, res) => {
@@ -145,6 +146,25 @@ const createEvaluacionSemana = async (req, res) => {
             idClase, idModulo,
             nombre_eva, porcentaje, fecha_evaluacion, urlParaGuardar, driveFileId, urlParaGuardar
         );
+        
+        // Notificar a todos los alumnos matriculados en esta clase
+        try {
+            const alumnosQuery = await pool.query(
+                `SELECT M.ID_USUARIO FROM MATRICULA M WHERE M.ID_CLASE = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'`,
+                [idClase]
+            );
+            for (const alumno of alumnosQuery.rows) {
+                await notificacionModel.crearNotificacion(
+                    alumno.id_usuario,
+                    'Nueva Actividad Publicada',
+                    `Se ha publicado una nueva actividad: "${nombre_eva}". Revisa los detalles en tu curso.`,
+                    'dashboard.html'
+                );
+            }
+        } catch (notifErr) {
+            console.error('Error al notificar nueva evaluación modular:', notifErr.message);
+        }
+
         res.status(201).json({ mensaje: 'Evaluación creada', evaluacion });
     } catch (error) {
         console.error('Error creando evaluación:', error);
