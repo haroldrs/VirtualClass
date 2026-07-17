@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="assets/images/virtuclass_logo.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba de Google Drive</title>
@@ -48,7 +50,7 @@
         resultEl.style.display = 'none';
 
         try {
-            const response = await fetch('https://virtualclass-sm1i.onrender.com/api/drive/upload', {
+            const response = await fetch('http://localhost:3000/api/drive/upload', {
                 method: 'POST',
                 body: formData
             });
