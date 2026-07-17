@@ -190,7 +190,7 @@ function mostrarEventosDelDia(dia) {
                                 <span class="ms-2"><i class="bi bi-book me-1"></i>${ev.codigo} - ${ev.nombre_curso}</span>
                             </span>
                         </div>
-                        ${esDocente ? `
+                        ${(esDocente && ev.codigo !== 'ASE') ? `
                         <div class="dropdown">
                             <button class="btn btn-sm btn-light rounded-pill" data-bs-toggle="dropdown">
                                 <i class="bi bi-three-dots-vertical"></i>

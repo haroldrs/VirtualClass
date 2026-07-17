@@ -15,7 +15,26 @@ const obtenerEventosDeAlumno = async (idUsuario, mes, anio) => {
         WHERE M.ID_USUARIO = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'
           AND EXTRACT(MONTH FROM CA.FECHA_INICIO) = $2
           AND EXTRACT(YEAR FROM CA.FECHA_INICIO) = $3
-        ORDER BY CA.FECHA_INICIO ASC;
+          
+        UNION ALL
+        
+        SELECT A.ID_ASESORIA AS ID_EVENTO, 
+               'Asesoría: ' || A.MOTIVO AS TITULO_EVENTO, 
+               COALESCE(A.DESCRIPCION, 'Reunión programada') AS DESCRIPCION,
+               A.FECHA_HORA AS FECHA_INICIO, 
+               A.FECHA_HORA + INTERVAL '1 hour' AS FECHA_FIN, 
+               'reunion' AS TIPO_EVENTO,
+               NULL AS ID_CLASE, 
+               'ASE' AS CODIGO, 
+               'Asesoría Académica' AS NOMBRE_CURSO, 
+               '-' AS SECCION
+        FROM ASESORIA A
+        WHERE (A.ID_SOLICITANTE = $1 OR A.ID_ASESORIA IN (SELECT PA.ID_ASESORIA FROM PARTICIPANTE_ASESORIA PA WHERE PA.ID_USUARIO = $1))
+          AND A.ESTADO = 'confirmada'
+          AND EXTRACT(MONTH FROM A.FECHA_HORA) = $2
+          AND EXTRACT(YEAR FROM A.FECHA_HORA) = $3
+          
+        ORDER BY FECHA_INICIO ASC;
     `;
     const { rows } = await pool.query(query, [idUsuario, mes, anio]);
     return rows;
@@ -36,7 +55,26 @@ const obtenerEventosDeDocente = async (idUsuario, mes, anio) => {
         WHERE CD.ID_USUARIO = $1
           AND EXTRACT(MONTH FROM CA.FECHA_INICIO) = $2
           AND EXTRACT(YEAR FROM CA.FECHA_INICIO) = $3
-        ORDER BY CA.FECHA_INICIO ASC;
+          
+        UNION ALL
+        
+        SELECT A.ID_ASESORIA AS ID_EVENTO, 
+               'Asesoría: ' || A.MOTIVO AS TITULO_EVENTO, 
+               COALESCE(A.DESCRIPCION, 'Reunión programada') AS DESCRIPCION,
+               A.FECHA_HORA AS FECHA_INICIO, 
+               A.FECHA_HORA + INTERVAL '1 hour' AS FECHA_FIN, 
+               'reunion' AS TIPO_EVENTO,
+               NULL AS ID_CLASE, 
+               'ASE' AS CODIGO, 
+               'Asesoría Académica' AS NOMBRE_CURSO, 
+               '-' AS SECCION
+        FROM ASESORIA A
+        WHERE A.ID_DOCENTE = $1
+          AND A.ESTADO = 'confirmada'
+          AND EXTRACT(MONTH FROM A.FECHA_HORA) = $2
+          AND EXTRACT(YEAR FROM A.FECHA_HORA) = $3
+          
+        ORDER BY FECHA_INICIO ASC;
     `;
     const { rows } = await pool.query(query, [idUsuario, mes, anio]);
     return rows;
@@ -56,7 +94,23 @@ const obtenerProximosEventosAlumno = async (idUsuario, limite = 5) => {
         JOIN MATRICULA M ON M.ID_CLASE = CL.ID_CLASE
         WHERE M.ID_USUARIO = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'
           AND CA.FECHA_INICIO >= NOW()
-        ORDER BY CA.FECHA_INICIO ASC
+          
+        UNION ALL
+        
+        SELECT A.ID_ASESORIA AS ID_EVENTO, 
+               'Asesoría: ' || A.MOTIVO AS TITULO_EVENTO, 
+               COALESCE(A.DESCRIPCION, 'Reunión programada') AS DESCRIPCION,
+               A.FECHA_HORA AS FECHA_INICIO, 
+               A.FECHA_HORA + INTERVAL '1 hour' AS FECHA_FIN, 
+               'reunion' AS TIPO_EVENTO,
+               'ASE' AS CODIGO, 
+               'Asesoría Académica' AS NOMBRE_CURSO
+        FROM ASESORIA A
+        WHERE (A.ID_SOLICITANTE = $1 OR A.ID_ASESORIA IN (SELECT PA.ID_ASESORIA FROM PARTICIPANTE_ASESORIA PA WHERE PA.ID_USUARIO = $1))
+          AND A.ESTADO = 'confirmada'
+          AND A.FECHA_HORA >= NOW()
+          
+        ORDER BY FECHA_INICIO ASC
         LIMIT $2;
     `;
     const { rows } = await pool.query(query, [idUsuario, limite]);
@@ -74,7 +128,23 @@ const obtenerProximosEventosDocente = async (idUsuario, limite = 5) => {
         JOIN CLASE_DOCENTE CD ON CD.ID_CLASE = CL.ID_CLASE
         WHERE CD.ID_USUARIO = $1
           AND CA.FECHA_INICIO >= NOW()
-        ORDER BY CA.FECHA_INICIO ASC
+          
+        UNION ALL
+        
+        SELECT A.ID_ASESORIA AS ID_EVENTO, 
+               'Asesoría: ' || A.MOTIVO AS TITULO_EVENTO, 
+               COALESCE(A.DESCRIPCION, 'Reunión programada') AS DESCRIPCION,
+               A.FECHA_HORA AS FECHA_INICIO, 
+               A.FECHA_HORA + INTERVAL '1 hour' AS FECHA_FIN, 
+               'reunion' AS TIPO_EVENTO,
+               'ASE' AS CODIGO, 
+               'Asesoría Académica' AS NOMBRE_CURSO
+        FROM ASESORIA A
+        WHERE A.ID_DOCENTE = $1
+          AND A.ESTADO = 'confirmada'
+          AND A.FECHA_HORA >= NOW()
+          
+        ORDER BY FECHA_INICIO ASC
         LIMIT $2;
     `;
     const { rows } = await pool.query(query, [idUsuario, limite]);
