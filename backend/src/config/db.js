@@ -56,7 +56,19 @@ pool.connect()
                 ('auto_matricula', 'true')
                 ON CONFLICT DO NOTHING;
             `);
-            console.log('🔄 Migración automática: Columnas de enlaces, tabla ANUNCIO y CONFIGURACION_GLOBAL verificadas.');
+            // Tabla de Notificaciones (campanita)
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS NOTIFICACION (
+                    ID_NOTIFICACION SERIAL PRIMARY KEY,
+                    ID_USUARIO_DESTINO INT NOT NULL REFERENCES USUARIO(ID_USUARIO) ON DELETE CASCADE,
+                    TITULO VARCHAR(200) NOT NULL,
+                    MENSAJE TEXT NOT NULL,
+                    LEIDA BOOLEAN DEFAULT FALSE,
+                    ENLACE_OPCIONAL VARCHAR(255),
+                    FECHA_CREACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+            console.log('🔄 Migración automática: Columnas de enlaces, tabla ANUNCIO, CONFIGURACION_GLOBAL y NOTIFICACION verificadas.');
         } catch (migErr) {
             console.error('⚠️ Advertencia: Error en auto-migración de columnas:', migErr.message);
         } finally {
