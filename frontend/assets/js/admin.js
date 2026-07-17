@@ -696,6 +696,12 @@ function renderizarSelectsMatricula() {
     if(selectClaseMasiva) selectClaseMasiva.innerHTML = '<option value="">Seleccione una clase destino...</option>';
     if(selectAlumnosMasiva) selectAlumnosMasiva.innerHTML = '';
     
+    // Limpiar campos de búsqueda
+    ['buscarUsuarioMatricula', 'buscarClaseMatricula', 'buscarClaseMasiva', 'buscarAlumnoMasiva'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+    });
+    
     matriculaUsuariosCache.forEach(u => {
         if(u.nombre_rol?.includes(currentMatriculaMode)) {
             selectUsuario.innerHTML += `<option value="${u.id_usuario}">${u.nombres} ${u.apellidos} (${u.correo})</option>`;
@@ -929,5 +935,30 @@ async function eliminarAnuncio(id) {
         }
     } catch (e) {
         console.error(e);
+    }
+}
+
+// =============================================
+// UTILIDADES: FILTRAR SELECTS
+// =============================================
+function filtrarOpcionesSelect(inputId, selectId) {
+    const input = document.getElementById(inputId);
+    const filter = input.value.toLowerCase();
+    const select = document.getElementById(selectId);
+    const options = select.getElementsByTagName('option');
+
+    for (let i = 0; i < options.length; i++) {
+        // Ignorar la primera opcion si es un placeholder (value="")
+        if (options[i].value === "") {
+            options[i].hidden = false;
+            continue;
+        }
+        
+        const txtValue = options[i].textContent || options[i].innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+            options[i].hidden = false;
+        } else {
+            options[i].hidden = true;
+        }
     }
 }

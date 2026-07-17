@@ -447,12 +447,20 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold" id="lblSeleccionarUsuario">Seleccionar Alumno</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control form-control-sm" id="buscarUsuarioMatricula" placeholder="Buscar por nombre o correo..." onkeyup="filtrarOpcionesSelect('buscarUsuarioMatricula', 'selectUsuarioMatricula')">
+                        </div>
                         <select class="form-select" id="selectUsuarioMatricula">
                             <!-- Llenado dinámicamente -->
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">Seleccionar Clase (Periodo Actual)</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control form-control-sm" id="buscarClaseMatricula" placeholder="Buscar curso o sección..." onkeyup="filtrarOpcionesSelect('buscarClaseMatricula', 'selectClaseMatricula')">
+                        </div>
                         <select class="form-select" id="selectClaseMatricula">
                             <!-- Llenado dinámicamente -->
                         </select>
@@ -847,12 +855,20 @@
                     <form id="formMatriculaMasiva">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Seleccionar Clase de Destino</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control form-control-sm" id="buscarClaseMasiva" placeholder="Buscar curso o sección..." onkeyup="filtrarOpcionesSelect('buscarClaseMasiva', 'claseMatriculaMasiva')">
+                            </div>
                             <select class="form-select" id="claseMatriculaMasiva" required>
                                 <option value="">Cargando clases...</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Seleccionar Alumnos (Puedes seleccionar varios manteniendo Ctrl / Cmd)</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control form-control-sm" id="buscarAlumnoMasiva" placeholder="Buscar alumno por nombre o correo..." onkeyup="filtrarOpcionesSelect('buscarAlumnoMasiva', 'alumnosMatriculaMasiva')">
+                            </div>
                             <select multiple class="form-select" id="alumnosMatriculaMasiva" style="height: 200px;" required>
                                 <option value="">Cargando alumnos...</option>
                             </select>
