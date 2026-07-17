@@ -103,10 +103,13 @@ async function cargarCursosDisponibles() {
 
         contenedor.innerHTML = '';
         let totalCreditosMatriculados = 0;
-
+        
+        // Calcular total de créditos antes de renderizar
         cursos.forEach(c => {
             if(c.esta_matriculado) totalCreditosMatriculados += parseInt(c.creditos) || 0;
-            
+        });
+
+        cursos.forEach(c => {
             const btnMatricular = c.esta_matriculado 
                 ? `<button class="btn btn-sm btn-outline-success fw-bold w-100" disabled><i class="bi bi-check-circle"></i> Matriculado</button>`
                 : `<button class="btn btn-sm btn-primary fw-bold w-100" onclick="matricularse(${c.id_clase}, ${c.creditos}, ${totalCreditosMatriculados})">Matricularse</button>`;
@@ -165,7 +168,7 @@ window.matricularse = async function(idClase, creditosCurso, creditosActuales) {
             // Recargar página para actualizar dashboard principal
             setTimeout(() => window.location.reload(), 1000);
         } else {
-            alert(resData.mensaje || 'Error al procesar la matrícula.');
+            alert((resData.error || resData.mensaje) || 'Error al procesar la matrícula.');
         }
     } catch (e) {
         alert('Error de red al intentar matricularse.');
