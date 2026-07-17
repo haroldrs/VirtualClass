@@ -1,4 +1,6 @@
 const foroModel = require('./foro.model');
+const notificacionModel = require('../notificaciones/notificacion.model');
+const pool = require('../../config/db');
 
 // =============================================
 // 1. Obtener los foros del usuario según su rol
@@ -92,6 +94,30 @@ const responderTema = async (req, res) => {
 
     try {
         const nuevaRespuesta = await foroModel.crearRespuesta(idTema, id_usuario, contenido);
+        
+        // Notificar al autor del tema (si no es el mismo que responde)
+        try {
+            const temaQuery = await pool.query(
+                `SELECT TF.ID_USUARIO, TF.TITULO_TEMA, U.NOMBRES 
+                 FROM TEMA_FORO TF JOIN USUARIO U ON U.ID_USUARIO = $1 
+                 WHERE TF.ID_TEMA = $2`,
+                [id_usuario, idTema]
+            );
+            if (temaQuery.rows.length > 0) {
+                const tema = temaQuery.rows[0];
+                if (tema.id_usuario !== parseInt(id_usuario)) {
+                    await notificacionModel.crearNotificacion(
+                        tema.id_usuario,
+                        'Nueva Respuesta en Foro',
+                        `${tema.nombres} ha respondido a tu tema: "${tema.titulo_tema}".`,
+                        'foro.html'
+                    );
+                }
+            }
+        } catch (notifErr) {
+            console.error('Error al enviar notificación de foro:', notifErr.message);
+        }
+        
         res.status(201).json({
             mensaje: 'Respuesta publicada exitosamente',
             respuesta: nuevaRespuesta

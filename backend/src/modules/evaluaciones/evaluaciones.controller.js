@@ -1,6 +1,7 @@
 const evaluacionesModel = require('./evaluaciones.model');
 const pool = require('../../config/db');
 const { uploadFileToDrive } = require('../../utils/drive');
+const notificacionModel = require('../notificaciones/notificacion.model');
 
 const listar = async (req, res) => {
     const { idClase, idUsuario } = req.params;
@@ -24,6 +25,25 @@ const crear = async (req, res) => {
     const { nombre_eva, porcentaje, fecha_evaluacion } = req.body;
     try {
         const ev = await evaluacionesModel.crearEvaluacion(req.params.idClase, nombre_eva, porcentaje, fecha_evaluacion);
+        
+        // Notificar a todos los alumnos matriculados en esta clase
+        try {
+            const alumnosQuery = await pool.query(
+                `SELECT M.ID_USUARIO FROM MATRICULA M WHERE M.ID_CLASE = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'`,
+                [req.params.idClase]
+            );
+            for (const alumno of alumnosQuery.rows) {
+                await notificacionModel.crearNotificacion(
+                    alumno.id_usuario,
+                    'Nueva Actividad Publicada',
+                    `Se ha publicado una nueva actividad: "${nombre_eva}". Revisa los detalles en tu curso.`,
+                    'dashboard.html'
+                );
+            }
+        } catch (notifErr) {
+            console.error('Error al notificar nueva evaluación:', notifErr.message);
+        }
+        
         res.status(201).json(ev);
     } catch (error) {
         console.error(error);
