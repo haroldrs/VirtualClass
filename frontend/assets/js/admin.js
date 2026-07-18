@@ -982,7 +982,7 @@ function limpiarModalAnuncio() {
     document.getElementById('anuncioId').value = '';
     document.getElementById('anuncioImagenUrl').value = '';
     document.getElementById('anuncioImagenFile').value = '';
-    document.getElementById('anuncioImagenStatus').innerText = 'Sube una imagen desde tu computadora. Se guardará automáticamente en Google Drive.';
+    document.getElementById('anuncioImagenStatus').innerHTML = 'Sube una imagen desde tu computadora. Se guardará en Drive.<br><small class="text-muted">Dimensiones recomendadas: <strong>1200x400px (Banner)</strong> o <strong>1920x1080px (Diapositiva 16:9)</strong>. La imagen se ajustará automáticamente sin recortarse.</small>';
     document.getElementById('modalAnuncioTitle').innerText = 'Nuevo Anuncio';
 }
 
@@ -997,7 +997,7 @@ function editarAnuncio(anuncio) {
     if (anuncio.imagen_url) {
         document.getElementById('anuncioImagenStatus').innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Ya tiene una imagen adjunta. Sube una nueva para reemplazarla.</span>';
     } else {
-        document.getElementById('anuncioImagenStatus').innerText = 'Sube una imagen desde tu computadora. Se guardará automáticamente en Google Drive.';
+        document.getElementById('anuncioImagenStatus').innerHTML = 'Sube una imagen desde tu computadora. Se guardará en Drive.<br><small class="text-muted">Dimensiones recomendadas: <strong>1200x400px (Banner)</strong> o <strong>1920x1080px (Diapositiva 16:9)</strong>. La imagen se ajustará automáticamente sin recortarse.</small>';
     }
     new bootstrap.Modal(document.getElementById('modalAnuncio')).show();
 }
