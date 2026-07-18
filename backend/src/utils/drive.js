@@ -116,8 +116,46 @@ const deleteFileFromDrive = async (fileId) => {
   }
 };
 
+/**
+ * Transmite un archivo de Google Drive directamente al response de Express
+ * @param {String} fileId - ID del archivo en Drive
+ * @param {Object} res - Objeto response de Express
+ */
+const streamFileFromDrive = async (fileId, res) => {
+  try {
+    const fileMeta = await drive.files.get({
+      fileId: fileId,
+      fields: 'mimeType'
+    });
+    
+    if (fileMeta.data && fileMeta.data.mimeType) {
+        res.setHeader('Content-Type', fileMeta.data.mimeType);
+    }
+    
+    // Cache de 1 día para no saturar la API
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+
+    const response = await drive.files.get(
+      { fileId: fileId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+    
+    response.data
+      .on('end', () => {})
+      .on('error', err => {
+        console.error('Error during download', err);
+        res.status(500).send('Error');
+      })
+      .pipe(res);
+  } catch (error) {
+    console.error('Error fetch from Drive:', error);
+    res.status(500).send('Error fetching file');
+  }
+};
+
 module.exports = {
   uploadFileToDrive,
   createFolderInDrive,
-  deleteFileFromDrive
+  deleteFileFromDrive,
+  streamFileFromDrive
 };
