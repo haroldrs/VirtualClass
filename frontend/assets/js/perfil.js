@@ -226,37 +226,76 @@ function renderReporteDocente(container, cursos) {
 
     container.innerHTML = `
         <div class="row g-4 mb-4">
-            <div class="col-lg-6">
-                <div class="card card-custom h-100 bg-white">
+            <div class="col-lg-4">
+                <div class="card card-custom h-100 bg-white border-0 shadow-sm">
                     <div class="card-body p-4 d-flex align-items-center">
-                        <div class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
-                            <i class="bi bi-people-fill fs-3"></i>
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 55px; height: 55px;">
+                            <i class="bi bi-people-fill fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted fw-bold mb-1">Total de Alumnos a Cargo</h6>
-                            <h3 class="fw-bold text-dark mb-0">${totalAlumnosGlobal} <span class="fs-6 fw-normal text-muted">estudiantes</span></h3>
+                            <h6 class="text-muted fw-bold mb-1 small">Total Alumnos</h6>
+                            <h3 class="fw-bold text-dark mb-0">${totalAlumnosGlobal}</h3>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="card card-custom h-100 bg-white">
+            <div class="col-lg-4">
+                <div class="card card-custom h-100 bg-white border-0 shadow-sm">
                     <div class="card-body p-4 d-flex align-items-center">
-                        <div class="bg-warning-subtle text-warning rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
-                            <i class="bi bi-journal-text fs-3"></i>
+                        <div class="bg-success-subtle text-success rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 55px; height: 55px;">
+                            <i class="bi bi-journal-bookmark fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted fw-bold mb-1">Entregas Pendientes de Calificar</h6>
-                            <h3 class="fw-bold ${totalEntregasPendientes > 0 ? 'text-warning' : 'text-success'} mb-0">${totalEntregasPendientes} <span class="fs-6 fw-normal text-muted">evaluaciones</span></h3>
+                            <h6 class="text-muted fw-bold mb-1 small">Cursos Activos</h6>
+                            <h3 class="fw-bold text-dark mb-0">${cursos.length}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-custom h-100 bg-white border-0 shadow-sm">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="bg-warning-subtle text-warning rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 55px; height: 55px;">
+                            <i class="bi bi-ui-checks fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted fw-bold mb-1 small">Por Revisar</h6>
+                            <h3 class="fw-bold ${totalEntregasPendientes > 0 ? 'text-warning' : 'text-success'} mb-0">${totalEntregasPendientes}</h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card card-custom bg-white">
-            <div class="card-body p-4">
-                <h5 class="fw-bold text-dark mb-4"><i class="bi bi-graph-up text-primary me-2"></i>Rendimiento Global del Aula por Curso</h5>
-                <canvas id="chartDocente" height="100"></canvas>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card card-custom bg-white border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-4"><i class="bi bi-graph-up text-primary me-2"></i>Rendimiento del Aula (Promedio)</h6>
+                        <canvas id="chartDocente" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card card-custom bg-white border-0 shadow-sm h-100">
+                    <div class="card-body p-4 flex-column d-flex">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-list-columns-reverse text-primary me-2"></i>Detalle por Aula</h6>
+                        <ul class="list-group list-group-flush flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+                            ${cursos.map(c => `
+                                <li class="list-group-item px-0 py-3 border-bottom border-light">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="fw-bold text-dark small text-truncate" style="max-width: 70%;" title="${c.curso}">${c.curso}</div>
+                                        <span class="badge bg-light text-dark border">Sec. ${c.seccion}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-muted small mt-2">
+                                        <span><i class="bi bi-person-fill me-1"></i>${c.total_alumnos || 0} alumnos</span>
+                                        <span class="${parseInt(c.entregas_pendientes) > 0 ? 'text-warning fw-semibold' : ''}"><i class="bi bi-file-earmark-text me-1"></i>${c.entregas_pendientes || 0} pendientes</span>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     `;
