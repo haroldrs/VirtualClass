@@ -76,21 +76,229 @@ async function cargarDatosPerfil() {
                 renderizarPerfilUsuario();
             }
 
-            // Cargar estadística de cursos
-            try {
-                const respCursos = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
-                if (respCursos.ok) {
-                    const cursos = await respCursos.json();
-                    const statElement = document.getElementById('statCursosCount');
-                    if (statElement) statElement.innerText = cursos.length;
-                }
-            } catch (err) {
-                console.error('Error al cargar cursos para estadísticas', err);
-            }
+            // Generar Reporte de Rendimiento
+            await renderizarReporteRendimiento(data.rol);
         }
     } catch (error) {
         console.error('Error al cargar perfil:', error);
     }
+}
+
+async function renderizarReporteRendimiento(rol) {
+    const container = document.getElementById('resumenContainer');
+    if (!container) return;
+    const esDocente = (rol || '').toLowerCase().includes('docente');
+
+    try {
+        if (esDocente) {
+            const resp = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/docente/${currentUser.id_usuario}`);
+            const datos = await resp.json();
+            renderReporteDocente(container, datos);
+        } else {
+            const resp = await fetch(`https://virtualclass-sm1i.onrender.com/api/calificaciones/global/alumno/${currentUser.id_usuario}`);
+            const datos = await resp.json();
+            renderReporteAlumno(container, datos);
+        }
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="alert alert-danger">Error al cargar el reporte de rendimiento.</div>';
+    }
+}
+
+function renderReporteAlumno(container, evaluaciones) {
+    if (!evaluaciones || evaluaciones.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-bar-chart text-muted" style="font-size:3rem;"></i>
+                <p class="text-muted mt-3">Aún no hay calificaciones registradas para mostrar tu rendimiento.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Procesar datos para obtener promedio por curso
+    const cursosMap = {};
+    evaluaciones.forEach(ev => {
+        if (!cursosMap[ev.curso]) {
+            cursosMap[ev.curso] = { sumaNotas: 0, sumaPorcentajes: 0, notasList: [] };
+        }
+        if (ev.calificacion !== null) {
+            const calif = parseFloat(ev.calificacion);
+            const porc = parseFloat(ev.porcentaje) / 100;
+            cursosMap[ev.curso].sumaNotas += (calif * porc);
+            cursosMap[ev.curso].sumaPorcentajes += porc;
+            cursosMap[ev.curso].notasList.push(calif);
+        }
+    });
+
+    const labels = [];
+    const dataAverages = [];
+    let sumGlobal = 0;
+    let countCursos = 0;
+
+    Object.keys(cursosMap).forEach(curso => {
+        labels.push(curso);
+        const data = cursosMap[curso];
+        // Calcular nota base 20 considerando solo lo evaluado
+        const prom = data.sumaPorcentajes > 0 ? (data.sumaNotas / data.sumaPorcentajes) : 0;
+        dataAverages.push(prom.toFixed(2));
+        if (prom > 0) {
+            sumGlobal += prom;
+            countCursos++;
+        }
+    });
+
+    const promGlobal = countCursos > 0 ? (sumGlobal / countCursos).toFixed(2) : '0.00';
+    const ultimasNotas = evaluaciones.filter(e => e.calificacion !== null).slice(-3).reverse();
+
+    container.innerHTML = `
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="card card-custom h-100 bg-white">
+                    <div class="card-body p-4 text-center">
+                        <i class="bi bi-trophy text-warning mb-3 d-block" style="font-size: 2.5rem;"></i>
+                        <h6 class="text-muted fw-bold mb-1">Promedio General Acumulado</h6>
+                        <h2 class="fw-bold ${promGlobal >= 13 ? 'text-success' : 'text-danger'} mb-0">${promGlobal}</h2>
+                        <small class="text-muted">Sobre base vigesimal (20)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card card-custom h-100 bg-white">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Últimas Calificaciones</h6>
+                        <ul class="list-group list-group-flush">
+                            ${ultimasNotas.length > 0 ? ultimasNotas.map(n => `
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 mb-1">
+                                    <div>
+                                        <div class="fw-semibold small">${n.curso}</div>
+                                    </div>
+                                    <span class="badge ${parseFloat(n.calificacion) >= 13 ? 'bg-success' : 'bg-danger'} rounded-pill px-3 py-2">${n.calificacion}</span>
+                                </li>
+                            `).join('') : '<li class="list-group-item border-0 text-muted small">No hay evaluaciones recientes.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card card-custom bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-dark mb-4"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Rendimiento Promedio por Curso</h5>
+                <canvas id="chartAlumno" height="100"></canvas>
+            </div>
+        </div>
+    `;
+
+    const ctx = document.getElementById('chartAlumno').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Promedio Obtenido',
+                data: dataAverages,
+                backgroundColor: 'rgba(74, 108, 247, 0.7)',
+                borderColor: 'rgba(74, 108, 247, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 20
+                }
+            }
+        }
+    });
+}
+
+function renderReporteDocente(container, cursos) {
+    if (!cursos || cursos.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-briefcase text-muted" style="font-size:3rem;"></i>
+                <p class="text-muted mt-3">Aún no tienes cursos a tu cargo para generar un reporte.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let totalAlumnosGlobal = 0;
+    let totalEntregasPendientes = 0;
+    const labels = [];
+    const dataAverages = [];
+
+    cursos.forEach(c => {
+        totalAlumnosGlobal += parseInt(c.total_alumnos || 0);
+        totalEntregasPendientes += parseInt(c.entregas_pendientes || 0);
+        labels.push(`${c.curso} (Sec. ${c.seccion})`);
+        dataAverages.push(parseFloat(c.promedio_aula || 0).toFixed(2));
+    });
+
+    container.innerHTML = `
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card card-custom h-100 bg-white">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-people-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted fw-bold mb-1">Total de Alumnos a Cargo</h6>
+                            <h3 class="fw-bold text-dark mb-0">${totalAlumnosGlobal} <span class="fs-6 fw-normal text-muted">estudiantes</span></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-custom h-100 bg-white">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="bg-warning-subtle text-warning rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-journal-text fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted fw-bold mb-1">Entregas Pendientes de Calificar</h6>
+                            <h3 class="fw-bold ${totalEntregasPendientes > 0 ? 'text-warning' : 'text-success'} mb-0">${totalEntregasPendientes} <span class="fs-6 fw-normal text-muted">evaluaciones</span></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card card-custom bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-dark mb-4"><i class="bi bi-graph-up text-primary me-2"></i>Rendimiento Global del Aula por Curso</h5>
+                <canvas id="chartDocente" height="100"></canvas>
+            </div>
+        </div>
+    `;
+
+    const ctx = document.getElementById('chartDocente').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Promedio del Aula',
+                data: dataAverages,
+                backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                borderColor: 'rgba(46, 204, 113, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 20
+                }
+            }
+        }
+    });
 }
 
 async function guardarPerfil() {

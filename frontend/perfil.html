@@ -281,44 +281,12 @@
         </ul>
 
         <div class="tab-content" id="perfilTabsContent">
-            <!-- TAB 1: RESUMEN (Sólo lectura) -->
+            <!-- TAB 1: RESUMEN (Gráficos y Estadísticas) -->
             <div class="tab-pane fade show active" id="resumen" role="tabpanel" aria-labelledby="resumen-tab">
-                <div class="row g-4">
-                    <div class="col-lg-4">
-                        <div class="card card-custom h-100 bg-white">
-                            <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
-                                <div class="mb-3">
-                                    <i class="bi bi-award text-warning" style="font-size: 3rem;"></i>
-                                </div>
-                                <h5 class="fw-bold text-dark mb-1">Estado Académico</h5>
-                                <p class="text-muted small mb-3">Actualmente matriculado y activo</p>
-                                <span class="badge bg-success-subtle text-success border border-success fw-bold rounded-pill py-2 px-4 fs-6">Activo</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="card card-custom h-100 bg-white">
-                            <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
-                                <div class="mb-3">
-                                    <i class="bi bi-journal-bookmark-fill text-primary" style="font-size: 3rem;"></i>
-                                </div>
-                                <h5 class="fw-bold text-dark mb-1">Mis Cursos</h5>
-                                <p class="text-muted small mb-3">Total de cursos asignados</p>
-                                <h2 class="fw-bold text-primary mb-0" id="statCursosCount">...</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="card card-custom h-100 bg-white">
-                            <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
-                                <div class="mb-3">
-                                    <i class="bi bi-calendar-check text-info" style="font-size: 3rem;"></i>
-                                </div>
-                                <h5 class="fw-bold text-dark mb-1">Última Conexión</h5>
-                                <p class="text-muted small mb-3">Registro de acceso a la plataforma</p>
-                                <span class="fw-bold text-dark" id="statUltimaConexion">Hoy</span>
-                            </div>
-                        </div>
+                <div id="resumenContainer">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted mt-2">Cargando reporte de rendimiento...</p>
                     </div>
                 </div>
             </div>
@@ -411,6 +379,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
