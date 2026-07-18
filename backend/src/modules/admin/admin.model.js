@@ -9,7 +9,7 @@ const getDashboardStats = async () => {
         FROM USUARIO U
         JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario
         JOIN ROL R ON UR.id_rol = R.id_rol
-        WHERE R.nombre_rol = 'Alumno' 
+        WHERE R.nombre_rol ILIKE '%Alumno%' 
         AND U.estado = 'ACTIVO'
         AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula = 'ACTIVO')
     `);
@@ -29,7 +29,7 @@ const getAlumnosSinMatricula = async () => {
         FROM USUARIO U
         JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario
         JOIN ROL R ON UR.id_rol = R.id_rol
-        WHERE R.nombre_rol = 'Alumno' 
+        WHERE R.nombre_rol ILIKE '%Alumno%' 
         AND U.estado = 'ACTIVO'
         AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula = 'ACTIVO')
         ORDER BY U.apellidos ASC;
