@@ -72,10 +72,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     innerHtml += `
                         <div class="carousel-item ${index === 0 ? 'active' : ''}">
-                            <div class="card bg-dark text-white border-0 shadow-sm mx-auto" style="overflow:hidden; border-radius:12px; max-width:100%;">
-                                <img src="${anuncio.imagen_url}" alt="Anuncio" style="width: 100%; height: 350px; object-fit: contain; background-color: #1a1d20;">
-                                <div class="card-img-overlay d-flex flex-column justify-content-end p-0">
-                                    <div style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 3rem 2rem 1.5rem 2rem;">
+                            <div class="card border-0 shadow-sm mx-auto position-relative" style="overflow:hidden; border-radius:12px; max-width:100%; height: 400px; background-color: #000;">
+                                <!-- Imagen de fondo desenfocada -->
+                                <div style="position: absolute; top: -10%; left: -10%; right: -10%; bottom: -10%; background-image: url('${anuncio.imagen_url}'); background-size: cover; background-position: center; filter: blur(25px) brightness(0.6); z-index: 1;"></div>
+                                
+                                <!-- Imagen principal nítida -->
+                                <img src="${anuncio.imagen_url}" alt="Anuncio" style="position: relative; width: 100%; height: 100%; object-fit: contain; z-index: 2;">
+                                
+                                <div class="card-img-overlay d-flex flex-column justify-content-end p-0" style="z-index: 3;">
+                                    <div style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 60%, transparent 100%); padding: 3rem 2rem 1.5rem 2rem;">
                                         <div class="d-flex align-items-center mb-2">
                                             <span class="badge rounded-pill ${nivel.badgeClass} px-3 py-2 me-3"><i class="bi ${nivel.icon} me-1"></i>${nivel.label}</span>
                                             <small class="text-light"><i class="bi bi-calendar3 me-1"></i>${fechaStr}</small>
