@@ -1,6 +1,7 @@
 const usuarioModel = require('./usuario.model');
 const bcrypt = require('bcryptjs');
 const pool = require('../../config/db');
+const notificacionModel = require('../notificaciones/notificacion.model');
 
 const registrarUsuario = async (req, res) => {
     // Recibimos los datos del frontend
@@ -113,6 +114,32 @@ const crearIncidencia = async (req, res) => {
     const { asunto, descripcion } = req.body;
     try {
         const incidencia = await usuarioModel.crearIncidencia(id, asunto, descripcion);
+        
+        // Buscar a los administradores y enviarles notificación
+        const adminsResult = await pool.query(`
+            SELECT U.id_usuario 
+            FROM USUARIO U 
+            JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario 
+            JOIN ROL R ON UR.id_rol = R.id_rol 
+            WHERE R.nombre_rol = 'Administrador'
+        `);
+        
+        // Obtener el nombre del usuario que creó el ticket
+        const creadorResult = await pool.query('SELECT nombres, apellidos FROM USUARIO WHERE id_usuario = $1', [id]);
+        let nombreCreador = "Un usuario";
+        if (creadorResult.rows.length > 0) {
+            nombreCreador = `${creadorResult.rows[0].nombres} ${creadorResult.rows[0].apellidos}`;
+        }
+        
+        for (const admin of adminsResult.rows) {
+            await notificacionModel.crearNotificacion(
+                admin.id_usuario,
+                '🐛 Nuevo Ticket de Soporte',
+                `${nombreCreador} ha reportado un problema: "${asunto}". Revisa el panel de incidencias.`,
+                'admin.html'
+            );
+        }
+
         res.status(201).json({ mensaje: 'Incidencia creada', incidencia });
     } catch (error) {
         res.status(500).json({ mensaje: 'Error al crear la incidencia', error: error.message });
