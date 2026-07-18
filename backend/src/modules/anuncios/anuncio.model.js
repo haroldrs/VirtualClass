@@ -3,7 +3,7 @@ const pool = require('../../config/db');
 // Obtener anuncios activos (para la página de Inicio de todos los usuarios)
 const obtenerAnunciosActivos = async () => {
     const query = `
-        SELECT A.ID_ANUNCIO, A.TITULO, A.CONTENIDO, A.NIVEL, A.FECHA_PUBLICACION,
+        SELECT A.ID_ANUNCIO, A.TITULO, A.CONTENIDO, A.NIVEL, A.FECHA_PUBLICACION, A.IMAGEN_URL,
                U.NOMBRES AS AUTOR_NOMBRES, U.APELLIDOS AS AUTOR_APELLIDOS
         FROM ANUNCIO A
         LEFT JOIN USUARIO U ON A.ID_AUTOR = U.ID_USUARIO
@@ -18,7 +18,7 @@ const obtenerAnunciosActivos = async () => {
 // Obtener todos los anuncios (para el panel de admin)
 const obtenerTodos = async () => {
     const query = `
-        SELECT A.ID_ANUNCIO, A.TITULO, A.CONTENIDO, A.NIVEL, A.FECHA_PUBLICACION, A.ACTIVO,
+        SELECT A.ID_ANUNCIO, A.TITULO, A.CONTENIDO, A.NIVEL, A.FECHA_PUBLICACION, A.ACTIVO, A.IMAGEN_URL,
                U.NOMBRES AS AUTOR_NOMBRES, U.APELLIDOS AS AUTOR_APELLIDOS
         FROM ANUNCIO A
         LEFT JOIN USUARIO U ON A.ID_AUTOR = U.ID_USUARIO
@@ -29,24 +29,24 @@ const obtenerTodos = async () => {
 };
 
 // Crear un anuncio (admin)
-const crearAnuncio = async (titulo, contenido, nivel, idAutor) => {
+const crearAnuncio = async (titulo, contenido, nivel, idAutor, imagen_url = null) => {
     const query = `
-        INSERT INTO ANUNCIO (TITULO, CONTENIDO, NIVEL, ID_AUTOR)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO ANUNCIO (TITULO, CONTENIDO, NIVEL, ID_AUTOR, IMAGEN_URL)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [titulo, contenido, nivel || 'info', idAutor || null]);
+    const { rows } = await pool.query(query, [titulo, contenido, nivel || 'info', idAutor || null, imagen_url]);
     return rows[0];
 };
 
 // Actualizar un anuncio (admin)
-const actualizarAnuncio = async (idAnuncio, titulo, contenido, nivel) => {
+const actualizarAnuncio = async (idAnuncio, titulo, contenido, nivel, imagen_url = null) => {
     const query = `
-        UPDATE ANUNCIO SET TITULO = $1, CONTENIDO = $2, NIVEL = $3
-        WHERE ID_ANUNCIO = $4
+        UPDATE ANUNCIO SET TITULO = $1, CONTENIDO = $2, NIVEL = $3, IMAGEN_URL = $4
+        WHERE ID_ANUNCIO = $5
         RETURNING *;
     `;
-    const { rows } = await pool.query(query, [titulo, contenido, nivel, idAnuncio]);
+    const { rows } = await pool.query(query, [titulo, contenido, nivel, imagen_url, idAnuncio]);
     return rows[0];
 };
 

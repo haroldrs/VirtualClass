@@ -21,12 +21,12 @@ const obtenerTodos = async (req, res) => {
 };
 
 const crear = async (req, res) => {
-    const { titulo, contenido, nivel, id_autor } = req.body;
+    const { titulo, contenido, nivel, id_autor, imagen_url } = req.body;
     if (!titulo || !contenido) {
         return res.status(400).json({ mensaje: 'Título y contenido son obligatorios' });
     }
     try {
-        const anuncio = await anuncioModel.crearAnuncio(titulo, contenido, nivel, id_autor);
+        const anuncio = await anuncioModel.crearAnuncio(titulo, contenido, nivel, id_autor, imagen_url);
         res.status(201).json({ mensaje: 'Anuncio publicado correctamente', anuncio });
     } catch (error) {
         console.error(error);
@@ -35,9 +35,9 @@ const crear = async (req, res) => {
 };
 
 const actualizar = async (req, res) => {
-    const { titulo, contenido, nivel } = req.body;
+    const { titulo, contenido, nivel, imagen_url } = req.body;
     try {
-        const anuncio = await anuncioModel.actualizarAnuncio(req.params.id, titulo, contenido, nivel);
+        const anuncio = await anuncioModel.actualizarAnuncio(req.params.id, titulo, contenido, nivel, imagen_url);
         if (!anuncio) return res.status(404).json({ mensaje: 'Anuncio no encontrado' });
         res.json({ mensaje: 'Anuncio actualizado', anuncio });
     } catch (error) {

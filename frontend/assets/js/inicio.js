@@ -38,10 +38,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <p class="text-muted mt-3">No hay comunicados publicados por el momento.</p>
                 </div>`;
         } else {
-            anunciosContainer.innerHTML = '';
+            let indicatorsHtml = '';
+            let innerHtml = '';
+
             anuncios.forEach((anuncio, index) => {
                 const fecha = new Date(anuncio.fecha_publicacion);
-                // Corregir zona horaria para campos DATE que vienen como UTC
                 fecha.setMinutes(fecha.getMinutes() + fecha.getTimezoneOffset());
                 
                 const fechaStr = fecha.toLocaleDateString('es-PE', {
@@ -49,39 +50,66 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
 
                 const nivelConfig = {
-                    info: { icon: 'bi-info-circle-fill', label: 'Informativo', badgeClass: 'nivel-badge-info', iconClass: 'nivel-icon-info' },
-                    advertencia: { icon: 'bi-exclamation-triangle-fill', label: 'Advertencia', badgeClass: 'nivel-badge-advertencia', iconClass: 'nivel-icon-advertencia' },
-                    urgente: { icon: 'bi-exclamation-circle-fill', label: 'Urgente', badgeClass: 'nivel-badge-urgente', iconClass: 'nivel-icon-urgente' }
+                    info: { icon: 'bi-info-circle-fill', label: 'Informativo', badgeClass: 'nivel-badge-info' },
+                    advertencia: { icon: 'bi-exclamation-triangle-fill', label: 'Advertencia', badgeClass: 'nivel-badge-advertencia' },
+                    urgente: { icon: 'bi-exclamation-circle-fill', label: 'Urgente', badgeClass: 'nivel-badge-urgente' }
                 };
                 const nivel = nivelConfig[anuncio.nivel] || nivelConfig.info;
-                const autorText = anuncio.autor_nombres
-                    ? `${anuncio.autor_nombres} ${anuncio.autor_apellidos}`
-                    : 'Administración';
+                const autorText = anuncio.autor_nombres ? `${anuncio.autor_nombres} ${anuncio.autor_apellidos}` : 'Administración';
 
-                const cardHtml = `
-                    <div class="card anuncio-card anuncio-nivel-${anuncio.nivel} mb-3" style="animation-delay: ${index * 0.08}s;">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge rounded-pill ${nivel.badgeClass} px-3 py-2">
-                                    <i class="bi ${nivel.icon} me-1"></i>${nivel.label}
-                                </span>
-                                <span class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="bi bi-calendar3 me-1"></i>${fechaStr}
-                                </span>
-                            </div>
-                            <h5 class="fw-bold text-dark mt-2 mb-2">${anuncio.titulo}</h5>
-                            <p class="text-muted mb-2" style="line-height: 1.6;">${anuncio.contenido}</p>
-                            <div class="d-flex align-items-center mt-3 pt-2 border-top">
-                                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 0.7rem; font-weight: 700;">
-                                    ${autorText.charAt(0)}
+                indicatorsHtml += `
+                    <button type="button" data-bs-target="#anunciosCarousel" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''} bg-dark"></button>
+                `;
+
+                const imageHtml = anuncio.imagen_url 
+                    ? `<img src="${anuncio.imagen_url}" class="card-img-top" alt="Anuncio" style="max-height: 250px; object-fit: cover; border-radius: 12px 12px 0 0;">` 
+                    : '';
+
+                innerHtml += `
+                    <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                        <div class="card anuncio-card anuncio-nivel-${anuncio.nivel} mb-4 mx-auto border-0 shadow-sm" style="animation:none; max-width: 95%;">
+                            ${imageHtml}
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge rounded-pill ${nivel.badgeClass} px-3 py-2">
+                                        <i class="bi ${nivel.icon} me-1"></i>${nivel.label}
+                                    </span>
+                                    <span class="text-muted" style="font-size: 0.75rem;">
+                                        <i class="bi bi-calendar3 me-1"></i>${fechaStr}
+                                    </span>
                                 </div>
-                                <span class="text-muted small">Publicado por <strong>${autorText}</strong></span>
+                                <h5 class="fw-bold text-dark mt-2 mb-2">${anuncio.titulo}</h5>
+                                <p class="text-muted mb-3" style="line-height: 1.6;">${anuncio.contenido}</p>
+                                <div class="d-flex align-items-center pt-3 border-top">
+                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 0.7rem; font-weight: 700;">
+                                        ${autorText.charAt(0)}
+                                    </div>
+                                    <span class="text-muted small">Publicado por <strong>${autorText}</strong></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
-                anunciosContainer.insertAdjacentHTML('beforeend', cardHtml);
             });
+
+            anunciosContainer.innerHTML = `
+                <div id="anunciosCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+                    <div class="carousel-indicators" style="bottom: -15px;">
+                        ${indicatorsHtml}
+                    </div>
+                    <div class="carousel-inner pb-4">
+                        ${innerHtml}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#anunciosCarousel" data-bs-slide="prev" style="width: 5%;">
+                        <i class="bi bi-chevron-left text-dark fs-2"></i>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#anunciosCarousel" data-bs-slide="next" style="width: 5%;">
+                        <i class="bi bi-chevron-right text-dark fs-2"></i>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            `;
 
             // Actualizar stat de anuncios
             const statAnuncios = document.getElementById('statAnuncios');

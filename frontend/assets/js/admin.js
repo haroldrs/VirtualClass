@@ -980,6 +980,7 @@ async function cargarAnuncios() {
 function limpiarModalAnuncio() {
     document.getElementById('formAnuncio').reset();
     document.getElementById('anuncioId').value = '';
+    document.getElementById('anuncioImagenUrl').value = '';
     document.getElementById('modalAnuncioTitle').innerText = 'Nuevo Anuncio';
 }
 
@@ -989,6 +990,7 @@ function editarAnuncio(anuncio) {
     document.getElementById('anuncioTitulo').value = anuncio.titulo;
     document.getElementById('anuncioNivel').value = anuncio.nivel;
     document.getElementById('anuncioContenido').value = anuncio.contenido;
+    document.getElementById('anuncioImagenUrl').value = anuncio.imagen_url || '';
     new bootstrap.Modal(document.getElementById('modalAnuncio')).show();
 }
 
@@ -998,11 +1000,12 @@ async function guardarAnuncio(e) {
     const titulo = document.getElementById('anuncioTitulo').value.trim();
     const nivel = document.getElementById('anuncioNivel').value;
     const contenido = document.getElementById('anuncioContenido').value.trim();
+    const imagen_url = document.getElementById('anuncioImagenUrl').value.trim() || null;
     
     // currentUser se obtiene de utils.js, ya estamos en zona logueada
     const idAutor = currentUser ? currentUser.id_usuario : null;
 
-    const body = JSON.stringify({ titulo, contenido, nivel, id_autor: idAutor });
+    const body = JSON.stringify({ titulo, contenido, nivel, imagen_url, id_autor: idAutor });
     const method = id ? 'PUT' : 'POST';
     const url = id ? `${getAnunciosApiUrl()}/${id}` : getAnunciosApiUrl();
 
