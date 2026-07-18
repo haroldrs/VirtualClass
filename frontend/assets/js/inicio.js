@@ -148,6 +148,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             anunciosContainer.innerHTML = finalHtml;
 
+            // Inicializar carrusel dinámicamente si existe (necesario cuando se inyecta HTML asíncronamente)
+            if (anunciosConImagen.length > 0) {
+                const carouselElement = document.getElementById('anunciosCarousel');
+                if (carouselElement && typeof bootstrap !== 'undefined') {
+                    new bootstrap.Carousel(carouselElement, {
+                        interval: 5000,
+                        ride: 'carousel'
+                    });
+                }
+            }
+
             // Actualizar stat de anuncios
             const statAnuncios = document.getElementById('statAnuncios');
             if (statAnuncios) statAnuncios.innerText = anuncios.length;
