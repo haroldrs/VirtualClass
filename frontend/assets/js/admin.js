@@ -160,7 +160,7 @@ async function cargarAlumnosSinMatricula() {
                 <td class="fw-semibold">${al.apellidos}</td>
                 <td><a href="mailto:${al.correo}" class="text-decoration-none">${al.correo}</a></td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showSection('matriculas', document.querySelector('a[href=\\'#matriculas\\']')); const modal = bootstrap.Modal.getInstance(document.getElementById('modalSinMatricula')); if(modal) modal.hide();" title="Ir a Matrículas">
+                    <button class="btn btn-sm btn-outline-primary" onclick="irAMatricular(${al.id_usuario})" title="Ir a Matrículas">
                         <i class="bi bi-arrow-right-circle"></i> Matricular
                     </button>
                 </td>
@@ -170,6 +170,32 @@ async function cargarAlumnosSinMatricula() {
         console.error(error);
         tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger"><i class="bi bi-x-circle fs-3 d-block mb-2"></i> Error al cargar los alumnos.</td></tr>';
     }
+}
+
+function irAMatricular(id_usuario) {
+    // 1. Cerrar el modal limpiamente
+    const modalEl = document.getElementById('modalSinMatricula');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if(modal) modal.hide();
+    
+    // 2. Esperar que la animación del modal termine para no romper el scroll/UI
+    setTimeout(() => {
+        // Asegurarnos de limpiar el backdrop si Bootstrap se atasca
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        const backdrop = document.querySelector('.modal-backdrop');
+        if(backdrop) backdrop.remove();
+        
+        // 3. Simular el clic real en el enlace del menú para que dispare TODO (cargarDatosMatricula y showSection)
+        const btnMatriculas = document.querySelector('a[href="#matriculas"]');
+        if(btnMatriculas) {
+            btnMatriculas.click();
+            
+            // Opcional: pre-seleccionar el alumno si fuera posible (requeriría modificar cargarDatosMatricula)
+            // Por ahora, solo lo llevamos a la pestaña lista y sin bug de UI.
+        }
+    }, 300);
 }
 
 async function cargarIncidencias() {
