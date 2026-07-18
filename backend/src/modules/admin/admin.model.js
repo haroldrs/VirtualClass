@@ -10,8 +10,8 @@ const getDashboardStats = async () => {
         JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario
         JOIN ROL R ON UR.id_rol = R.id_rol
         WHERE R.nombre_rol ILIKE '%Alumno%' 
-        AND U.estado = 'ACTIVO'
-        AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula = 'ACTIVO')
+        AND U.estado ILIKE 'ACTIVO'
+        AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula ILIKE 'ACTIVO')
     `);
     const issues = await pool.query("SELECT COUNT(*) FROM INCIDENCIA_SOPORTE WHERE ESTADO = 'pendiente'");
 
@@ -30,8 +30,8 @@ const getAlumnosSinMatricula = async () => {
         JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario
         JOIN ROL R ON UR.id_rol = R.id_rol
         WHERE R.nombre_rol ILIKE '%Alumno%' 
-        AND U.estado = 'ACTIVO'
-        AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula = 'ACTIVO')
+        AND U.estado ILIKE 'ACTIVO'
+        AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula ILIKE 'ACTIVO')
         ORDER BY U.apellidos ASC;
     `;
     const res = await pool.query(query);
