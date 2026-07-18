@@ -114,6 +114,12 @@ function seleccionarForo(foro) {
     const subtitulo = document.getElementById('foroSubtitulo');
     subtitulo.innerHTML = `Foro actual: <strong class="text-primary">${foro.codigo} - ${foro.nombre_curso}</strong>`;
     
+    // Actualizar select del modal para que coincida con el foro actual
+    const selectForoModal = document.getElementById('selectForoModal');
+    if (selectForoModal) {
+        selectForoModal.value = foro.id_foro;
+    }
+
     // Actualizar visualmente los tabs
     renderForoTabs();
     
