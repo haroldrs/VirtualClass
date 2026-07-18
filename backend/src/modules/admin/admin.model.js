@@ -4,15 +4,38 @@ const bcrypt = require('bcryptjs');
 const getDashboardStats = async () => {
     const totalUsers = await pool.query('SELECT COUNT(*) FROM USUARIO');
     const activeCourses = await pool.query('SELECT COUNT(*) FROM CURSO');
-    const totalEnrollments = await pool.query('SELECT COUNT(*) FROM MATRICULA WHERE ESTADO_MATRICULA = $1', ['ACTIVO']);
+    const alumnosSinMatricula = await pool.query(`
+        SELECT COUNT(U.id_usuario) 
+        FROM USUARIO U
+        JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario
+        JOIN ROL R ON UR.id_rol = R.id_rol
+        WHERE R.nombre_rol = 'Alumno' 
+        AND U.estado = 'ACTIVO'
+        AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula = 'ACTIVO')
+    `);
     const issues = await pool.query("SELECT COUNT(*) FROM INCIDENCIA_SOPORTE WHERE ESTADO = 'pendiente'");
 
     return {
         totalUsuarios: parseInt(totalUsers.rows[0].count),
         cursosActivos: parseInt(activeCourses.rows[0].count),
-        matriculasTotales: parseInt(totalEnrollments.rows[0].count),
+        alumnosSinMatricula: parseInt(alumnosSinMatricula.rows[0].count),
         incidencias: parseInt(issues.rows[0].count)
     };
+};
+
+const getAlumnosSinMatricula = async () => {
+    const query = `
+        SELECT U.id_usuario, U.nombres, U.apellidos, U.correo
+        FROM USUARIO U
+        JOIN USUARIO_ROL UR ON U.id_usuario = UR.id_usuario
+        JOIN ROL R ON UR.id_rol = R.id_rol
+        WHERE R.nombre_rol = 'Alumno' 
+        AND U.estado = 'ACTIVO'
+        AND U.id_usuario NOT IN (SELECT id_usuario FROM MATRICULA WHERE estado_matricula = 'ACTIVO')
+        ORDER BY U.apellidos ASC;
+    `;
+    const res = await pool.query(query);
+    return res.rows;
 };
 
 const getIncidencias = async () => {
@@ -338,6 +361,7 @@ const updateConfig = async (config) => {
 
 module.exports = {
     getDashboardStats,
+    getAlumnosSinMatricula,
     getIncidencias,
     resolverIncidencia,
     getAllUsers,

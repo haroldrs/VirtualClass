@@ -135,10 +135,41 @@ async function cargarEstadisticas() {
         if(h3Elements.length >= 4) {
             h3Elements[0].textContent = stats.totalUsuarios;
             h3Elements[1].textContent = stats.cursosActivos;
-            h3Elements[2].textContent = stats.matriculasTotales;
+            h3Elements[2].textContent = stats.alumnosSinMatricula;
             h3Elements[3].textContent = stats.incidencias;
         }
     } catch (error) { console.error(error); }
+}
+
+async function cargarAlumnosSinMatricula() {
+    const tbody = document.querySelector('#tablaSinMatricula tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><div class="spinner-border text-warning" role="status"></div></td></tr>';
+    
+    try {
+        const response = await fetch(`${getApiUrl()}/alumnos-sin-matricula`);
+        const alumnos = await response.json();
+        
+        if (!alumnos || alumnos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i> ¡Todos los alumnos están matriculados!</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = alumnos.map(al => `
+            <tr>
+                <td class="fw-semibold">${al.nombres}</td>
+                <td class="fw-semibold">${al.apellidos}</td>
+                <td><a href="mailto:${al.correo}" class="text-decoration-none">${al.correo}</a></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showSection('matriculas', document.querySelector('a[href=\\'#matriculas\\']')); const modal = bootstrap.Modal.getInstance(document.getElementById('modalSinMatricula')); if(modal) modal.hide();" title="Ir a Matrículas">
+                        <i class="bi bi-arrow-right-circle"></i> Matricular
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger"><i class="bi bi-x-circle fs-3 d-block mb-2"></i> Error al cargar los alumnos.</td></tr>';
+    }
 }
 
 async function cargarIncidencias() {

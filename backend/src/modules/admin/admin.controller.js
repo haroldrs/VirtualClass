@@ -10,6 +10,15 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
+const getAlumnosSinMatricula = async (req, res) => {
+    try {
+        const alumnos = await adminModel.getAlumnosSinMatricula();
+        res.status(200).json(alumnos);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener alumnos sin matricula', error: error.message });
+    }
+};
+
 const getIncidencias = async (req, res) => {
     try {
         const incidencias = await adminModel.getIncidencias();
@@ -261,6 +270,7 @@ const updateConfig = async (req, res) => {
 
 module.exports = {
     getDashboardStats,
+    getAlumnosSinMatricula,
     getIncidencias,
     resolverIncidencia,
     getAllUsers,
