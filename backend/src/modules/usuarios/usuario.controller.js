@@ -108,4 +108,15 @@ const cambiarContrasena = async (req, res) => {
     }
 };
 
-module.exports = { registrarUsuario, loginUsuario, obtenerPerfil, actualizarPerfil, cambiarContrasena };
+const crearIncidencia = async (req, res) => {
+    const { id } = req.params;
+    const { asunto, descripcion } = req.body;
+    try {
+        const incidencia = await usuarioModel.crearIncidencia(id, asunto, descripcion);
+        res.status(201).json({ mensaje: 'Incidencia creada', incidencia });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al crear la incidencia', error: error.message });
+    }
+};
+
+module.exports = { registrarUsuario, loginUsuario, obtenerPerfil, actualizarPerfil, cambiarContrasena, crearIncidencia };

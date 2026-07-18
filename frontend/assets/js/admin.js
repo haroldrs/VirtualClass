@@ -143,14 +143,14 @@ async function cargarEstadisticas() {
 
 async function cargarIncidencias() {
     const tbody = document.querySelector('#tablaIncidencias tbody');
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><div class="spinner-border text-primary" role="status"></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border text-primary" role="status"></div></td></tr>';
     
     try {
         const response = await fetch(`${getApiUrl()}/incidencias`);
         const incidencias = await response.json();
         
         if (!incidencias || incidencias.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i> No hay incidencias pendientes.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i> No hay incidencias pendientes.</td></tr>';
             return;
         }
         
@@ -160,15 +160,34 @@ async function cargarIncidencias() {
                 <tr>
                     <td><span class="text-muted small"><i class="bi bi-calendar me-1"></i>${fecha}</span></td>
                     <td class="fw-semibold">${inc.solicitante_nombres} ${inc.solicitante_apellidos}</td>
-                    <td>${inc.motivo}</td>
-                    <td><span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span></td>
+                    <td class="fw-bold">${inc.asunto}</td>
+                    <td class="text-muted small">${inc.descripcion}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success" onclick="resolverIncidencia(${inc.id_incidencia})" title="Marcar como Resuelto">
+                            <i class="bi bi-check2-circle"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join('');
     } catch (error) {
         console.error(error);
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger"><i class="bi bi-x-circle fs-3 d-block mb-2"></i> Error al cargar incidencias.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger"><i class="bi bi-x-circle fs-3 d-block mb-2"></i> Error al cargar incidencias.</td></tr>';
     }
+}
+
+async function resolverIncidencia(id) {
+    if(!confirm('¿Estás seguro de marcar esta incidencia como resuelta?')) return;
+    try {
+        const res = await fetch(`${getApiUrl()}/incidencias/${id}/resolver`, { method: 'PUT' });
+        if(res.ok) {
+            alert('Incidencia resuelta exitosamente.');
+            cargarIncidencias();
+            cargarEstadisticas();
+        } else {
+            alert('Error al resolver la incidencia.');
+        }
+    } catch (error) { console.error(error); }
 }
 
 // --- USUARIOS ---

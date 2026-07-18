@@ -19,6 +19,16 @@ const getIncidencias = async (req, res) => {
     }
 };
 
+const resolverIncidencia = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const incidencia = await adminModel.resolverIncidencia(id);
+        res.status(200).json({ mensaje: 'Incidencia resuelta', incidencia });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al resolver incidencia', error: error.message });
+    }
+};
+
 const getAllUsers = async (req, res) => {
     try {
         const users = await adminModel.getAllUsers();
@@ -252,6 +262,7 @@ const updateConfig = async (req, res) => {
 module.exports = {
     getDashboardStats,
     getIncidencias,
+    resolverIncidencia,
     getAllUsers,
     getRoles,
     createUser,

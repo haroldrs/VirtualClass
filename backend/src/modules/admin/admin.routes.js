@@ -5,6 +5,7 @@ const adminController = require('./admin.controller');
 // Dashboard
 router.get('/stats', adminController.getDashboardStats);
 router.get('/incidencias', adminController.getIncidencias);
+router.put('/incidencias/:id/resolver', adminController.resolverIncidencia);
 
 // Usuarios
 router.get('/usuarios', adminController.getAllUsers);

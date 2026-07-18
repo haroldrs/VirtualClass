@@ -56,6 +56,17 @@ pool.connect()
                 ('auto_matricula', 'true')
                 ON CONFLICT DO NOTHING;
             `);
+            // Tabla de Tickets de Soporte (Incidencias)
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS INCIDENCIA_SOPORTE (
+                    ID_INCIDENCIA SERIAL PRIMARY KEY,
+                    ID_USUARIO INT REFERENCES USUARIO(ID_USUARIO) ON DELETE CASCADE,
+                    ASUNTO VARCHAR(200) NOT NULL,
+                    DESCRIPCION TEXT NOT NULL,
+                    ESTADO VARCHAR(20) DEFAULT 'pendiente' CHECK (ESTADO IN ('pendiente','resuelto')),
+                    FECHA_CREACION TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
             // Tabla de Notificaciones (campanita)
             await client.query(`
                 CREATE TABLE IF NOT EXISTS NOTIFICACION (

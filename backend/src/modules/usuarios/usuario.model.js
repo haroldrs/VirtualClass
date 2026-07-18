@@ -102,4 +102,14 @@ const cambiarContrasena = async (id, nuevaContrasena) => {
     }
 };
 
-module.exports = { crearUsuario, obtenerUsuarioConRolPorCorreo, obtenerUsuarioPorId, actualizarPerfil, cambiarContrasena };
+const crearIncidencia = async (idUsuario, asunto, descripcion) => {
+    const query = `
+        INSERT INTO INCIDENCIA_SOPORTE (id_usuario, asunto, descripcion)
+        VALUES ($1, $2, $3)
+        RETURNING *;
+    `;
+    const res = await pool.query(query, [idUsuario, asunto, descripcion]);
+    return res.rows[0];
+};
+
+module.exports = { crearUsuario, obtenerUsuarioConRolPorCorreo, obtenerUsuarioPorId, actualizarPerfil, cambiarContrasena, crearIncidencia };

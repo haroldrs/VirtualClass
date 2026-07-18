@@ -16,4 +16,7 @@ router.put('/:id', usuarioController.actualizarPerfil);
 // Cambiar contraseña
 router.put('/:id/password', usuarioController.cambiarContrasena);
 
+// Crear incidencia / ticket de soporte
+router.post('/:id/incidencias', usuarioController.crearIncidencia);
+
 module.exports = router;

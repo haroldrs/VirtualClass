@@ -69,6 +69,83 @@ function renderizarPerfilUsuario() {
             circle.innerText = iniciales;
         });
     }
+
+    // Inyectar botón de "Reportar un problema" en el menú desplegable del perfil si no existe
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    if (dropdownMenu && !document.getElementById('btnSoporteGlobal')) {
+        const divider = dropdownMenu.querySelector('.dropdown-divider');
+        if (divider) {
+            const btnHTML = `
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center text-warning" href="#" id="btnSoporteGlobal" data-bs-toggle="modal" data-bs-target="#modalSoporteTicket">
+                        <i class="bi bi-bug me-2"></i> Reportar un problema
+                    </a>
+                </li>
+            `;
+            divider.insertAdjacentHTML('beforebegin', btnHTML);
+            inyectarModalSoporte();
+        }
+    }
+}
+
+function inyectarModalSoporte() {
+    if (document.getElementById('modalSoporteTicket')) return;
+    
+    document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal fade" id="modalSoporteTicket" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-warning border-0">
+                        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-bug me-2"></i> Reportar un problema</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="small text-muted mb-3">Si estás experimentando problemas técnicos en la plataforma, envíanos un reporte detallado. Un administrador lo revisará pronto.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Asunto (Ej: No puedo subir mi tarea)</label>
+                            <input type="text" class="form-control" id="soporteAsunto">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción del problema</label>
+                            <textarea class="form-control" id="soporteDescripcion" rows="4" placeholder="Explica detalladamente qué ocurre y dónde..."></textarea>
+                        </div>
+                        <button class="btn btn-warning w-100 fw-bold" onclick="enviarTicketSoporte()">Enviar Reporte</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+window.enviarTicketSoporte = async function() {
+    const asunto = document.getElementById('soporteAsunto').value;
+    const descripcion = document.getElementById('soporteDescripcion').value;
+    
+    if (!asunto || !descripcion) return alert('Por favor completa todos los campos.');
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/usuarios/${currentUser.id_usuario}/incidencias`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ asunto, descripcion })
+        });
+        
+        if (res.ok) {
+            alert('¡Gracias! Tu reporte ha sido enviado al administrador de la plataforma.');
+            const modalEl = document.getElementById('modalSoporteTicket');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+            document.getElementById('soporteAsunto').value = '';
+            document.getElementById('soporteDescripcion').value = '';
+        } else {
+            alert('Hubo un error al enviar el reporte. Por favor intenta de nuevo.');
+        }
+    } catch (error) {
+        console.error('Error al enviar ticket:', error);
+        alert('Error de conexión.');
+    }
 }
 
 function cerrarSesion() {

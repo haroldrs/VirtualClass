@@ -5,7 +5,7 @@ const getDashboardStats = async () => {
     const totalUsers = await pool.query('SELECT COUNT(*) FROM USUARIO');
     const activeCourses = await pool.query('SELECT COUNT(*) FROM CURSO');
     const totalEnrollments = await pool.query('SELECT COUNT(*) FROM MATRICULA WHERE ESTADO_MATRICULA = $1', ['ACTIVO']);
-    const issues = await pool.query("SELECT COUNT(*) FROM ASESORIA WHERE ESTADO = 'pendiente'");
+    const issues = await pool.query("SELECT COUNT(*) FROM INCIDENCIA_SOPORTE WHERE ESTADO = 'pendiente'");
 
     return {
         totalUsuarios: parseInt(totalUsers.rows[0].count),
@@ -17,15 +17,26 @@ const getDashboardStats = async () => {
 
 const getIncidencias = async () => {
     const query = `
-        SELECT A.id_asesoria, A.motivo, A.fecha_hora, A.estado, 
+        SELECT I.id_incidencia, I.asunto, I.descripcion, I.fecha_creacion as fecha_hora, I.estado, 
                U.nombres AS solicitante_nombres, U.apellidos AS solicitante_apellidos
-        FROM ASESORIA A
-        JOIN USUARIO U ON A.id_solicitante = U.id_usuario
-        WHERE A.estado = 'pendiente'
-        ORDER BY A.fecha_hora DESC;
+        FROM INCIDENCIA_SOPORTE I
+        JOIN USUARIO U ON I.id_usuario = U.id_usuario
+        WHERE I.estado = 'pendiente'
+        ORDER BY I.fecha_creacion DESC;
     `;
     const res = await pool.query(query);
     return res.rows;
+};
+
+const resolverIncidencia = async (idIncidencia) => {
+    const query = `
+        UPDATE INCIDENCIA_SOPORTE 
+        SET estado = 'resuelto' 
+        WHERE id_incidencia = $1 
+        RETURNING *;
+    `;
+    const res = await pool.query(query, [idIncidencia]);
+    return res.rows[0];
 };
 
 // Usuarios
@@ -328,6 +339,7 @@ const updateConfig = async (config) => {
 module.exports = {
     getDashboardStats,
     getIncidencias,
+    resolverIncidencia,
     getAllUsers,
     getRoles,
     createUser,
