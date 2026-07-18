@@ -41,4 +41,8 @@ router.get('/reportes/:tipo', adminController.generarReporteCSV);
 router.get('/config', adminController.getConfig);
 router.put('/config', adminController.updateConfig);
 
+// Bitacora de Actividades
+router.post('/logs', adminController.addLog);
+router.get('/logs', adminController.getLogs);
+
 module.exports = router;

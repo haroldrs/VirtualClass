@@ -394,6 +394,48 @@ const updateConfig = async (config) => {
     }
 };
 
+const addLog = async (idUsuario, accion, detalle, estado, badge) => {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS BITACORA_ADMIN (
+            ID_BITACORA SERIAL PRIMARY KEY,
+            ID_USUARIO INT REFERENCES USUARIO(ID_USUARIO),
+            ACCION VARCHAR(255),
+            DETALLE TEXT,
+            ESTADO VARCHAR(50),
+            BADGE VARCHAR(50),
+            FECHA TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
+    const query = `
+        INSERT INTO BITACORA_ADMIN (ID_USUARIO, ACCION, DETALLE, ESTADO, BADGE)
+        VALUES ($1, $2, $3, $4, $5) RETURNING *
+    `;
+    const result = await pool.query(query, [idUsuario, accion, detalle, estado, badge]);
+    return result.rows[0];
+};
+
+const getLogs = async () => {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS BITACORA_ADMIN (
+            ID_BITACORA SERIAL PRIMARY KEY,
+            ID_USUARIO INT REFERENCES USUARIO(ID_USUARIO),
+            ACCION VARCHAR(255),
+            DETALLE TEXT,
+            ESTADO VARCHAR(50),
+            BADGE VARCHAR(50),
+            FECHA TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
+    const query = `
+        SELECT B.*, U.NOMBRES, U.APELLIDOS 
+        FROM BITACORA_ADMIN B
+        LEFT JOIN USUARIO U ON B.ID_USUARIO = U.ID_USUARIO
+        ORDER BY B.FECHA DESC LIMIT 50
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+};
+
 module.exports = {
     getDashboardStats,
     getAlumnosSinMatricula,
@@ -419,5 +461,7 @@ module.exports = {
     changeEnrollmentStatus,
     generarReporteCSV,
     getConfig,
-    updateConfig
+    updateConfig,
+    addLog,
+    getLogs
 };

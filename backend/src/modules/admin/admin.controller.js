@@ -278,6 +278,25 @@ const updateConfig = async (req, res) => {
     }
 };
 
+const addLog = async (req, res) => {
+    const { idUsuario, accion, detalle, estado, badge } = req.body;
+    try {
+        const log = await adminModel.addLog(idUsuario, accion, detalle, estado, badge);
+        res.status(201).json(log);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al agregar log', error: error.message });
+    }
+};
+
+const getLogs = async (req, res) => {
+    try {
+        const logs = await adminModel.getLogs();
+        res.status(200).json(logs);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener logs', error: error.message });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAlumnosSinMatricula,
@@ -303,5 +322,7 @@ module.exports = {
     changeEnrollmentStatus,
     generarReporteCSV,
     getConfig,
-    updateConfig
+    updateConfig,
+    addLog,
+    getLogs
 };

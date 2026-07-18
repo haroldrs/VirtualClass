@@ -1,14 +1,12 @@
 // --- INICIALIZACION Y LOGS ---
 let globalUsuarios = []; // Para el filtro
-let logsActividad = [
-    { usr: 'Admin', act: 'Inicio de sesión exitoso', fecha: new Date(), estado: 'Completado', badge: 'bg-success' }
-];
+let logsActividad = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarEstadisticas();
     cargarRoles();
     cargarConfiguracion();
-    renderLogs();
+    cargarLogs();
 
     document.querySelector('a[href="#usuarios"]').addEventListener('click', cargarUsuarios);
     document.querySelector('a[href="#cursos"]').addEventListener('click', cargarCursos);
@@ -56,10 +54,36 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-function agregarLog(usr, act, estado, badge) {
-    logsActividad.unshift({ usr, act, fecha: new Date(), estado, badge });
-    if (logsActividad.length > 6) logsActividad.pop();
-    renderLogs();
+async function cargarLogs() {
+    try {
+        const res = await fetch(`${getApiUrl()}/logs`);
+        if (res.ok) {
+            logsActividad = await res.json();
+            renderLogs();
+        }
+    } catch (e) {
+        console.error('Error cargando logs:', e);
+    }
+}
+
+async function agregarLog(usr, act, estado, badge) {
+    try {
+        const adminId = currentUser ? currentUser.id_usuario : 1;
+        await fetch(`${getApiUrl()}/logs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idUsuario: adminId,
+                accion: act,
+                detalle: usr, // 'Admin'
+                estado: estado,
+                badge: badge
+            })
+        });
+        cargarLogs();
+    } catch (e) {
+        console.error('Error agregando log:', e);
+    }
 }
 
 async function cargarConfiguracion() {
@@ -100,14 +124,22 @@ function renderLogs() {
     if (!tbody) return;
     tbody.innerHTML = '';
     logsActividad.forEach(log => {
-        const timeStr = log.fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateObj = new Date(log.fecha);
+        const dateStr = dateObj.toLocaleDateString('es-PE');
+        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const nombreAdmin = log.nombres ? `${log.nombres} ${log.apellidos}` : 'Admin del Sistema';
+
         tbody.innerHTML += `<tr>
-            <td>${log.usr}</td>
-            <td>${log.act}</td>
-            <td>Hoy, ${timeStr}</td>
+            <td>${nombreAdmin}</td>
+            <td>${log.accion}</td>
+            <td>${dateStr}, ${timeStr}</td>
             <td><span class="badge ${log.badge}">${log.estado}</span></td>
         </tr>`;
     });
+    if (logsActividad.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay actividades recientes</td></tr>';
+    }
 }
 
 const API_URL = '/api/admin'; // Ruta relativa para producción en render, en dev agregar http://localhost:3000 si se corre frontend separado. 
