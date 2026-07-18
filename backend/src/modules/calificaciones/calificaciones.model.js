@@ -56,7 +56,7 @@ const obtenerResumenGlobalAlumno = async (idUsuario) => {
         JOIN CURSO CU ON C.ID_CURSO = CU.ID_CURSO
         LEFT JOIN EVALUACION E ON E.ID_CLASE = C.ID_CLASE
         LEFT JOIN NOTA N ON N.ID_EVALUACION = E.ID_EVALUACION AND N.ID_USUARIO = $1
-        WHERE M.ID_USUARIO = $1 AND M.ESTADO_MATRICULA = 'ACTIVO';
+        WHERE M.ID_USUARIO = $1 AND M.ESTADO_MATRICULA = 'ACTIVO' AND C.ESTADO ILIKE 'ACTIVO' AND CU.ESTADO ILIKE 'ACTIVO';
     `;
     const { rows } = await pool.query(query, [idUsuario]);
     return rows;
@@ -82,7 +82,7 @@ const obtenerResumenGlobalDocente = async (idUsuario) => {
         FROM CLASE_DOCENTE CD
         JOIN CLASE C ON CD.ID_CLASE = C.ID_CLASE
         JOIN CURSO CU ON C.ID_CURSO = CU.ID_CURSO
-        WHERE CD.ID_USUARIO = $1;
+        WHERE CD.ID_USUARIO = $1 AND C.ESTADO ILIKE 'ACTIVO' AND CU.ESTADO ILIKE 'ACTIVO';
     `;
     const { rows } = await pool.query(query, [idUsuario]);
     return rows;
