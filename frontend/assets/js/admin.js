@@ -919,46 +919,45 @@ function getAnunciosApiUrl() {
 }
 
 async function cargarAnuncios() {
-    const tbody = document.getElementById('tablaAnunciosBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>';
+    const tbodyBanners = document.getElementById('tablaBannersBody');
+    const tbodyAvisos = document.getElementById('tablaAvisosBody');
+    
+    tbodyBanners.innerHTML = '<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>';
+    tbodyAvisos.innerHTML = '<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>';
 
     try {
         const resp = await fetch(getAnunciosApiUrl());
         const anuncios = await resp.json();
 
-        tbody.innerHTML = '';
-        if (anuncios.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay anuncios publicados.</td></tr>';
-            return;
-        }
+        tbodyBanners.innerHTML = '';
+        tbodyAvisos.innerHTML = '';
 
-        anuncios.forEach(anuncio => {
-            const fecha = new Date(anuncio.fecha_publicacion).toLocaleDateString('es-PE');
-            const autor = anuncio.autor_nombres ? `${anuncio.autor_nombres} ${anuncio.autor_apellidos}` : 'Admin';
+        const banners = anuncios.filter(a => a.imagen_url && a.imagen_url !== 'null' && a.imagen_url.trim() !== '');
+        const avisos = anuncios.filter(a => !(a.imagen_url && a.imagen_url !== 'null' && a.imagen_url.trim() !== ''));
 
+        const renderFila = (anuncio) => {
             let badgeColor = 'bg-primary';
             let icon = 'bi-info-circle';
             if (anuncio.nivel === 'advertencia') { badgeColor = 'bg-warning text-dark'; icon = 'bi-exclamation-triangle'; }
             if (anuncio.nivel === 'urgente') { badgeColor = 'bg-danger'; icon = 'bi-exclamation-circle'; }
 
             const tr = document.createElement('tr');
+            tr.dataset.id = anuncio.id_anuncio; // Necesario para reordenamiento
+            tr.style.cursor = 'grab';
             tr.innerHTML = `
-                <td class="ps-4">
-                    <span class="badge ${badgeColor} rounded-pill px-3 py-2"><i class="bi ${icon} me-1"></i>${anuncio.nivel}</span>
-                </td>
-                <td class="fw-bold">${anuncio.titulo}</td>
+                <td class="ps-3 text-muted"><i class="bi bi-grip-vertical"></i></td>
                 <td>
-                    <span class="d-block small"><i class="bi bi-calendar3 me-1"></i>${fecha}</span>
-                    <span class="d-block text-muted" style="font-size:0.75rem;"><i class="bi bi-person me-1"></i>${autor}</span>
+                    <div class="fw-bold mb-1">${anuncio.titulo}</div>
+                    <span class="badge ${badgeColor} rounded-pill px-2 py-1" style="font-size: 0.7rem;"><i class="bi ${icon} me-1"></i>${anuncio.nivel}</span>
                 </td>
                 <td>
-                    <div class="form-check form-switch">
+                    <div class="form-check form-switch m-0">
                         <input class="form-check-input" type="checkbox" role="switch" 
                             ${anuncio.activo ? 'checked' : ''} 
                             onchange="toggleEstadoAnuncio(${anuncio.id_anuncio}, this.checked)">
                     </div>
                 </td>
-                <td class="text-end pe-4">
+                <td class="text-end pe-3">
                     <button class="btn btn-sm btn-light rounded-circle me-1" title="Editar" 
                         onclick='editarAnuncio(${JSON.stringify(anuncio).replace(/'/g, "&#39;")})'>
                         <i class="bi bi-pencil text-primary"></i>
@@ -969,11 +968,53 @@ async function cargarAnuncios() {
                     </button>
                 </td>
             `;
-            tbody.appendChild(tr);
-        });
+            return tr;
+        };
+
+        if (banners.length === 0) {
+            tbodyBanners.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted small">No hay banners publicados.</td></tr>';
+        } else {
+            banners.forEach(a => tbodyBanners.appendChild(renderFila(a)));
+        }
+
+        if (avisos.length === 0) {
+            tbodyAvisos.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted small">No hay avisos publicados.</td></tr>';
+        } else {
+            avisos.forEach(a => tbodyAvisos.appendChild(renderFila(a)));
+        }
+
+        // Inicializar SortableJS para Drag and Drop
+        const onReorder = async (evt) => {
+            const tbody = evt.from;
+            const rows = Array.from(tbody.children);
+            const updates = rows.map((tr, index) => ({
+                id: parseInt(tr.dataset.id),
+                orden: index
+            })).filter(u => !isNaN(u.id));
+
+            if (updates.length > 0) {
+                try {
+                    await fetch(getAnunciosApiUrl() + '/reorder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ updates })
+                    });
+                    // Opcional: mostrar un pequeño toast de éxito
+                } catch (err) {
+                    console.error("Error al reordenar", err);
+                }
+            }
+        };
+
+        if (typeof Sortable !== 'undefined') {
+            Sortable.create(tbodyBanners, { animation: 150, onEnd: onReorder });
+            Sortable.create(tbodyAvisos, { animation: 150, onEnd: onReorder });
+        }
+
     } catch (e) {
         console.error(e);
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Error al cargar anuncios.</td></tr>';
+        tbodyBanners.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Error al cargar.</td></tr>';
+        tbodyAvisos.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Error al cargar.</td></tr>';
     }
 }
 

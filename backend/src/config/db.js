@@ -37,6 +37,7 @@ pool.connect()
                     FOREIGN KEY(ID_AUTOR) REFERENCES USUARIO(ID_USUARIO)
                 );
             `);
+            await client.query('ALTER TABLE ANUNCIO ADD COLUMN IF NOT EXISTS ORDEN INTEGER DEFAULT 0;');
             await client.query(`
                 CREATE TABLE IF NOT EXISTS CONFIGURACION_GLOBAL (
                     CLAVE VARCHAR(50) PRIMARY KEY,

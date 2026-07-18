@@ -69,11 +69,26 @@ const eliminar = async (req, res) => {
     }
 };
 
+const reordenar = async (req, res) => {
+    try {
+        const { updates } = req.body;
+        if (!updates || !Array.isArray(updates)) {
+            return res.status(400).json({ mensaje: 'Datos inválidos' });
+        }
+        await anuncioModel.reorderAnuncios(updates);
+        res.json({ mensaje: 'Orden actualizado correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: 'Error al reordenar anuncios' });
+    }
+};
+
 module.exports = {
     obtenerActivos,
     obtenerTodos,
     crear,
     actualizar,
     toggleActivo,
-    eliminar
+    eliminar,
+    reordenar
 };

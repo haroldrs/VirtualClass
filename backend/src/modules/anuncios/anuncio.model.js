@@ -8,7 +8,7 @@ const obtenerAnunciosActivos = async () => {
         FROM ANUNCIO A
         LEFT JOIN USUARIO U ON A.ID_AUTOR = U.ID_USUARIO
         WHERE A.ACTIVO = TRUE
-        ORDER BY A.FECHA_PUBLICACION DESC
+        ORDER BY A.ORDEN ASC, A.FECHA_PUBLICACION DESC
         LIMIT 20;
     `;
     const { rows } = await pool.query(query);
@@ -22,7 +22,7 @@ const obtenerTodos = async () => {
                U.NOMBRES AS AUTOR_NOMBRES, U.APELLIDOS AS AUTOR_APELLIDOS
         FROM ANUNCIO A
         LEFT JOIN USUARIO U ON A.ID_AUTOR = U.ID_USUARIO
-        ORDER BY A.FECHA_PUBLICACION DESC;
+        ORDER BY A.ORDEN ASC, A.FECHA_PUBLICACION DESC;
     `;
     const { rows } = await pool.query(query);
     return rows;
@@ -64,11 +64,31 @@ const eliminarAnuncio = async (idAnuncio) => {
     return rows[0];
 };
 
+// Actualizar orden (admin)
+const reorderAnuncios = async (updates) => {
+    // updates es un array de { id: id_anuncio, orden: nuevo_orden }
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        for (const update of updates) {
+            await client.query('UPDATE ANUNCIO SET ORDEN = $1 WHERE ID_ANUNCIO = $2', [update.orden, update.id]);
+        }
+        await client.query('COMMIT');
+        return true;
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     obtenerAnunciosActivos,
     obtenerTodos,
     crearAnuncio,
     actualizarAnuncio,
     toggleActivo,
-    eliminarAnuncio
+    eliminarAnuncio,
+    reorderAnuncios
 };
