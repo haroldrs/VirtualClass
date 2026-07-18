@@ -15,6 +15,19 @@ const getDashboardStats = async () => {
     };
 };
 
+const getIncidencias = async () => {
+    const query = `
+        SELECT A.id_asesoria, A.motivo, A.fecha_hora, A.estado, 
+               U.nombres AS solicitante_nombres, U.apellidos AS solicitante_apellidos
+        FROM ASESORIA A
+        JOIN USUARIO U ON A.id_solicitante = U.id_usuario
+        WHERE A.estado = 'pendiente'
+        ORDER BY A.fecha_hora DESC;
+    `;
+    const res = await pool.query(query);
+    return res.rows;
+};
+
 // Usuarios
 const getAllUsers = async () => {
     const query = `
@@ -314,6 +327,7 @@ const updateConfig = async (config) => {
 
 module.exports = {
     getDashboardStats,
+    getIncidencias,
     getAllUsers,
     getRoles,
     createUser,

@@ -141,6 +141,36 @@ async function cargarEstadisticas() {
     } catch (error) { console.error(error); }
 }
 
+async function cargarIncidencias() {
+    const tbody = document.querySelector('#tablaIncidencias tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><div class="spinner-border text-primary" role="status"></div></td></tr>';
+    
+    try {
+        const response = await fetch(`${getApiUrl()}/incidencias`);
+        const incidencias = await response.json();
+        
+        if (!incidencias || incidencias.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i> No hay incidencias pendientes.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = incidencias.map(inc => {
+            const fecha = new Date(inc.fecha_hora).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' });
+            return `
+                <tr>
+                    <td><span class="text-muted small"><i class="bi bi-calendar me-1"></i>${fecha}</span></td>
+                    <td class="fw-semibold">${inc.solicitante_nombres} ${inc.solicitante_apellidos}</td>
+                    <td>${inc.motivo}</td>
+                    <td><span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span></td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger"><i class="bi bi-x-circle fs-3 d-block mb-2"></i> Error al cargar incidencias.</td></tr>';
+    }
+}
+
 // --- USUARIOS ---
 async function cargarUsuarios() {
     try {

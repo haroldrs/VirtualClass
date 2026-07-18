@@ -10,6 +10,15 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
+const getIncidencias = async (req, res) => {
+    try {
+        const incidencias = await adminModel.getIncidencias();
+        res.status(200).json(incidencias);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener incidencias', error: error.message });
+    }
+};
+
 const getAllUsers = async (req, res) => {
     try {
         const users = await adminModel.getAllUsers();
@@ -242,6 +251,7 @@ const updateConfig = async (req, res) => {
 
 module.exports = {
     getDashboardStats,
+    getIncidencias,
     getAllUsers,
     getRoles,
     createUser,
