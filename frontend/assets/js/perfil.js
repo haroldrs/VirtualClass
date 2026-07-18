@@ -105,51 +105,35 @@ async function renderizarReporteRendimiento(rol) {
     }
 }
 
-function renderReporteAlumno(container, evaluaciones) {
-    if (!evaluaciones || evaluaciones.length === 0) {
+function renderReporteAlumno(container, cursosData) {
+    if (!cursosData || cursosData.length === 0) {
         container.innerHTML = `
             <div class="text-center py-5">
                 <i class="bi bi-bar-chart text-muted" style="font-size:3rem;"></i>
-                <p class="text-muted mt-3">Aún no hay calificaciones registradas para mostrar tu rendimiento.</p>
+                <p class="text-muted mt-3">Aún no tienes cursos para mostrar tu rendimiento.</p>
             </div>
         `;
         return;
     }
-
-    // Procesar datos para obtener promedio por curso
-    const cursosMap = {};
-    evaluaciones.forEach(ev => {
-        if (!cursosMap[ev.curso]) {
-            cursosMap[ev.curso] = { sumaNotas: 0, sumaPorcentajes: 0, notasList: [] };
-        }
-        if (ev.calificacion !== null) {
-            const calif = parseFloat(ev.calificacion);
-            const porc = parseFloat(ev.porcentaje) / 100;
-            cursosMap[ev.curso].sumaNotas += (calif * porc);
-            cursosMap[ev.curso].sumaPorcentajes += porc;
-            cursosMap[ev.curso].notasList.push(calif);
-        }
-    });
 
     const labels = [];
     const dataAverages = [];
     let sumGlobal = 0;
     let countCursos = 0;
 
-    Object.keys(cursosMap).forEach(curso => {
-        labels.push(curso);
-        const data = cursosMap[curso];
-        // Calcular nota base 20 considerando solo lo evaluado
-        const prom = data.sumaPorcentajes > 0 ? (data.sumaNotas / data.sumaPorcentajes) : 0;
-        dataAverages.push(prom.toFixed(2));
-        if (prom > 0) {
+    cursosData.forEach(c => {
+        labels.push(`${c.curso} (Sec. ${c.seccion})`);
+        
+        let prom = 0;
+        if (c.promedio !== null && c.promedio !== 'DPI') {
+            prom = parseFloat(c.promedio);
             sumGlobal += prom;
             countCursos++;
         }
+        dataAverages.push(prom.toFixed(2));
     });
 
     const promGlobal = countCursos > 0 ? (sumGlobal / countCursos).toFixed(2) : '0.00';
-    const ultimasNotas = evaluaciones.filter(e => e.calificacion !== null).slice(-3).reverse();
 
     container.innerHTML = `
         <div class="row g-4 mb-4">
@@ -166,16 +150,18 @@ function renderReporteAlumno(container, evaluaciones) {
             <div class="col-lg-8">
                 <div class="card card-custom h-100 bg-white">
                     <div class="card-body p-4">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Últimas Calificaciones</h6>
-                        <ul class="list-group list-group-flush">
-                            ${ultimasNotas.length > 0 ? ultimasNotas.map(n => `
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-journal-check text-primary me-2"></i>Estado de los Cursos</h6>
+                        <ul class="list-group list-group-flush" style="max-height: 150px; overflow-y: auto;">
+                            ${cursosData.map(c => `
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 mb-1">
                                     <div>
-                                        <div class="fw-semibold small">${n.curso}</div>
+                                        <div class="fw-semibold small">${c.curso} <span class="text-muted">(Sec. ${c.seccion})</span></div>
                                     </div>
-                                    <span class="badge ${parseFloat(n.calificacion) >= 13 ? 'bg-success' : 'bg-danger'} rounded-pill px-3 py-2">${n.calificacion}</span>
+                                    <span class="badge ${c.desaprobadoPorFaltas || c.promedio === 'DPI' ? 'bg-dark' : (c.promedio !== null && parseFloat(c.promedio) >= 13 ? 'bg-success' : 'bg-danger')} rounded-pill px-3 py-2">
+                                        ${c.promedio === null ? 'S/N' : (c.promedio === 'DPI' ? 'DPI (Faltas)' : c.promedio)}
+                                    </span>
                                 </li>
-                            `).join('') : '<li class="list-group-item border-0 text-muted small">No hay evaluaciones recientes.</li>'}
+                            `).join('')}
                         </ul>
                     </div>
                 </div>
