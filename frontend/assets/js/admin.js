@@ -981,6 +981,8 @@ function limpiarModalAnuncio() {
     document.getElementById('formAnuncio').reset();
     document.getElementById('anuncioId').value = '';
     document.getElementById('anuncioImagenUrl').value = '';
+    document.getElementById('anuncioImagenFile').value = '';
+    document.getElementById('anuncioImagenStatus').innerText = 'Sube una imagen desde tu computadora. Se guardará automáticamente en Google Drive.';
     document.getElementById('modalAnuncioTitle').innerText = 'Nuevo Anuncio';
 }
 
@@ -991,19 +993,63 @@ function editarAnuncio(anuncio) {
     document.getElementById('anuncioNivel').value = anuncio.nivel;
     document.getElementById('anuncioContenido').value = anuncio.contenido;
     document.getElementById('anuncioImagenUrl').value = anuncio.imagen_url || '';
+    document.getElementById('anuncioImagenFile').value = '';
+    if (anuncio.imagen_url) {
+        document.getElementById('anuncioImagenStatus').innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Ya tiene una imagen adjunta. Sube una nueva para reemplazarla.</span>';
+    } else {
+        document.getElementById('anuncioImagenStatus').innerText = 'Sube una imagen desde tu computadora. Se guardará automáticamente en Google Drive.';
+    }
     new bootstrap.Modal(document.getElementById('modalAnuncio')).show();
 }
 
 async function guardarAnuncio(e) {
     e.preventDefault();
+    const btn = document.querySelector('#formAnuncio button[type="submit"]') || e.target;
+    const btnOriginalText = btn.innerText;
+
     const id = document.getElementById('anuncioId').value;
     const titulo = document.getElementById('anuncioTitulo').value.trim();
     const nivel = document.getElementById('anuncioNivel').value;
     const contenido = document.getElementById('anuncioContenido').value.trim();
-    const imagen_url = document.getElementById('anuncioImagenUrl').value.trim() || null;
+    let imagen_url = document.getElementById('anuncioImagenUrl').value.trim() || null;
+    const imagenFile = document.getElementById('anuncioImagenFile').files[0];
 
     // currentUser se obtiene de utils.js, ya estamos en zona logueada
     const idAutor = currentUser ? currentUser.id_usuario : null;
+
+    btn.disabled = true;
+
+    // 1. Subir la imagen si hay una nueva
+    if (imagenFile) {
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Subiendo...';
+        const formData = new FormData();
+        formData.append('archivo', imagenFile);
+
+        try {
+            const uploadRes = await fetch(`${getApiUrl()}/drive/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!uploadRes.ok) {
+                const text = await uploadRes.text();
+                throw new Error(`Error HTTP: ${uploadRes.status}`);
+            }
+            const uploadData = await uploadRes.json();
+            if (uploadData.success && uploadData.data && uploadData.data.id) {
+                imagen_url = `${getApiUrl()}/drive/view/${uploadData.data.id}`;
+            } else {
+                throw new Error(uploadData.message || 'Error al subir la imagen');
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('No se pudo subir la imagen a Drive. Detalle: ' + error.message);
+            btn.disabled = false;
+            btn.innerText = btnOriginalText;
+            return;
+        }
+    }
+
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Guardando Anuncio...';
 
     const body = JSON.stringify({ titulo, contenido, nivel, imagen_url, id_autor: idAutor });
     const method = id ? 'PUT' : 'POST';
@@ -1028,6 +1074,9 @@ async function guardarAnuncio(e) {
     } catch (e) {
         console.error(e);
         alert('Error de conexión');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = btnOriginalText;
     }
 }
 
