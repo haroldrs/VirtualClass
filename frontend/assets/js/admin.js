@@ -983,24 +983,62 @@ function limpiarModalAnuncio() {
     document.getElementById('anuncioImagenUrl').value = '';
     document.getElementById('anuncioImagenFile').value = '';
     document.getElementById('btnQuitarImagen').classList.add('d-none');
-    document.getElementById('anuncioImagenStatus').innerHTML = 'Sube una imagen desde tu computadora. Se guardará en Drive.<br><small class="text-muted">Dimensiones recomendadas: <strong>1200x400px (Banner)</strong> o <strong>1920x1080px (Diapositiva 16:9)</strong>. La imagen se ajustará automáticamente sin recortarse.</small>';
+    document.getElementById('anuncioImagenStatus').innerHTML = 'Sube una imagen desde tu computadora. Se guardará en Drive.<br><small class="text-muted">Dimensiones recomendadas: <strong>1200x400px (Banner)</strong> o <strong>1920x1080px (Diapositiva 16:9)</strong>.</small>';
     document.getElementById('modalAnuncioTitle').innerText = 'Nuevo Anuncio';
 }
 
+function prepararModalBanner() {
+    limpiarModalAnuncio();
+    document.getElementById('modalAnuncioTitle').innerText = 'Subir Nuevo Banner Visual';
+    
+    // Ocultar textos
+    document.getElementById('divAnuncioTextos').classList.add('d-none');
+    document.getElementById('anuncioTitulo').removeAttribute('required');
+    document.getElementById('anuncioContenido').removeAttribute('required');
+    // Valores por defecto
+    document.getElementById('anuncioTitulo').value = 'Banner Visual Institucional';
+    document.getElementById('anuncioContenido').value = 'Este es un anuncio gráfico.';
+    
+    // Mostrar imagen
+    document.getElementById('divAnuncioImagen').classList.remove('d-none');
+}
+
+function prepararModalAviso() {
+    limpiarModalAnuncio();
+    document.getElementById('modalAnuncioTitle').innerText = 'Escribir Nuevo Aviso';
+    
+    // Mostrar textos
+    document.getElementById('divAnuncioTextos').classList.remove('d-none');
+    document.getElementById('anuncioTitulo').setAttribute('required', 'true');
+    document.getElementById('anuncioContenido').setAttribute('required', 'true');
+    document.getElementById('anuncioTitulo').value = '';
+    document.getElementById('anuncioContenido').value = '';
+
+    // Ocultar imagen
+    document.getElementById('divAnuncioImagen').classList.add('d-none');
+}
+
 function editarAnuncio(anuncio) {
-    document.getElementById('modalAnuncioTitle').innerText = 'Editar Anuncio';
+    limpiarModalAnuncio();
+    const hasImage = anuncio.imagen_url && anuncio.imagen_url !== 'null' && anuncio.imagen_url.trim() !== '';
+
+    if (hasImage) {
+        prepararModalBanner();
+        document.getElementById('modalAnuncioTitle').innerText = 'Editar Banner Visual';
+    } else {
+        prepararModalAviso();
+        document.getElementById('modalAnuncioTitle').innerText = 'Editar Aviso';
+    }
+
     document.getElementById('anuncioId').value = anuncio.id_anuncio;
     document.getElementById('anuncioTitulo').value = anuncio.titulo;
     document.getElementById('anuncioNivel').value = anuncio.nivel;
     document.getElementById('anuncioContenido').value = anuncio.contenido;
     document.getElementById('anuncioImagenUrl').value = anuncio.imagen_url || '';
-    document.getElementById('anuncioImagenFile').value = '';
-    if (anuncio.imagen_url && anuncio.imagen_url !== 'null' && anuncio.imagen_url.trim() !== '') {
+    
+    if (hasImage) {
         document.getElementById('anuncioImagenStatus').innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Ya tiene una imagen adjunta. Sube una nueva para reemplazarla.</span>';
         document.getElementById('btnQuitarImagen').classList.remove('d-none');
-    } else {
-        document.getElementById('anuncioImagenStatus').innerHTML = 'Sube una imagen desde tu computadora. Se guardará en Drive.<br><small class="text-muted">Dimensiones recomendadas: <strong>1200x400px (Banner)</strong> o <strong>1920x1080px (Diapositiva 16:9)</strong>. La imagen se ajustará automáticamente sin recortarse.</small>';
-        document.getElementById('btnQuitarImagen').classList.add('d-none');
     }
     new bootstrap.Modal(document.getElementById('modalAnuncio')).show();
 }
