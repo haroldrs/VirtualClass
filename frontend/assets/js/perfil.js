@@ -5,6 +5,15 @@ const API_USUARIOS = 'https://virtualclass-sm1i.onrender.com/api/usuarios';
 document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) return;
 
+    // Manejar apertura de tab si viene con hash en la URL
+    if (window.location.hash === '#configuracion') {
+        const configTab = document.getElementById('configuracion-tab');
+        if (configTab) {
+            const tab = new bootstrap.Tab(configTab);
+            tab.show();
+        }
+    }
+
     await cargarDatosPerfil();
 
     const formPerfil = document.getElementById('formPerfil');
@@ -38,13 +47,14 @@ async function cargarDatosPerfil() {
 
             // Actualizar UI del header
             document.getElementById('profileFullName').innerText = `${data.nombres} ${data.apellidos}`;
-            document.getElementById('profileRoleBadge').innerText = data.rol || 'Estudiante';
+            const rolCapitalizado = (data.rol || 'Estudiante').charAt(0).toUpperCase() + (data.rol || 'Estudiante').slice(1);
+            document.getElementById('profileRoleBadge').innerText = rolCapitalizado;
             document.getElementById('profileEmailBadge').innerText = data.correo;
             
             const iniciales = (data.nombres.charAt(0) + data.apellidos.charAt(0)).toUpperCase();
             document.getElementById('profileInitialsBig').innerText = iniciales;
 
-            // Actualizar currentUser en localStorage (solo si cambiaron datos)
+            // Actualizar currentUser en localStorage
             currentUser.nombres = data.nombres;
             currentUser.apellidos = data.apellidos;
             currentUser.correo = data.correo;
@@ -53,6 +63,18 @@ async function cargarDatosPerfil() {
             // Re-renderizar barra superior por si cambió el nombre
             if(typeof renderizarPerfilUsuario === 'function') {
                 renderizarPerfilUsuario();
+            }
+
+            // Cargar estadística de cursos
+            try {
+                const respCursos = await fetch(`https://virtualclass-sm1i.onrender.com/api/cursos/mis-cursos/${currentUser.id_usuario}/${encodeURIComponent(currentUser.rol)}`);
+                if (respCursos.ok) {
+                    const cursos = await respCursos.json();
+                    const statElement = document.getElementById('statCursosCount');
+                    if (statElement) statElement.innerText = cursos.length;
+                }
+            } catch (err) {
+                console.error('Error al cargar cursos para estadísticas', err);
             }
         }
     } catch (error) {
