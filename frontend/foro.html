@@ -301,22 +301,23 @@
 
         <!-- ==================== VISTA 1: LISTA DE TEMAS ==================== -->
         <div id="vistaListaTemas">
-            <!-- Barra de herramientas: Selector + Búsqueda + Botón -->
-            <div class="row g-3 mb-4 align-items-center">
-                <div class="col-md-4 col-lg-3">
-                    <select id="foroSelector" class="form-select foro-selector">
-                        <option>Cargando foros...</option>
-                    </select>
-                </div>
-                <div class="col-md-4 col-lg-5">
-                    <div class="input-group bg-white rounded-3 shadow-sm">
+            <!-- Selector de cursos estilo Tabs (Pills) Horizontal -->
+            <div class="d-flex overflow-auto pb-2 mb-4 gap-2" id="forosTabsContainer" style="white-space: nowrap; scrollbar-width: thin;">
+                <!-- Cargado por JS -->
+                <span class="badge bg-secondary rounded-pill px-3 py-2">Cargando cursos...</span>
+            </div>
+
+            <!-- Barra de herramientas: Búsqueda + Botón -->
+            <div class="row g-3 mb-4 align-items-center justify-content-between">
+                <div class="col-md-7 col-lg-5">
+                    <div class="input-group bg-white rounded-pill shadow-sm overflow-hidden border">
                         <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control border-0 bg-transparent ps-0" placeholder="Buscar temas o palabras clave...">
+                        <input type="text" id="searchInput" class="form-control border-0 bg-transparent ps-0" placeholder="Buscar temas o palabras clave..." style="box-shadow: none;">
                     </div>
                 </div>
-                <div class="col-md-4 col-lg-4 text-md-end">
+                <div class="col-md-5 col-lg-4 text-md-end">
                     <button class="btn btn-primary rounded-pill fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#newTopicModal">
-                        <i class="bi bi-plus-lg me-1"></i> Publicar Nueva Duda
+                        <i class="bi bi-plus-lg me-1"></i> Publicar Consulta
                     </button>
                 </div>
             </div>

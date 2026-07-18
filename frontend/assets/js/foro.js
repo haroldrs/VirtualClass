@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 1. CARGAR FOROS DEL USUARIO
 // =============================================
 async function cargarForos() {
-    const foroSelector = document.getElementById('foroSelector');
+    const tabsContainer = document.getElementById('forosTabsContainer');
     const subtitulo = document.getElementById('foroSubtitulo');
 
     try {
@@ -62,6 +62,7 @@ async function cargarForos() {
 
         if (forosDelUsuario.length === 0) {
             subtitulo.textContent = 'No tienes foros disponibles';
+            if (tabsContainer) tabsContainer.innerHTML = '';
             document.getElementById('temasContainer').innerHTML = `
                 <div class="col-12 text-center py-5">
                     <i class="bi bi-chat-square-text text-muted" style="font-size: 3rem;"></i>
@@ -69,13 +70,6 @@ async function cargarForos() {
                 </div>`;
             return;
         }
-
-        // Llenar el selector de foros
-        foroSelector.innerHTML = forosDelUsuario.map(f =>
-            `<option value="${f.id_foro}" data-codigo="${f.codigo}" data-curso="${f.nombre_curso}">
-                ${f.codigo} - ${f.titulo_foro} (${f.total_temas} temas)
-            </option>`
-        ).join('');
 
         // Llenar el selector dentro del modal de nuevo tema
         const selectForoModal = document.getElementById('selectForoModal');
@@ -85,13 +79,6 @@ async function cargarForos() {
             ).join('');
         }
 
-        // Evento al cambiar de foro
-        foroSelector.addEventListener('change', () => {
-            const idForo = foroSelector.value;
-            const foro = forosDelUsuario.find(f => f.id_foro == idForo);
-            seleccionarForo(foro);
-        });
-
         // Seleccionar el primer foro automáticamente
         seleccionarForo(forosDelUsuario[0]);
 
@@ -100,10 +87,36 @@ async function cargarForos() {
     }
 }
 
+function renderForoTabs() {
+    const tabsContainer = document.getElementById('forosTabsContainer');
+    if (!tabsContainer) return;
+
+    tabsContainer.innerHTML = forosDelUsuario.map(f => {
+        const isActive = foroSeleccionado && foroSeleccionado.id_foro == f.id_foro;
+        const btnClass = isActive ? 'btn-primary shadow-sm fw-bold' : 'btn-outline-secondary bg-white text-dark border';
+        return `
+            <button class="btn ${btnClass} rounded-pill px-4 py-2 d-flex align-items-center flex-shrink-0 transition-all" 
+                    onclick="cambiarForo(${f.id_foro})">
+                <i class="bi ${isActive ? 'bi-folder-check' : 'bi-folder'} me-2"></i>
+                ${f.nombre_curso} <span class="badge ${isActive ? 'bg-white text-primary' : 'bg-secondary text-white'} ms-2 rounded-pill">${f.total_temas}</span>
+            </button>
+        `;
+    }).join('');
+}
+
+function cambiarForo(idForo) {
+    const foro = forosDelUsuario.find(f => f.id_foro == idForo);
+    if (foro) seleccionarForo(foro);
+}
+
 function seleccionarForo(foro) {
     foroSeleccionado = foro;
     const subtitulo = document.getElementById('foroSubtitulo');
-    subtitulo.textContent = `${foro.codigo} - ${foro.nombre_curso}`;
+    subtitulo.innerHTML = `Foro actual: <strong class="text-primary">${foro.codigo} - ${foro.nombre_curso}</strong>`;
+    
+    // Actualizar visualmente los tabs
+    renderForoTabs();
+    
     cargarTemas(foro.id_foro);
 
     // Limpiar búsqueda
