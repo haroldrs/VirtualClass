@@ -6,13 +6,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) return;
 
     // Manejar apertura de tab si viene con hash en la URL
-    if (window.location.hash === '#configuracion') {
-        const configTab = document.getElementById('configuracion-tab');
-        if (configTab) {
-            const tab = new bootstrap.Tab(configTab);
-            tab.show();
+    const switchTabByHash = () => {
+        if (window.location.hash === '#configuracion') {
+            const configTab = document.getElementById('configuracion-tab');
+            if (configTab) {
+                const tab = new bootstrap.Tab(configTab);
+                tab.show();
+            }
+        } else if (window.location.hash === '' || window.location.hash === '#resumen') {
+            const resumenTab = document.getElementById('resumen-tab');
+            if (resumenTab) {
+                const tab = new bootstrap.Tab(resumenTab);
+                tab.show();
+            }
         }
-    }
+    };
+
+    switchTabByHash();
+    window.addEventListener('hashchange', switchTabByHash);
 
     await cargarDatosPerfil();
 
