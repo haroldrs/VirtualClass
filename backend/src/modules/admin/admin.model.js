@@ -320,6 +320,35 @@ const generarReporteCSV = async (tipo) => {
         const { rows } = await pool.query(query);
         csv = 'NOMBRES,APELLIDOS,CORREO,ROL,ESTADO_CUENTA\n';
         rows.forEach(r => csv += `"${r.nombres}","${r.apellidos}","${r.correo}","${r.nombre_rol || 'Sin Rol'}","${r.estado}"\n`);
+    } else if (tipo === 'notas') {
+        const query = `
+            SELECT U.NOMBRES, U.APELLIDOS, U.CORREO, C.NOMBRE AS CURSO, CL.SECCION, CL.PERIODO, E.NOMBRE_EVA, N.CALIFICACION
+            FROM NOTA N
+            JOIN USUARIO U ON N.ID_USUARIO = U.ID_USUARIO
+            JOIN EVALUACION E ON N.ID_EVALUACION = E.ID_EVALUACION
+            JOIN CLASE CL ON E.ID_CLASE = CL.ID_CLASE
+            JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
+            ORDER BY CL.PERIODO DESC, C.NOMBRE, U.APELLIDOS, E.NOMBRE_EVA
+        `;
+        const { rows } = await pool.query(query);
+        csv = 'ALUMNO_NOMBRES,ALUMNO_APELLIDOS,CORREO,CURSO,SECCION,PERIODO,EVALUACION,CALIFICACION\n';
+        rows.forEach(r => csv += `"${r.nombres}","${r.apellidos}","${r.correo}","${r.curso}","${r.seccion}","${r.periodo}","${r.nombre_eva}","${r.calificacion}"\n`);
+    } else if (tipo === 'asistencias') {
+        const query = `
+            SELECT U.NOMBRES, U.APELLIDOS, U.CORREO, C.NOMBRE AS CURSO, CL.SECCION, CL.PERIODO, MC.TITULO AS MODULO, A.FECHA, A.ESTADO
+            FROM ASISTENCIA A
+            JOIN USUARIO U ON A.ID_USUARIO = U.ID_USUARIO
+            JOIN MODULO_CLASE MC ON A.ID_MODULO = MC.ID_MODULO
+            JOIN CLASE CL ON MC.ID_CLASE = CL.ID_CLASE
+            JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
+            ORDER BY CL.PERIODO DESC, C.NOMBRE, A.FECHA DESC, U.APELLIDOS
+        `;
+        const { rows } = await pool.query(query);
+        csv = 'ALUMNO_NOMBRES,ALUMNO_APELLIDOS,CORREO,CURSO,SECCION,PERIODO,MODULO_CLASE,FECHA,ESTADO_ASISTENCIA\n';
+        rows.forEach(r => {
+            const fechaStr = r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : '';
+            csv += `"${r.nombres}","${r.apellidos}","${r.correo}","${r.curso}","${r.seccion}","${r.periodo}","${r.modulo}","${fechaStr}","${r.estado}"\n`;
+        });
     }
     return csv;
 };
