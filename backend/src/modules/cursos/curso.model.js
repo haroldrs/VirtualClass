@@ -48,8 +48,8 @@ const obtenerCursosDisponibles = async (idUsuario) => {
         JOIN CURSO C ON CL.ID_CURSO = C.ID_CURSO
         LEFT JOIN CLASE_DOCENTE CD ON CL.ID_CLASE = CD.ID_CLASE
         LEFT JOIN USUARIO U ON CD.ID_USUARIO = U.ID_USUARIO
-        LEFT JOIN MATRICULA M ON M.ID_CLASE = CL.ID_CLASE AND M.ID_USUARIO = $1 AND M.ESTADO_MATRICULA = 'ACTIVO'
-        WHERE CL.PERIODO = $2 AND C.ESTADO = 'Activo' AND CL.ESTADO = 'Activo';
+        LEFT JOIN MATRICULA M ON M.ID_CLASE = CL.ID_CLASE AND M.ID_USUARIO = $1 AND M.ESTADO_MATRICULA ILIKE 'ACTIVO'
+        WHERE CL.PERIODO = $2 AND C.ESTADO ILIKE 'ACTIVO' AND CL.ESTADO ILIKE 'ACTIVO';
     `;
     const { rows } = await pool.query(query, [idUsuario, periodo]);
     return rows;
