@@ -247,6 +247,12 @@ const assignClassTeacher = async (idClase, idDocenteNuevo) => {
     return result.rows[0];
 };
 
+const removeTeacherFromClass = async (idClase, idUsuario) => {
+    const query = 'DELETE FROM CLASE_DOCENTE WHERE ID_CLASE = $1 AND ID_USUARIO = $2 RETURNING *';
+    const result = await pool.query(query, [idClase, idUsuario]);
+    return result.rows[0];
+};
+
 const getClassParticipants = async (idClase) => {
     // Traer docentes
     const docentesQuery = `
@@ -408,6 +414,7 @@ module.exports = {
     getAvailableClasses,
     enrollStudent,
     assignClassTeacher,
+    removeTeacherFromClass,
     getClassParticipants,
     changeEnrollmentStatus,
     generarReporteCSV,

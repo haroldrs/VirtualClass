@@ -716,7 +716,16 @@ async function cargarDatosMatricula() {
                 const data = await res.json();
 
                 listD.innerHTML = data.docentes.length > 0
-                    ? data.docentes.map(d => `<li class="list-group-item">${d.nombres} ${d.apellidos} <span class="badge bg-primary float-end">Docente</span></li>`).join('')
+                    ? data.docentes.map(d => `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            ${d.nombres} ${d.apellidos}
+                            <div>
+                                <span class="badge bg-primary me-2">Docente</span>
+                                <button class="btn btn-sm btn-outline-danger" onclick="desasignarDocente(${idC}, ${d.id_usuario})">
+                                    <i class="bi bi-x-circle"></i> Retirar
+                                </button>
+                            </div>
+                        </li>`).join('')
                     : '<li class="list-group-item text-muted">No hay docentes asignados.</li>';
 
                 listA.innerHTML = data.alumnos.length > 0
@@ -772,6 +781,24 @@ async function cargarDatosMatricula() {
             } catch (e) { console.error(e); }
         };
     } catch (e) { console.error(e); }
+}
+
+async function desasignarDocente(idClase, idDocente) {
+    if (!confirm('¿Estás seguro de quitar a este docente de la clase?')) return;
+    try {
+        const res = await fetch(`${getApiUrl()}/clases/${idClase}/docente/${idDocente}`, { method: 'DELETE' });
+        if (res.ok) {
+            alert('Docente removido de la clase');
+            agregarLog('Admin', `Docente removido de clase ${idClase}`, 'Completado', 'bg-warning');
+            const selectClase = document.getElementById('selectClaseMatricula');
+            if (selectClase) selectClase.dispatchEvent(new Event('change'));
+        } else {
+            alert('Error al remover el docente');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error de red al intentar remover el docente');
+    }
 }
 
 async function cambiarEstadoMatricula(idClase, idUsuario, nuevoEstado) {

@@ -28,6 +28,7 @@ router.put('/clases/:id/estado', adminController.changeClassStatus);
 router.get('/clases-disponibles', adminController.getAvailableClasses);
 router.get('/clases-disponibles/:id/participantes', adminController.getClassParticipants);
 router.put('/clases/:id/docente', adminController.assignClassTeacher);
+router.delete('/clases/:id/docente/:idUsuario', adminController.removeTeacherFromClass);
 router.put('/clases/:id/alumnos/:idUsuario/estado', adminController.changeEnrollmentStatus);
 
 // Matriculación

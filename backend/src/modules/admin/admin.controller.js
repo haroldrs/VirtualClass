@@ -225,6 +225,16 @@ const assignClassTeacher = async (req, res) => {
     }
 };
 
+const removeTeacherFromClass = async (req, res) => {
+    const { id, idUsuario } = req.params; // id es ID_CLASE
+    try {
+        await adminModel.removeTeacherFromClass(id, idUsuario);
+        res.status(200).json({ mensaje: 'Docente retirado de la clase correctamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al retirar docente', error: error.message });
+    }
+};
+
 const changeEnrollmentStatus = async (req, res) => {
     const { id, idUsuario } = req.params; // id es ID_CLASE
     const { estado } = req.body;
@@ -289,6 +299,7 @@ module.exports = {
     enrollStudent,
     getClassParticipants,
     assignClassTeacher,
+    removeTeacherFromClass,
     changeEnrollmentStatus,
     generarReporteCSV,
     getConfig,
