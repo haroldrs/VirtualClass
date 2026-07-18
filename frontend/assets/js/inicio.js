@@ -68,25 +68,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const nivel = getBadge(anuncio.nivel);
                     const autorText = anuncio.autor_nombres ? `${anuncio.autor_nombres} ${anuncio.autor_apellidos}` : 'Administración';
 
-                    indicatorsHtml += `<button type="button" data-bs-target="#anunciosCarousel" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''} bg-light"></button>`;
+                    indicatorsHtml += `<button type="button" data-bs-target="#anunciosCarousel" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''} bg-secondary"></button>`;
 
                     innerHtml += `
                         <div class="carousel-item ${index === 0 ? 'active' : ''}">
-                            <div class="card border-0 shadow-sm mx-auto position-relative" style="overflow:hidden; border-radius:12px; max-width:100%; height: 400px; background-color: #000;">
-                                <!-- Imagen de fondo desenfocada -->
-                                <div style="position: absolute; top: -10%; left: -10%; right: -10%; bottom: -10%; background-image: url('${anuncio.imagen_url}'); background-size: cover; background-position: center; filter: blur(25px) brightness(0.6); z-index: 1;"></div>
-                                
-                                <!-- Imagen principal nítida -->
-                                <img src="${anuncio.imagen_url}" alt="Anuncio" style="position: relative; width: 100%; height: 100%; object-fit: contain; z-index: 2;">
-                                
-                                <div class="card-img-overlay d-flex flex-column justify-content-end p-0" style="z-index: 3;">
-                                    <div style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 60%, transparent 100%); padding: 3rem 2rem 1.5rem 2rem;">
-                                        <div class="d-flex align-items-center mb-2">
+                            <div class="card border-0 shadow-sm mx-auto" style="overflow:hidden; border-radius:12px; max-width:100%;">
+                                <div class="row g-0">
+                                    <div class="col-lg-7 position-relative" style="background-color: #000; min-height: 400px;">
+                                        <!-- Imagen de fondo desenfocada -->
+                                        <div style="position: absolute; top: -10%; left: -10%; right: -10%; bottom: -10%; background-image: url('${anuncio.imagen_url}'); background-size: cover; background-position: center; filter: blur(25px) brightness(0.6); z-index: 1;"></div>
+                                        
+                                        <!-- Imagen principal nítida -->
+                                        <img src="${anuncio.imagen_url}" alt="Anuncio" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2;">
+                                    </div>
+                                    <div class="col-lg-5 bg-white d-flex flex-column justify-content-center p-4 p-xl-5" style="min-height: 300px;">
+                                        <div class="d-flex align-items-center mb-3">
                                             <span class="badge rounded-pill ${nivel.badgeClass} px-3 py-2 me-3"><i class="bi ${nivel.icon} me-1"></i>${nivel.label}</span>
-                                            <small class="text-light"><i class="bi bi-calendar3 me-1"></i>${fechaStr}</small>
+                                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${fechaStr}</small>
                                         </div>
-                                        <h4 class="card-title fw-bold mb-2 text-white">${anuncio.titulo}</h4>
-                                        <p class="card-text mb-0 text-light" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${anuncio.contenido}</p>
+                                        <h3 class="fw-bold mb-3 text-dark">${anuncio.titulo}</h3>
+                                        <p class="text-secondary mb-4" style="line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">${anuncio.contenido}</p>
+                                        <div class="d-flex align-items-center mt-auto">
+                                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-weight: 700;">
+                                                ${autorText.charAt(0)}
+                                            </div>
+                                            <span class="text-muted small">Publicado por <strong>${autorText}</strong></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
