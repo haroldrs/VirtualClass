@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <button type="button" data-bs-target="#anunciosCarousel" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''} bg-dark"></button>
                 `;
 
-                const imageHtml = anuncio.imagen_url 
+                const hasImage = anuncio.imagen_url && anuncio.imagen_url !== 'null' && anuncio.imagen_url.trim() !== '';
+                const imageHtml = hasImage 
                     ? `<img src="${anuncio.imagen_url}" class="card-img-top" alt="Anuncio" style="max-height: 250px; object-fit: cover; border-radius: 12px 12px 0 0;">` 
                     : '';
 
