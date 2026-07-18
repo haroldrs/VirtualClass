@@ -614,6 +614,13 @@ async function cambiarEstadoClase(idClase, nuevoEstado, nombreCurso) {
 function abrirModalCrearClase(idCurso, nombreCurso) {
     document.getElementById('claseIdCurso').value = idCurso;
     document.getElementById('claseNombreCurso').value = nombreCurso;
+    
+    // Autocompletar el periodo actual activo desde la configuración global
+    const configPeriodo = document.getElementById('configPeriodo');
+    if (configPeriodo && configPeriodo.value) {
+        document.getElementById('clasePeriodo').value = configPeriodo.value;
+    }
+
     const modalEl = document.getElementById('modalCrearClase');
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
