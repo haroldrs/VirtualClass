@@ -72,35 +72,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     innerHtml += `
                         <div class="carousel-item ${index === 0 ? 'active' : ''}">
-                            <div class="d-flex flex-column align-items-end mx-auto" style="max-width: 100%;">
-                                
-                                <!-- Rectángulo pequeño de información superior derecha -->
-                                <div class="card border-0 shadow-sm mb-3" style="width: 100%; max-width: 480px; border-radius: 12px; align-self: flex-end;">
-                                    <div class="card-body p-3 p-md-4">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="badge rounded-pill ${nivel.badgeClass} px-3 py-1"><i class="bi ${nivel.icon} me-1"></i>${nivel.label}</span>
-                                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${fechaStr}</small>
-                                        </div>
-                                        <h5 class="fw-bold mb-2 text-dark">${anuncio.titulo}</h5>
-                                        <p class="text-secondary mb-2 small" style="line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${anuncio.contenido}</p>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 25px; height: 25px; font-weight: 700; font-size: 0.75rem;">
-                                                ${autorText.charAt(0)}
-                                            </div>
-                                            <span class="text-muted" style="font-size: 0.8rem;">Por <strong>${autorText}</strong></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Rectángulo principal para la imagen debajo -->
+                            <div class="d-flex flex-column align-items-center mx-auto" style="max-width: 100%;">
+                                <!-- Rectángulo principal exclusivo para la imagen -->
                                 <div class="card border-0 shadow-sm w-100 position-relative" style="overflow:hidden; border-radius:12px; height: 400px; background-color: #000;">
                                     <!-- Imagen de fondo desenfocada -->
                                     <div style="position: absolute; top: -10%; left: -10%; right: -10%; bottom: -10%; background-image: url('${anuncio.imagen_url}'); background-size: cover; background-position: center; filter: blur(25px) brightness(0.6); z-index: 1;"></div>
                                     
                                     <!-- Imagen principal nítida -->
-                                    <img src="${anuncio.imagen_url}" alt="Anuncio" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2;">
+                                    <img src="${anuncio.imagen_url}" alt="${anuncio.titulo}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2;" title="${anuncio.titulo}">
                                 </div>
-
                             </div>
                         </div>
                     `;
