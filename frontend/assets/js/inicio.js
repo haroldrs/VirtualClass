@@ -95,14 +95,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
 
                 finalHtml += `
-                    <div id="anunciosCarousel" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="5000">
-                        <div class="carousel-indicators" style="bottom: 10px;">${indicatorsHtml}</div>
+                    <div id="anunciosCarousel" class="carousel slide mb-5">
+                        <div class="carousel-indicators" style="bottom: 10px; z-index: 10;">${indicatorsHtml}</div>
                         <div class="carousel-inner" style="border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">${innerHtml}</div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#anunciosCarousel" data-bs-slide="prev" style="width: 8%;">
+                        <button class="carousel-control-prev" type="button" data-bs-target="#anunciosCarousel" data-bs-slide="prev" style="width: 8%; z-index: 10;">
                             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                             <span class="visually-hidden">Anterior</span>
                         </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#anunciosCarousel" data-bs-slide="next" style="width: 8%;">
+                        <button class="carousel-control-next" type="button" data-bs-target="#anunciosCarousel" data-bs-slide="next" style="width: 8%; z-index: 10;">
                             <span class="carousel-control-next-icon" aria-hidden="true"></span>
                             <span class="visually-hidden">Siguiente</span>
                         </button>
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const carouselElement = document.getElementById('anunciosCarousel');
                 if (carouselElement && typeof bootstrap !== 'undefined') {
                     new bootstrap.Carousel(carouselElement, {
-                        interval: 5000,
+                        interval: 3500, // Lo bajamos de 5000 a 3500
                         ride: 'carousel'
                     });
                 }
