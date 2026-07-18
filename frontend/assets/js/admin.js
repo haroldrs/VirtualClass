@@ -1026,7 +1026,8 @@ async function guardarAnuncio(e) {
         formData.append('archivo', imagenFile);
 
         try {
-            const uploadRes = await fetch(`${getApiUrl()}/drive/upload`, {
+            const baseUrl = getApiUrl().replace('/admin', '');
+            const uploadRes = await fetch(`${baseUrl}/drive/upload`, {
                 method: 'POST',
                 body: formData
             });
@@ -1036,7 +1037,7 @@ async function guardarAnuncio(e) {
             }
             const uploadData = await uploadRes.json();
             if (uploadData.success && uploadData.data && uploadData.data.id) {
-                imagen_url = `${getApiUrl()}/drive/view/${uploadData.data.id}`;
+                imagen_url = `${baseUrl}/drive/view/${uploadData.data.id}`;
             } else {
                 throw new Error(uploadData.message || 'Error al subir la imagen');
             }
