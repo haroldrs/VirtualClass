@@ -102,52 +102,72 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
             }
 
-            // 2. LISTA EN GRILLA PARA ANUNCIOS DE SOLO TEXTO
+            // 2. CARRUSEL PARA ANUNCIOS DE SOLO TEXTO
             if (anunciosTexto.length > 0) {
-                let textoHtml = '<div class="row g-4">';
-                anunciosTexto.forEach(anuncio => {
+                let textoIndicatorsHtml = '';
+                let textoInnerHtml = '';
+                
+                anunciosTexto.forEach((anuncio, index) => {
                     const fechaStr = generarFecha(anuncio.fecha_publicacion);
                     const nivel = getBadge(anuncio.nivel);
                     const autorText = anuncio.autor_nombres ? `${anuncio.autor_nombres} ${anuncio.autor_apellidos}` : 'Administración';
 
-                    textoHtml += `
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card h-100 anuncio-card anuncio-nivel-${anuncio.nivel} border-0 shadow-sm" style="animation:none;">
-                                <div class="card-body p-4 d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    textoIndicatorsHtml += `<button type="button" data-bs-target="#carouselTexto" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''} bg-secondary"></button>`;
+
+                    textoInnerHtml += `
+                        <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                            <div class="card anuncio-card anuncio-nivel-${anuncio.nivel} border-0 shadow-sm mx-auto mb-4" style="animation:none; max-width: 850px;">
+                                <div class="card-body p-4 p-md-5 d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-4">
                                         <span class="badge rounded-pill ${nivel.badgeClass} px-3 py-2"><i class="bi ${nivel.icon} me-1"></i>${nivel.label}</span>
-                                        <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-calendar3 me-1"></i>${fechaStr}</span>
+                                        <span class="text-muted" style="font-size: 0.85rem;"><i class="bi bi-calendar3 me-1"></i>${fechaStr}</span>
                                     </div>
-                                    <h5 class="fw-bold text-dark mb-3">${anuncio.titulo}</h5>
-                                    <p class="text-muted mb-4 flex-grow-1" style="line-height: 1.6;">${anuncio.contenido}</p>
+                                    <h4 class="fw-bold text-dark mb-3">${anuncio.titulo}</h4>
+                                    <p class="text-secondary mb-4 flex-grow-1" style="line-height: 1.6; font-size: 1.05rem;">${anuncio.contenido}</p>
                                     <div class="d-flex align-items-center pt-3 border-top mt-auto">
-                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 0.7rem; font-weight: 700;">
+                                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: 700; font-size: 1.1rem;">
                                             ${autorText.charAt(0)}
                                         </div>
-                                        <span class="text-muted small">Por <strong>${autorText}</strong></span>
+                                        <span class="text-muted">Por <strong>${autorText}</strong></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     `;
                 });
-                textoHtml += '</div>';
+
                 finalHtml += `
-                    <h5 class="fw-bold text-secondary mb-4 mt-2"><i class="bi bi-journal-text me-2"></i>Avisos Recientes</h5>
-                    ${textoHtml}
+                    <h5 class="fw-bold text-secondary mb-4 mt-4"><i class="bi bi-journal-text me-2"></i>Avisos Recientes</h5>
+                    <div id="carouselTexto" class="carousel carousel-dark slide mb-4">
+                        <div class="carousel-indicators" style="bottom: -15px; z-index: 10;">${textoIndicatorsHtml}</div>
+                        <div class="carousel-inner px-2 py-3">${textoInnerHtml}</div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselTexto" data-bs-slide="prev" style="width: 8%; z-index: 10;">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselTexto" data-bs-slide="next" style="width: 8%; z-index: 10;">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                    </div>
                 `;
             }
 
             anunciosContainer.innerHTML = finalHtml;
 
-            // Inicializar carrusel dinámicamente si existe (necesario cuando se inyecta HTML asíncronamente)
-            if (anunciosConImagen.length > 0) {
-                const carouselElement = document.getElementById('anunciosCarousel');
-                if (carouselElement && typeof bootstrap !== 'undefined') {
-                    new bootstrap.Carousel(carouselElement, {
-                        interval: 3500, // Lo bajamos de 5000 a 3500
-                        ride: 'carousel'
-                    });
+            // Inicializar carruseles dinámicamente
+            if (typeof bootstrap !== 'undefined') {
+                if (anunciosConImagen.length > 0) {
+                    const carouselElement = document.getElementById('anunciosCarousel');
+                    if (carouselElement) {
+                        new bootstrap.Carousel(carouselElement, { interval: 3500, ride: 'carousel' });
+                    }
+                }
+                if (anunciosTexto.length > 0) {
+                    const carouselTextoElement = document.getElementById('carouselTexto');
+                    if (carouselTextoElement) {
+                        new bootstrap.Carousel(carouselTextoElement, { interval: 4500, ride: 'carousel' });
+                    }
                 }
             }
 
